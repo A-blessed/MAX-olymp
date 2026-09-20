@@ -1,0 +1,24 @@
+# Контекст сборки — каталог backend/. Всё лишнее сюда попадать не должно:
+# это и время сборки, и риск утащить секреты в образ.
+
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+.venv/
+venv/
+
+.git/
+.gitignore
+.idea/
+.vscode/
+*.log

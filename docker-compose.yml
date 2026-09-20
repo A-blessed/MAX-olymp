@@ -1,0 +1,70 @@
+# Локальный запуск всех компонентов одной командой:
+#
+#   docker compose up --build
+#
+# Поднимаются два сервиса: Postgres и бэкенд. Туннель до публичного HTTPS
+# (ngrok и аналоги) в Docker не воспроизводится и описан отдельно в README.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Наружу — только чтобы можно было заглянуть в базу клиентом.
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      target: runtime
+    env_file:
+      # required: false — первый запуск не падает, если .env ещё не создан.
+      - path: .env
+        required: false
+    environment:
+      # Адрес базы собирается здесь: внутри сети compose хост — имя сервиса.
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+      EXTRA_CA_CERTS_DIR: /app/certs
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Сертификаты Минцифры подключаются томом, а не копируются в образ:
+      # их можно заменить без пересборки, и они не уезжают вместе с образом.
+      - ./certs:/app/certs:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  # Прогон тестов: docker compose --profile test run --rm tests
+  # В обычный `up` не попадает и базу не требует.
+  tests:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: dev
+    command: ["pytest"]
+
+volumes:
+  pgdata:
