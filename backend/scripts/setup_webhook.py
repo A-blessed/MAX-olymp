@@ -5,8 +5,8 @@
     docker compose run --rm backend python -m scripts.setup_webhook --delete
 
 Адрес берётся из PUBLIC_BASE_URL и WEBHOOK_PATH. При смене адреса
-туннеля подписку нужно перерегистрировать: бесплатный тариф ngrok выдаёт
-новый домен при каждом перезапуске.
+туннеля подписку нужно перерегистрировать — иначе события продолжат
+уходить на старый адрес.
 """
 
 from __future__ import annotations
