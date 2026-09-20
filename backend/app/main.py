@@ -20,6 +20,7 @@ from typing import Any, AsyncIterator, Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.catalog import router as catalog_router
 from .api.router import router as api_router
 from .bot.router import router as bot_router
 from .config import get_settings
@@ -99,6 +100,7 @@ def create_app() -> FastAPI:
 
     app.include_router(bot_router)
     app.include_router(api_router)
+    app.include_router(catalog_router)
 
     @app.get("/health", tags=["service"], summary="Проверка живости")
     async def health() -> Dict[str, Any]:

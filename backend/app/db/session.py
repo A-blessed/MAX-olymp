@@ -10,6 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from ..config import get_settings
 from .models import Base
 
+# Импорт ради регистрации таблиц в метаданных Base: без него create_all
+# не увидит модели каталога и не создаст их.
+from ..catalog import models as _catalog_models  # noqa: F401
+
 logger = logging.getLogger(__name__)
 
 _engine: Optional[AsyncEngine] = None

@@ -19,6 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY scripts ./scripts
+# Выгрузка источника едет в образе: проверка решения должна
+# воспроизводиться одной командой, без ручного подкладывания файлов.
+COPY data ./data
 
 # Каталог для сертификатов Минцифры. В compose сюда монтируется ./certs.
 RUN mkdir -p /app/certs
