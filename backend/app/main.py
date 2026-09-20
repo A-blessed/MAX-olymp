@@ -89,13 +89,19 @@ def create_app() -> FastAPI:
     )
 
     # Мини-приложение открывается с другого origin, поэтому CORS нужен.
-    # Заголовок Authorization относится к небезопасным — разрешаем явно.
+    #
+    # Заголовки разрешаем любые. Жёсткий список тут не защита — доступ
+    # ограничивают origin и подпись данных запуска, — зато он ломается,
+    # как только между фронтендом и сервером появляется прокси со своим
+    # заголовком. Ровно так и происходит с туннелем ngrok: он требует
+    # `ngrok-skip-browser-warning`, браузер спрашивает разрешение на него
+    # в preflight и получает 400, после чего ни один запрос не проходит.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
         allow_credentials=False,
         allow_methods=["*"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["*"],
     )
 
     app.include_router(bot_router)
