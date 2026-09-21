@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 from enum import Enum
-from typing import Optional
+from typing import Iterable, Optional
 
 from .dates import Precision
 from .models import Stage
@@ -89,3 +89,26 @@ def is_plannable(stage: Stage) -> bool:
     только месяц, в него попасть не может.
     """
     return stage.starts_on is not None and stage.start_precision is Precision.DAY
+
+
+def pick_next_stage(stages: Iterable[Stage], today: Optional[date] = None) -> Optional[Stage]:
+    """Ближайший идущий или предстоящий этап — для подписи на карточке.
+
+    Этапы без точного дня участвуют, но уступают точным: подпись
+    «до этапа N дней» полезнее, чем «март 2027».
+    """
+    today = today or date.today()
+    candidates = list(stages)
+
+    active = [s for s in candidates if stage_status(s, today) is StageStatus.ACTIVE]
+    if active:
+        return min(active, key=lambda s: s.position)
+
+    upcoming = [
+        s
+        for s in candidates
+        if stage_status(s, today) is StageStatus.UPCOMING and s.starts_on is not None
+    ]
+    if not upcoming:
+        return None
+    return min(upcoming, key=lambda s: (not is_plannable(s), s.starts_on, s.position))

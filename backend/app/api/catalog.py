@@ -26,9 +26,12 @@ from ..catalog.presentation import (
     StageStatus,
     days_until_start,
     is_plannable,
+    pick_next_stage,
     stage_status,
 )
+from ..clock import today as app_today
 from ..db.models import User
+from ..personal.models import SavedOlympiad
 from ..db.session import get_session
 from ..security.deps import get_current_user
 
@@ -93,6 +96,8 @@ class OlympiadListItem(BaseModel):
     source_url: str
     # Ближайший идущий или предстоящий этап — для подписи на карточке.
     next_stage: Optional[StageOut] = None
+    # Добавлена ли в «Мои олимпиады»: кнопка «Буду писать» / «✓ Добавлено».
+    saved: bool = False
 
 
 class OlympiadDetail(OlympiadListItem):
@@ -110,29 +115,21 @@ class OlympiadPage(BaseModel):
     offset: int
 
 
-def _pick_next_stage(stages: List[Stage], today: date) -> Optional[Stage]:
-    """Ближайший идущий или предстоящий этап.
-
-    Этапы без точного дня участвуют, но уступают точным: подпись
-    «до этапа N дней» полезнее, чем «март 2027».
-    """
-    active = [s for s in stages if stage_status(s, today) is StageStatus.ACTIVE]
-    if active:
-        return active[0]
-
-    upcoming = [
-        s
-        for s in stages
-        if stage_status(s, today) is StageStatus.UPCOMING and s.starts_on is not None
-    ]
-    if not upcoming:
-        return None
-    upcoming.sort(key=lambda s: (not is_plannable(s), s.starts_on))
-    return upcoming[0]
+async def _saved_ids(session: AsyncSession, user_id: int, olympiad_ids: List[int]) -> set:
+    """Какие из олимпиад пользователь уже добавил к себе."""
+    if not olympiad_ids:
+        return set()
+    rows = await session.scalars(
+        select(SavedOlympiad.olympiad_id).where(
+            SavedOlympiad.user_id == user_id,
+            SavedOlympiad.olympiad_id.in_(olympiad_ids),
+        )
+    )
+    return set(rows)
 
 
-def _to_list_item(olympiad: Olympiad, today: date) -> OlympiadListItem:
-    next_stage = _pick_next_stage(list(olympiad.stages), today)
+def _to_list_item(olympiad: Olympiad, today: date, saved: bool = False) -> OlympiadListItem:
+    next_stage = pick_next_stage(olympiad.stages, today)
     return OlympiadListItem(
         id=olympiad.id,
         name=olympiad.name,
@@ -142,6 +139,7 @@ def _to_list_item(olympiad: Olympiad, today: date) -> OlympiadListItem:
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         next_stage=StageOut.build(next_stage, today) if next_stage else None,
+        saved=saved,
     )
 
 
@@ -153,10 +151,10 @@ async def list_olympiads(
     sort: SortOrder = Query(default=SortOrder.URGENCY),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> OlympiadPage:
-    today = date.today()
+    today = app_today()
 
     filters = []
     if q:
@@ -193,8 +191,9 @@ async def list_olympiads(
         )
         statement = statement.order_by(nearest.is_(None), nearest, Olympiad.name)
 
-    result = await session.scalars(statement.limit(limit).offset(offset))
-    items = [_to_list_item(olympiad, today) for olympiad in result]
+    olympiads = list(await session.scalars(statement.limit(limit).offset(offset)))
+    saved = await _saved_ids(session, user.id, [o.id for o in olympiads])
+    items = [_to_list_item(o, today, saved=o.id in saved) for o in olympiads]
 
     return OlympiadPage(items=items, total=total or 0, limit=limit, offset=offset)
 
@@ -206,7 +205,7 @@ async def list_olympiads(
 )
 async def get_olympiad(
     olympiad_id: int,
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> OlympiadDetail:
     olympiad = await session.scalar(
@@ -219,8 +218,9 @@ async def get_olympiad(
             status_code=status.HTTP_404_NOT_FOUND, detail="Олимпиада не найдена"
         )
 
-    today = date.today()
-    base = _to_list_item(olympiad, today)
+    today = app_today()
+    saved = await _saved_ids(session, user.id, [olympiad.id])
+    base = _to_list_item(olympiad, today, saved=olympiad.id in saved)
 
     return OlympiadDetail(
         **base.model_dump(),

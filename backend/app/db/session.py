@@ -13,6 +13,7 @@ from .models import Base
 # Импорт ради регистрации таблиц в метаданных Base: без него create_all
 # не увидит модели каталога и не создаст их.
 from ..catalog import models as _catalog_models  # noqa: F401
+from ..personal import models as _personal_models  # noqa: F401
 
 logger = logging.getLogger(__name__)
 

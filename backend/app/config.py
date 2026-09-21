@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # --- Окружение ---
     app_env: str = Field(default="development", description="development | production")
     log_level: str = Field(default="INFO")
+    app_timezone: str = Field(
+        default="Europe/Moscow",
+        description="Часовой пояс, в котором считается «сегодня» для этапов и новостей.",
+    )
 
     # --- MAX ---
     bot_token: str = Field(
