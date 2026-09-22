@@ -1,7 +1,21 @@
 // ============ Инициализация VK Bridge ============
-if (window.vkBridge) {
-    vkBridge.send('VKWebAppInit');
+const WebApp = window.WebApp;
+
+if (WebApp) {
+  // initDataUnsafe — только для интерфейса, не для валидации
+  const user = WebApp.initDataUnsafe?.user;
+  if (user) {
+    console.log('Пользователь:', user.first_name, user.id);
+  }
+
+  // initData — отправлять на backend для валидации
+  // const initDataStr = WebApp.initData;
+  // fetch(API + '/auth', { method: 'POST', body: JSON.stringify({ initData: initDataStr }) })
+
+} else {
+  console.warn('MAX Bridge недоступен — страница открыта вне MAX');
 }
+
 
 // ============ Данные заглушек ============
 const SUBJECTS = [
