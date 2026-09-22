@@ -1,4 +1,4 @@
-// ============ Инициализация VK Bridge ============
+// ============ Инициализация Max Bridge ============
 const WebApp = window.WebApp;
 
 if (WebApp) {
@@ -869,10 +869,12 @@ document.addEventListener('click', function (e) {
     const newsId = target.dataset.newsId;
     const fromMine = target.dataset.fromMine === 'true';
 
+    
     if (action === 'close') {
-        if (window.vkBridge) vkBridge.send('VKWebAppClose');
-        return;
-    }
+    if (window.WebApp) WebApp.close();
+    return;
+}
+
 
     if (action === 'back') {
         if (state.view === 'subject-olympiads') {
