@@ -27,7 +27,6 @@ from ..catalog.presentation import (
     days_until_start,
     is_plannable,
     pick_next_stage,
-    split_organizers,
     stage_status,
 )
 from ..clock import today as app_today
@@ -137,11 +136,9 @@ class OlympiadListItem(BaseModel):
 
 class OlympiadDetail(OlympiadListItem):
     official_url: Optional[str] = None
-    # Организаторы одной строкой, как их отдаёт источник.
+    # Организаторы одной строкой, как их отдаёт источник: их не больше
+    # трёх, и разбирать строку на части не требуется.
     organizers: Optional[str] = None
-    # Та же строка, разобранная на отдельные названия: до трёх, как в
-    # механике. Разбор приблизительный — см. split_organizers.
-    organizers_list: List[str] = Field(default_factory=list)
     stages: List[StageOut] = Field(default_factory=list)
     # Откуда запись и когда её последний раз подтверждали в источнике.
     source: str
@@ -309,7 +306,6 @@ async def get_olympiad(
         **base.model_dump(),
         official_url=olympiad.official_url,
         organizers=olympiad.organizers,
-        organizers_list=split_organizers(olympiad.organizers),
         source=olympiad.source,
         source_checked_at=olympiad.source_checked_at,
         stages=[StageOut.build(stage, today) for stage in olympiad.stages],

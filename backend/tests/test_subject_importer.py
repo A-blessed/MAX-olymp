@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 
-from app.catalog.presentation import split_organizers
 from app.catalog.subject_importer import (
     KNOWN_KEYS,
     SUBJECT_CATALOG,
@@ -128,33 +127,6 @@ def test_known_keys_cover_documented_format():
     """
     assert {"name", "level", "grades", "official_url", "description", "id"} <= KNOWN_KEYS
     assert "registration_dates" not in KNOWN_KEYS
-
-
-class TestSplitOrganizers:
-    def test_splits_by_comma(self):
-        raw = "Департамент образования, МГУ, ВШЭ"
-
-        assert split_organizers(raw) == ["Департамент образования", "МГУ", "ВШЭ"]
-
-    def test_keeps_at_most_three(self):
-        """Карточка показывает до трёх главных организаторов."""
-        raw = "А, Б, В, Г, Д"
-
-        assert split_organizers(raw) == ["А", "Б", "В"]
-
-    def test_old_semicolon_separator_still_works(self):
-        """Прошлая версия файла разделяла организаторов точкой с запятой."""
-        assert split_organizers("МГУ; СПбГУ") == ["МГУ", "СПбГУ"]
-
-    def test_trims_and_drops_empty(self):
-        assert split_organizers("  МГУ ,, , СПбГУ  ") == ["МГУ", "СПбГУ"]
-
-    @pytest.mark.parametrize("raw", [None, "", "   ", ",,,"])
-    def test_nothing_to_split(self, raw):
-        assert split_organizers(raw) == []
-
-    def test_single_organizer(self):
-        assert split_organizers("Департамент образования") == ["Департамент образования"]
 
 
 class TestParseGradeRange:
