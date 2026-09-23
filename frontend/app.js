@@ -16,24 +16,9 @@ if (WebApp) {
   console.warn('MAX Bridge недоступен — страница открыта вне MAX');
 }
 
+console.log(Api === window.Api); // должно быть true
 
-// ============ Справочник предметов ============
-const SUBJECTS = [
-    { id: 1, name: 'Астрономия', color: '#FFE0B2' },
-    { id: 2, name: 'Биология', color: '#F4B3C4' },
-    { id: 3, name: 'География', color: '#E9C2E8' },
-    { id: 4, name: 'Иностранный язык', color: '#D4A5F7' },
-    { id: 5, name: 'Информатика', color: '#C9CFF5' },
-    { id: 6, name: 'История', color: '#A8D8FF' },
-    { id: 7, name: 'Литература', color: '#B2E6F5' },
-    { id: 8, name: 'Математика', color: '#8FDCE0' },
-    { id: 9, name: 'Обществознание', color: '#A7D9B5' },
-    { id: 10, name: 'Право', color: '#C5E6B0' },
-    { id: 11, name: 'Русский язык', color: '#FFF0B3' },
-    { id: 12, name: 'Физика', color: '#F5E6C8' },
-    { id: 13, name: 'Химия', color: '#BAAC9B' },
-    { id: 14, name: 'Экономика', color: '#BFBAB4' }
-];
+
 
 // Состояние приложения
 const state = {
@@ -42,7 +27,7 @@ const state = {
     selectedOlympiad: null,
     sort: 'urgency',
     grade: null,
-    catalogOlympiads: [],           // олимпиады, подходящие текущему классу
+    subjects: [],                   // справочник предметов с сервера
     settingsNeedSave: false,        // true, если при первом запуске класса не было
     news: [],                       // кеш новостей для счётчика на таббаре
     settings: {
@@ -61,115 +46,6 @@ const searchbarEl = document.getElementById('searchbar');
 const contentEl = document.getElementById('content');
 const tabbarEl = document.getElementById('tabbar');
 
-// ============ API ============
-const API = "https://hatching-landside-crown.ngrok-free.dev";
-
-async function api(path, options = {}) {
-    const response = await fetch(`${API}${path}`, {
-        ...options,
-        headers: {
-            "Authorization": `tma ${window.WebApp?.initData || ''}`,
-            "ngrok-skip-browser-warning": "true",
-            ...options.headers,
-        },
-    });
-
-    if (response.status === 401) {
-        const { detail } = await response.json();
-        if (detail?.code === "expired") {
-            window.WebApp?.close?.();
-            return;
-        }
-        throw new Error("Не авторизован");
-    }
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-}
-
-function qs(params = {}) {
-    const search = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-            search.set(key, value);
-        }
-    });
-    return search.toString();
-}
-
-// Обёртка над реальными методами backend-а.
-const Api = {
-    catalog: {
-        list(params = {}) {
-            const query = qs(params);
-            return api(`/api/catalog/olympiads${query ? `?${query}` : ''}`);
-        },
-        get(id) {
-            return api(`/api/catalog/olympiads/${id}`);
-        }
-    },
-    my: {
-        list(params = {}) {
-            const query = qs(params);
-            return api(`/api/me/olympiads${query ? `?${query}` : ''}`);
-        },
-        add(id) {
-            return api(`/api/me/olympiads/${id}`, { method: 'POST' });
-        },
-        remove(id) {
-            return api(`/api/me/olympiads/${id}`, { method: 'DELETE' });
-        }
-    },
-    stage: {
-        markPassed(stageId) {
-            return api(`/api/me/stages/${stageId}/result`, {
-                method: 'PUT',
-                body: JSON.stringify({ result: 'passed' }),
-                headers: { 'Content-Type': 'application/json' }
-            });
-        },
-        markFailed(stageId) {
-            return api(`/api/me/stages/${stageId}/result`, {
-                method: 'PUT',
-                body: JSON.stringify({ result: 'failed' }),
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-    },
-    news() {
-        return api('/api/news');
-    },
-    calendar: {
-        range(from, to) {
-            const query = qs({ from, to });
-            return api(`/api/calendar/range?${query}`);
-        },
-        day(date) {
-            const query = qs({ date });
-            return api(`/api/calendar/day?${query}`);
-        }
-    },
-    settings: {
-        save(settings) {
-            return api('/api/me/settings', {
-                method: 'PATCH',
-                body: JSON.stringify(settings),
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-    }
-};
-
-async function apiGetMe() {
-    console.log('[API] Вызван метод: GET /api/me');
-    return api('/api/me');
-}
-
-async function apiGetMeSettings() {
-    console.log('[API] Вызван метод: GET /api/me/settings');
-    return api('/api/me/settings');
-}
-
 // Хелперы для генерации разметки
 function iconLink(href, size) {
     return `<svg width="${size}" height="${size}"><use href="#${href}"/></svg>`;
@@ -179,14 +55,22 @@ function badge(text, cls) {
     return `<span class="badge ${cls}">${text}</span>`;
 }
 
-function dot(subjectName, large = false) {
-    const subject = SUBJECTS.find(s => s.name === subjectName);
+function subjectById(id) {
+    return (state.subjects || []).find(s => s.id === Number(id));
+}
+
+function subjectByName(name) {
+    return (state.subjects || []).find(s => s.name === name);
+}
+
+function dot(subjectOrName, large = false) {
+    const subject = typeof subjectOrName === 'string' ? subjectByName(subjectOrName) : subjectOrName;
     if (!subject) return '';
-    return `<span class="dot-c${large ? ' lg' : ''}" style="background:${subject.color}"></span>`;
+    return `<span class="dot-c${large ? ' lg' : ''}" style="background:${subject.color};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;line-height:1;color:var(--text-1);overflow:hidden;">${subject.short_code || ''}</span>`;
 }
 
 function subjectColor(name) {
-    const subject = SUBJECTS.find(s => s.name === name);
+    const subject = subjectByName(name);
     return subject ? subject.color : '#ccc';
 }
 
@@ -255,27 +139,25 @@ async function renderSubjects() {
     tabbarEl.innerHTML = tabbarHTML('search');
 
     try {
-        const data = await Api.catalog.list({ class: state.settings.grade });
-        state.catalogOlympiads = Array.isArray(data) ? data : (data.items || []);
+        const data = await Api.catalog.subjects(state.settings.grade);
+        state.subjects = Array.isArray(data) ? data : ((data && (data.items || data.subjects)) || []);
     } catch (err) {
-        console.warn('[API] Не удалось загрузить каталог олимпиад', err);
-        state.catalogOlympiads = [];
+        console.warn('[API] Не удалось загрузить справочник предметов', err);
+        state.subjects = [];
     }
     renderSubjectList('');
 }
 
 function renderSubjectList(filter = '') {
-    const filtered = SUBJECTS.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
-    const olympiads = state.catalogOlympiads || [];
-    const counts = {};
-    olympiads.forEach(o => { counts[o.subject_id] = (counts[o.subject_id] || 0) + 1; });
+    const subjects = state.subjects || [];
+    const filtered = subjects.filter(s => (s.name || '').toLowerCase().includes((filter || '').toLowerCase()));
     contentEl.innerHTML = `<div class="list">
         ${filtered.map(s => `
             <div class="row-card" data-subject-id="${s.id}" data-subject-name="${s.name}">
-                ${dot(s.name, true)}
+                ${dot(s, true)}
                 <div class="rc-body">
                     <div class="rc-title">${s.name}</div>
-                    <div class="rc-sub">${counts[s.id] || 0} олимпиад</div>
+                    <div class="rc-sub">${s.olympiad_count || 0} олимпиад</div>
                 </div>
                 ${iconLink('i-chev', 18)}
             </div>
@@ -295,7 +177,7 @@ function renderOlympiadsBySubject(subjectId, subjectName, filter = '') {
 async function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
     let olympiads = [];
     try {
-        const data = await Api.catalog.list({ subject_id: subjectId, q: filter, sort: state.sort });
+        const data = await Api.catalog.list({ subjectId, q: filter, sort: state.sort });
         olympiads = Array.isArray(data) ? data : (data.items || []);
     } catch (err) {
         console.warn('[API] Не удалось загрузить олимпиады предмета', err);
@@ -325,22 +207,26 @@ async function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
 }
 
 async function renderOlympiadDetail(olympiadId, fromMine = false) {
-    let olymp;
+    let olympiad;
     try {
-        olymp = await Api.catalog.get(olympiadId);
+        olympiad = await Api.catalog.get(olympiadId);
     } catch (err) {
         console.warn('[API] Не удалось загрузить олимпиаду', err);
-        olymp = null;
+        olympiad = null;
     }
 
-    if (!olymp) {
+    if (!olympiad) {
         contentEl.innerHTML = `<div class="empty"><p>Не удалось загрузить олимпиаду</p></div>`;
         return;
     }
 
-    const subject = SUBJECTS.find(s => s.id === olymp.subject_id);
+    state.selectedOlympiad = olympiad;
+
+    const subject = subjectById(olympiad.subject_id);
     if (!subject) return;
-    const saved = fromMine || olymp.saved === true;
+    const saved = fromMine || olympiad.saved === true;
+    const officialUrl = olympiad.official_url || '';
+    const displayUrl = officialUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
     appbarEl.innerHTML = appbarHTML({ back: true, title: 'Олимпиада' });
     searchbarEl.style.display = 'none';
@@ -350,28 +236,22 @@ async function renderOlympiadDetail(olympiadId, fromMine = false) {
     contentEl.innerHTML = `
         <div class="content flush">
             <div class="hero">
-                <h1>${olymp.name}</h1>
-                <div class="subject">${dot(subject.name, true)}${subject.name}</div>
+                <h1>${olympiad.name}</h1>
+                <div class="subject">${dot(subject, true)}${subject.name}</div>
                 <div class="meta-row">
-                    ${badge(olymp.level + ' ур.', 'lvl')}
-                    ${badge(`${state.settings.grade} класс`, 'grey')}
-                    ${olymp.level === 1 ? badge('Льготы при поступлении', 'grey') : ''}
+                    ${olympiad.level ? badge(olympiad.level + ' ур.', 'lvl') : ''}
+                    ${olympiad.grades ? badge(olympiad.grades, 'grey') : ''}
+                    ${olympiad.level === 'I' ? badge('Льготы при поступлении', 'grey') : ''}
                 </div>
-                <p class="extra">${olymp.description || ''}</p>
+                <p class="extra">${olympiad.description || ''}</p>
             </div>
             <div class="detail-wrap">
-                <div class="detail-block">
-                    <h4>Организаторы</h4>
-                    <div class="orgs">
-                        <div class="org"><span class="logo">ВШЭ</span><div><div class="on">НИУ «Высшая школа экономики»</div><div class="od">Основной организатор</div></div></div>
-                        <div class="org"><span class="logo">МГУ</span><div><div class="on">МГУ им. М.В. Ломоносова</div><div class="od">Соорганизатор</div></div></div>
-                    </div>
-                </div>
+                ${organizersHTML(olympiad.organizers)}
                 <div class="detail-block">
                     <h4>Даты этапов</h4>
-                    ${stagesHTML(olymp.stages)}
+                    ${stagesHTML(olympiad.stages)}
                 </div>
-                <div class="link-row">${iconLink('i-link', 19)}<span class="lt">olymp.hse.ru</span>${iconLink('i-chev', 17)}</div>
+                ${officialUrl ? `<a class="link-row" href="${officialUrl}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">${iconLink('i-link', 19)}<span class="lt">${displayUrl}</span>${iconLink('i-chev', 17)}</a>` : ''}
             </div>
         </div>
         <div class="sticky-actions">
@@ -401,6 +281,32 @@ function stagesHTML(stages) {
             </div>
         </div>
     `).join('');
+}
+
+function organizersHTML(organizers) {
+    if (!Array.isArray(organizers) || organizers.length === 0) return '';
+
+    return `
+        <div class="detail-block">
+            <h4>Организаторы</h4>
+            <div class="orgs">
+                ${organizers.slice(0, 3).map(org => {
+                    const name = org.name || org.full_name || org.title || '';
+                    const role = org.role || org.type || org.role_name || '';
+                    const logo = org.short_name || org.abbr || org.logo || (name ? name.split(' ').map(word => word[0]).join('') : '');
+                    return `
+                        <div class="org">
+                            <span class="logo">${logo}</span>
+                            <div>
+                                <div class="on">${name}</div>
+                                ${role ? `<div class="od">${role}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
 }
 
 async function renderNews() {
@@ -508,10 +414,10 @@ async function myOlympiadsContent(filter = '') {
                 ${!filter ? `<button class="btn btn-primary" data-action="go-to-search">Перейти к поиску</button>` : ''}
             </div>
         ` : myOlympiadsData.map(o => {
-            const subject = SUBJECTS.find(s => s.id === o.subject_id);
+            const subject = subjectById(o.subject_id);
             return `
                 <div class="card" data-olympiad-id="${o.id}" data-from-mine="true">
-                    ${dot(subject ? subject.name : '')}
+                    ${dot(subject)}
                     <div class="c-body">
                         <div class="c-top">
                             <span class="c-title">${o.name}</span>
@@ -727,7 +633,7 @@ function calWeek(days, lanes) {
 
 function legend(subjects) {
     return `<div class="legend">${subjects.map(s => {
-        const sub = SUBJECTS.find(x => x.name === s);
+        const sub = subjectByName(s);
         if (!sub) return '';
         return `<div class="li"><i style="background:${sub.color}"></i>${s}</div>`;
     }).join('')}</div>`;
@@ -1015,7 +921,7 @@ document.addEventListener('click', async function (e) {
 
     // Клик по предмету
     if (subjectId) {
-        const subject = SUBJECTS.find(s => s.id === parseInt(subjectId));
+        const subject = subjectById(parseInt(subjectId));
         if (subject) {
             state.selectedSubject = subject;
             state.view = 'subject-olympiads';
@@ -1087,14 +993,14 @@ document.addEventListener('input', async function (e) {
 // ============ Инициализация приложения ============
 async function initApp() {
     try {
-        await apiGetMe();
+        await Api.me();
     } catch (err) {
         console.warn('[API] Ошибка авторизации', err);
     }
 
     let settings = {};
     try {
-        settings = (await apiGetMeSettings()) || {};
+        settings = (await Api.settings.get()) || {};
     } catch (err) {
         console.warn('[API] Не удалось получить настройки', err);
     }
