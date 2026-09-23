@@ -28,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..catalog.models import Olympiad, Stage, StageKind
-from ..catalog.presentation import pick_next_stage, split_organizers
+from ..catalog.presentation import pick_next_stage
 from ..clock import today as app_today
 from ..db.models import User
 from ..db.session import get_session
@@ -137,7 +137,6 @@ class MyOlympiadOut(BaseModel):
     source_url: Optional[str] = None
     official_url: Optional[str] = None
     organizers: Optional[str] = None
-    organizers_list: List[str] = Field(default_factory=list)
     added_at: datetime
     # Ответ «не прошёл» — олимпиада серая и уходит вниз списка.
     eliminated: bool = False
@@ -360,7 +359,6 @@ def _build_my_olympiad(
         source_url=olympiad.source_url,
         official_url=olympiad.official_url,
         organizers=olympiad.organizers,
-        organizers_list=split_organizers(olympiad.organizers),
         added_at=added_at,
         eliminated=is_eliminated(results[s.id] for s in stages if s.id in results),
         next_stage=by_id.get(next_stage.id) if next_stage else None,
