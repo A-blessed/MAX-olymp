@@ -46,14 +46,19 @@ class SubjectOut(BaseModel):
     name: str
     color: Optional[str] = None
     short_code: Optional[str] = None
+    # Сколько олимпиад по этому предмету подходит запрошенному классу.
+    # Считается на сервере: иначе за цифрой «5 олимпиад» пришлось бы
+    # выкачивать весь каталог целиком.
+    olympiad_count: Optional[int] = None
 
     @classmethod
-    def build(cls, subject: Subject) -> "SubjectOut":
+    def build(cls, subject: Subject, olympiad_count: Optional[int] = None) -> "SubjectOut":
         return cls(
             id=subject.id,
             name=subject.name,
             color=subject.color,
             short_code=subject.short_code,
+            olympiad_count=olympiad_count,
         )
 
 
@@ -150,6 +155,25 @@ class OlympiadPage(BaseModel):
     offset: int
 
 
+def _grade_filters(grade: Optional[int]) -> List:
+    """Условия «олимпиада подходит этому классу».
+
+    Записи, у которых источник классов не знает, остаются в выдаче:
+    неизвестно — не значит «не подходит», и прятать их было бы враньём.
+
+    Границы хранятся на записи каталога, то есть на паре «олимпиада +
+    предмет». Если по математике олимпиада идёт с 5 класса, а по
+    биологии с 7 — у каждой записи будут свои границы, и проверка
+    получится по нужной паре, а не по олимпиаде целиком.
+    """
+    if grade is None:
+        return []
+    return [
+        or_(Olympiad.grade_min.is_(None), Olympiad.grade_min <= grade),
+        or_(Olympiad.grade_max.is_(None), Olympiad.grade_max >= grade),
+    ]
+
+
 async def _saved_ids(session: AsyncSession, user_id: int, olympiad_ids: List[int]) -> set:
     """Какие из олимпиад пользователь уже добавил к себе."""
     if not olympiad_ids:
@@ -192,7 +216,12 @@ async def list_olympiads(
         default=None, ge=1, le=11, description="оставить подходящие этому классу"
     ),
     sort: SortOrder = Query(default=SortOrder.URGENCY),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=500,
+        description="до 500 — весь каталог влезает в один запрос",
+    ),
     offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -212,15 +241,7 @@ async def list_olympiads(
         filters.append(Olympiad.subject_id == subject_id)
     if level is not None:
         filters.append(Olympiad.level == level)
-    if grade is not None:
-        # Записи без данных о классах не прячем: неизвестно — не значит
-        # «не подходит», и скрывать их было бы враньём.
-        filters.append(
-            or_(Olympiad.grade_min.is_(None), Olympiad.grade_min <= grade)
-        )
-        filters.append(
-            or_(Olympiad.grade_max.is_(None), Olympiad.grade_max >= grade)
-        )
+    filters.extend(_grade_filters(grade))
 
     total = await session.scalar(
         select(func.count()).select_from(Olympiad).where(*filters)
@@ -297,13 +318,29 @@ async def get_olympiad(
 
 @router.get("/subjects", response_model=List[SubjectOut], summary="Справочник предметов")
 async def list_subjects(
+    grade: Optional[int] = Query(
+        default=None, ge=1, le=11, description="посчитать олимпиады для этого класса"
+    ),
+    with_counts: bool = Query(default=True, description="считать олимпиады по предметам"),
     _user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> List[SubjectOut]:
-    """Предметы с цветами и короткими кодами.
+    """Предметы с цветами, короткими кодами и числом олимпиад.
 
     Отдаётся сервером, чтобы цвета карточек и подписи в режиме для
     дальтоников не расходились между фронтендом и базой.
+
+    Счётчик считается запросом с группировкой: на экране предметов это
+    один лёгкий ответ вместо выкачивания всего каталога ради цифр.
     """
-    subjects = await session.scalars(select(Subject).order_by(Subject.name))
-    return [SubjectOut.build(subject) for subject in subjects]
+    subjects = list(await session.scalars(select(Subject).order_by(Subject.name)))
+    if not with_counts:
+        return [SubjectOut.build(subject) for subject in subjects]
+
+    rows = await session.execute(
+        select(Olympiad.subject_id, func.count())
+        .where(Olympiad.subject_id.is_not(None), *_grade_filters(grade))
+        .group_by(Olympiad.subject_id)
+    )
+    counts = {subject_id: total for subject_id, total in rows.all()}
+    return [SubjectOut.build(subject, counts.get(subject.id, 0)) for subject in subjects]
