@@ -17,7 +17,7 @@ if (WebApp) {
 }
 
 
-// ============ Данные заглушек ============
+// ============ Справочник предметов ============
 const SUBJECTS = [
     { id: 1, name: 'Астрономия', color: '#FFE0B2' },
     { id: 2, name: 'Биология', color: '#F4B3C4' },
@@ -35,17 +35,6 @@ const SUBJECTS = [
     { id: 14, name: 'Экономика', color: '#BFBAB4' }
 ];
 
-const OLYMPIADS_MOCK = [
-    { id: 1, subject_id: 8, name: 'Высшая проба', level: 1, description: 'Межпредметная олимпиада НИУ ВШЭ, около 30 профилей.' },
-    { id: 2, subject_id: 8, name: 'Ломоносов', level: 1, description: 'Межпредметная олимпиада МГУ: отбор дистанционный, финал очно.' },
-    { id: 3, subject_id: 8, name: 'Физтех', level: 2, description: 'Олимпиада МФТИ. Онлайн-отбор и очный финал в Долгопрудном.' },
-    { id: 4, subject_id: 8, name: 'Турнир городов', level: 1, description: 'Математический турнир с авторскими задачами.' },
-    { id: 5, subject_id: 12, name: 'Всероссийская олимпиада', level: 2, description: 'Отборочный этап начинается завтра.' },
-    { id: 6, subject_id: 13, name: 'Ломоносов', level: 1, description: 'Заключительный этап 25–27 сентября, очный формат.' },
-    { id: 7, subject_id: 13, name: 'Сеченовская олимпиада', level: 2, description: 'Олимпиада по химии и биологии, медицинская направленность.' },
-    { id: 8, subject_id: 2, name: 'Высшая проба', level: 1, description: 'Биологический профиль олимпиады НИУ ВШЭ.' },
-];
-
 // Состояние приложения
 const state = {
     view: 'grade-select',           // grade-select, subjects, subject-olympiads, olympiad-detail (search), olympiad-detail-mine, news, my-olympiads, calendar, calendar-day-detail
@@ -53,16 +42,9 @@ const state = {
     selectedOlympiad: null,
     sort: 'urgency',
     grade: null,
-    myOlympiads: [],                // храним id добавленных
     catalogOlympiads: [],           // олимпиады, подходящие текущему классу
     settingsNeedSave: false,        // true, если при первом запуске класса не было
-    news: [
-        { id: 1, category: 'urgent', subject: 'Математика', title: 'Высшая проба', level: 1, text: 'Регистрация закрывается сегодня в 23:59', date: 'сегодня', badge: 'Закрывается сегодня' },
-        { id: 2, category: 'urgent', subject: 'Физика', title: 'Всероссийская олимпиада', level: 2, text: 'Отборочный этап начинается завтра', date: 'вчера', badge: 'Завтра' },
-        { id: 3, category: 'soon', subject: 'Химия', title: 'Ломоносов', level: 1, text: 'Заключительный этап 25–27 сентября, очный формат.', date: '3 дня назад', badge: 'Через 4 дня' },
-        { id: 4, category: 'wait', subject: 'Биология', title: 'Высшая проба', level: 1, text: 'Результаты опубликованы. Подтверди, прошёл ли ты дальше.', date: '4 дня назад', badge: 'Ожидает ответа' },
-        { id: 5, category: 'done', subject: 'История', title: 'Московская олимпиада', level: 1, text: 'Завершена', date: 'неделю назад', badge: 'Завершено' }
-    ],
+    news: [],                       // кеш новостей для счётчика на таббаре
     settings: {
         grade: null,
         notifications_enabled: true,
@@ -105,6 +87,89 @@ async function api(path, options = {}) {
     return response.json();
 }
 
+function qs(params = {}) {
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            search.set(key, value);
+        }
+    });
+    return search.toString();
+}
+
+// Обёртка над реальными методами backend-а.
+const Api = {
+    catalog: {
+        list(params = {}) {
+            const query = qs(params);
+            return api(`/api/catalog/olympiads${query ? `?${query}` : ''}`);
+        },
+        get(id) {
+            return api(`/api/catalog/olympiads/${id}`);
+        }
+    },
+    my: {
+        list(params = {}) {
+            const query = qs(params);
+            return api(`/api/me/olympiads${query ? `?${query}` : ''}`);
+        },
+        add(id) {
+            return api(`/api/me/olympiads/${id}`, { method: 'POST' });
+        },
+        remove(id) {
+            return api(`/api/me/olympiads/${id}`, { method: 'DELETE' });
+        }
+    },
+    stage: {
+        markPassed(stageId) {
+            return api(`/api/me/stages/${stageId}/result`, {
+                method: 'PUT',
+                body: JSON.stringify({ result: 'passed' }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+        },
+        markFailed(stageId) {
+            return api(`/api/me/stages/${stageId}/result`, {
+                method: 'PUT',
+                body: JSON.stringify({ result: 'failed' }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+    },
+    news() {
+        return api('/api/news');
+    },
+    calendar: {
+        range(from, to) {
+            const query = qs({ from, to });
+            return api(`/api/calendar/range?${query}`);
+        },
+        day(date) {
+            const query = qs({ date });
+            return api(`/api/calendar/day?${query}`);
+        }
+    },
+    settings: {
+        save(settings) {
+            return api('/api/me/settings', {
+                method: 'PATCH',
+                body: JSON.stringify(settings),
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+    }
+};
+
+async function apiGetMe() {
+    console.log('[API] Вызван метод: GET /api/me');
+    return api('/api/me');
+}
+
+async function apiGetMeSettings() {
+    console.log('[API] Вызван метод: GET /api/me/settings');
+    return api('/api/me/settings');
+}
+
 // Хелперы для генерации разметки
 function iconLink(href, size) {
     return `<svg width="${size}" height="${size}"><use href="#${href}"/></svg>`;
@@ -118,6 +183,11 @@ function dot(subjectName, large = false) {
     const subject = SUBJECTS.find(s => s.name === subjectName);
     if (!subject) return '';
     return `<span class="dot-c${large ? ' lg' : ''}" style="background:${subject.color}"></span>`;
+}
+
+function subjectColor(name) {
+    const subject = SUBJECTS.find(s => s.name === name);
+    return subject ? subject.color : '#ccc';
 }
 
 function appbarHTML(options = {}) {
@@ -137,7 +207,7 @@ function searchbarHTML(placeholder = "Найти олимпиаду или пр�
 function tabbarHTML(active) {
     const tabs = [
         { id: 'search', label: 'Поиск', icon: 'i-search' },
-        { id: 'news', label: 'Новости', icon: 'i-board', cnt: state.news.filter(n => n.category === 'urgent' || n.category === 'wait').length },
+        { id: 'news', label: 'Новости', icon: 'i-board', cnt: (state.news || []).filter(n => n.category === 'urgent' || n.category === 'wait').length },
         { id: 'my', label: 'Мои', icon: 'i-list-star' },
         { id: 'cal', label: 'Календарь', icon: 'i-cal' }
     ];
@@ -148,192 +218,6 @@ function tabbarHTML(active) {
             ${t.label}
         </button>
     `).join('');
-}
-
-// Методы API. Внутри реальный вызов `api()` закомментирован,
-// пока работаем с моками.
-async function apiGetCatalogOlympiads(params = {}) {
-    console.log('[API] Вызван метод: GET /api/catalog/olympiads', params);
-
-    // const qs = new URLSearchParams(params).toString();
-    // return api(`/api/catalog/olympiads${qs ? `?${qs}` : ''}`);
-
-    return await new Promise(resolve => {
-        setTimeout(() => {
-            let items = OLYMPIADS_MOCK.slice();
-
-            // Фильтр по поисковому запросу
-            if (params.q) {
-                const q = params.q.toLowerCase();
-                items = items.filter(o => o.name.toLowerCase().includes(q));
-            }
-
-            // Фильтр по предмету
-            if (params.subject_id) {
-                const subjectId = Number(params.subject_id);
-                items = items.filter(o => o.subject_id === subjectId);
-            }
-
-            // Фильтр по уровню
-            if (params.level) {
-                const level = Number(params.level);
-                items = items.filter(o => o.level === level);
-            }
-
-            // Сортировка
-            switch (params.sort) {
-                case 'level':
-                    items.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru'));
-                    break;
-                case 'name':
-                    items.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-                    break;
-                case 'urgency':
-                default:
-                    items.sort((a, b) => a.id - b.id);
-                    break;
-            }
-
-            const total = items.length;
-            const limit = Math.min(Math.max(Number(params.limit) || 50, 1), 200);
-            const offset = Math.max(Number(params.offset) || 0, 0);
-            const pageItems = items.slice(offset, offset + limit);
-
-            resolve({
-                items: pageItems.map(o => ({ ...o, saved: state.myOlympiads.includes(o.id) })),
-                total,
-                limit,
-                offset
-            });
-        }, 300);
-    });
-}
-
-async function apiGetCatalogOlympiadById(id) {
-    console.log(`[API] Вызван метод: GET /api/catalog/olympiads/${id}`);
-
-    // return api(`/api/catalog/olympiads/${id}`);
-
-    return await new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const olympiad = OLYMPIADS_MOCK.find(o => o.id === Number(id));
-            if (!olympiad) {
-                reject(new Error('not_found'));
-                return;
-            }
-
-            resolve({
-                ...olympiad,
-                saved: state.myOlympiads.includes(olympiad.id),
-                stages: buildMockStages(olympiad)
-            });
-        }, 300);
-    });
-}
-
-async function apiGetMe() {
-    console.log('[API] Вызван метод: GET /api/me');
-    //return api('/api/me');
-}
-
-async function apiGetMeSettings() {
-    console.log('[API] Вызван метод: GET /api/me/settings');
-
-    // return api('/api/me/settings');
-
-    // Заглушка: пока считаем, что класс ещё не выбран
-    return { push: true, colorblind: false };
-}
-
-function apiPatch(path, body = {}) {
-    console.log(`[API] PATCH ${path}`, body);
-    // return api(path, { method: 'PATCH', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
-}
-
-function apiPatchMeSettings() {
-    apiPatch('/api/me/settings', {
-        class: state.settings.grade,
-        push: state.settings.notifications_enabled,
-        colorblind: state.settings.colorblind_mode
-    });
-}
-
-// Вспомогательная заглушка этапов для детального просмотра
-function buildMockStages(olympiad) {
-    return [
-        {
-            id: olympiad.id * 10 + 1,
-            name: 'Регистрация',
-            kind: 'registration',
-            starts_on: '2026-09-01',
-            start_precision: 'day',
-            days_until_start: null,
-            plannable: true,
-            raw_date_range: '1 сен 2026',
-            status: 'upcoming'
-        },
-        {
-            id: olympiad.id * 10 + 2,
-            name: 'Отборочный этап',
-            kind: 'qualifying',
-            starts_on: '2026-09-20',
-            start_precision: 'day',
-            days_until_start: 3,
-            plannable: true,
-            raw_date_range: '20 сен 2026',
-            status: 'upcoming'
-        },
-        {
-            id: olympiad.id * 10 + 3,
-            name: 'Заключительный этап',
-            kind: 'final',
-            starts_on: '2026-11-18',
-            start_precision: 'day',
-            days_until_start: null,
-            plannable: true,
-            raw_date_range: '18 ноя 2026',
-            status: 'upcoming'
-        }
-    ];
-}
-
-// ============ Фильтрация и сортировка олимпиад ============
-function filterAndSortOlympiads(subjectId, filter = '') {
-    let olympiads = OLYMPIADS_MOCK.filter(o => o.subject_id === subjectId);
-
-    if (filter) {
-        const lower = filter.toLowerCase();
-        olympiads = olympiads.filter(o => o.name.toLowerCase().includes(lower));
-    }
-
-    switch (state.sort) {
-        case 'level':
-            olympiads.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru'));
-            break;
-        case 'name':
-            olympiads.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-            break;
-        case 'urgency':
-        default:
-            olympiads.sort((a, b) => a.id - b.id);
-            break;
-    }
-    return olympiads;
-}
-
-function sortMyOlympiads(list) {
-    switch (state.sort) {
-        case 'level':
-            list.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru'));
-            break;
-        case 'name':
-            list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-            break;
-        case 'urgency':
-        default:
-            break;
-    }
-    return list;
 }
 
 // ============ Рендеринг конкретных экранов ============
@@ -370,14 +254,19 @@ async function renderSubjects() {
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('search');
 
-    const data = await apiGetCatalogOlympiads({ class: state.settings.grade });
-    state.catalogOlympiads = data.items;
+    try {
+        const data = await Api.catalog.list({ class: state.settings.grade });
+        state.catalogOlympiads = Array.isArray(data) ? data : (data.items || []);
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить каталог олимпиад', err);
+        state.catalogOlympiads = [];
+    }
     renderSubjectList('');
 }
 
 function renderSubjectList(filter = '') {
     const filtered = SUBJECTS.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
-    const olympiads = state.catalogOlympiads.length ? state.catalogOlympiads : OLYMPIADS_MOCK;
+    const olympiads = state.catalogOlympiads || [];
     const counts = {};
     olympiads.forEach(o => { counts[o.subject_id] = (counts[o.subject_id] || 0) + 1; });
     contentEl.innerHTML = `<div class="list">
@@ -403,15 +292,23 @@ function renderOlympiadsBySubject(subjectId, subjectName, filter = '') {
     olympiadsBySubjectContent(subjectId, subjectName, filter);
 }
 
-function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
-    const olympiads = filterAndSortOlympiads(subjectId, filter);
+async function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
+    let olympiads = [];
+    try {
+        const data = await Api.catalog.list({ subject_id: subjectId, q: filter, sort: state.sort });
+        olympiads = Array.isArray(data) ? data : (data.items || []);
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить олимпиады предмета', err);
+        olympiads = [];
+    }
+
     contentEl.innerHTML = `
         <div class="sort-row">
             <button class="sort-btn active" data-action="open-sort">${iconLink('i-sort', 15)} Сортировать по…${iconLink('i-down', 14)}</button>
             <button class="reset-btn" data-action="reset-filter">Сбросить фильтр</button>
         </div>
         ${olympiads.map(o => `
-            <div class="card" data-olympiad-id="${o.id}">
+            <div class="card" data-olympiad-id="${o.id}" data-saved="${o.saved === true}">
                 ${dot(subjectName)}
                 <div class="c-body">
                     <div class="c-top">
@@ -419,7 +316,7 @@ function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
                         ${badge(o.level + ' ур.', 'lvl')}
                     </div>
                     <div class="c-sub">${subjectName}</div>
-                    <div class="c-text">${o.description}</div>
+                    <div class="c-text">${o.description || ''}</div>
                 </div>
             </div>
         `).join('')}
@@ -430,13 +327,21 @@ function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
 async function renderOlympiadDetail(olympiadId, fromMine = false) {
     let olymp;
     try {
-        olymp = await apiGetCatalogOlympiadById(olympiadId);
+        olymp = await Api.catalog.get(olympiadId);
     } catch (err) {
-        olymp = OLYMPIADS_MOCK.find(o => o.id === olympiadId);
-        if (!olymp) return;
+        console.warn('[API] Не удалось загрузить олимпиаду', err);
+        olymp = null;
     }
+
+    if (!olymp) {
+        contentEl.innerHTML = `<div class="empty"><p>Не удалось загрузить олимпиаду</p></div>`;
+        return;
+    }
+
     const subject = SUBJECTS.find(s => s.id === olymp.subject_id);
     if (!subject) return;
+    const saved = fromMine || olymp.saved === true;
+
     appbarEl.innerHTML = appbarHTML({ back: true, title: 'Олимпиада' });
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
@@ -452,7 +357,7 @@ async function renderOlympiadDetail(olympiadId, fromMine = false) {
                     ${badge(`${state.settings.grade} класс`, 'grey')}
                     ${olymp.level === 1 ? badge('Льготы при поступлении', 'grey') : ''}
                 </div>
-                <p class="extra">${olymp.description}</p>
+                <p class="extra">${olymp.description || ''}</p>
             </div>
             <div class="detail-wrap">
                 <div class="detail-block">
@@ -464,16 +369,16 @@ async function renderOlympiadDetail(olympiadId, fromMine = false) {
                 </div>
                 <div class="detail-block">
                     <h4>Даты этапов</h4>
-                    <div class="kv"><span class="k">Регистрация</span><span class="v empty">Дата пока неизвестна</span></div>
-                    <div class="kv"><span class="k">Отборочный этап</span><span class="v empty">Дата пока неизвестна</span></div>
-                    <div class="kv"><span class="k">Заключительный этап</span><span class="v empty">Дата пока неизвестна</span></div>
+                    ${stagesHTML(olymp.stages)}
                 </div>
                 <div class="link-row">${iconLink('i-link', 19)}<span class="lt">olymp.hse.ru</span>${iconLink('i-chev', 17)}</div>
             </div>
         </div>
         <div class="sticky-actions">
-            ${state.myOlympiads.includes(olympiadId)
-                ? '<button class="btn btn-ghost" data-action="remove-olympiad" data-id="' + olympiadId + '">Удалить из моих олимпиад</button>'
+            ${saved
+                ? (fromMine
+                    ? '<button class="btn btn-ghost" data-action="remove-olympiad" data-id="' + olympiadId + '">Удалить из моих олимпиад</button>'
+                    : '<button class="btn btn-ghost" data-action="remove-olympiad" data-id="' + olympiadId + '">✓ Добавлено</button>')
                 : '<button class="btn btn-primary" data-action="add-olympiad" data-id="' + olympiadId + '">Буду писать</button>'}
         </div>
     `;
@@ -481,10 +386,35 @@ async function renderOlympiadDetail(olympiadId, fromMine = false) {
     if (sticky) contentEl.appendChild(sticky);
 }
 
-function renderNews() {
+function stagesHTML(stages) {
+    if (!Array.isArray(stages) || stages.length === 0) {
+        return `<div class="kv"><span class="k">Даты этапов</span><span class="v empty">Информация появится позже</span></div>`;
+    }
+
+    return stages.map(st => `
+        <div class="stage ${st.status || ''}">
+            <div class="marker"><span class="mk ${st.status === 'past' ? 'past' : 'future'}"></span></div>
+            <div class="s-body">
+                <div class="s-top"><span class="s-name">${st.name || 'Этап'}</span></div>
+                <div class="s-date">${st.raw_date_range || st.date_range || 'Дата пока неизвестна'}</div>
+                ${st.plannable ? `<span class="s-planned">Можно планировать</span>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+async function renderNews() {
     appbarEl.innerHTML = appbarHTML({ title: 'Новости' });
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
+
+    try {
+        const data = await Api.news();
+        state.news = Array.isArray(data) ? data : (data.items || []);
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить новости', err);
+        state.news = [];
+    }
     tabbarEl.innerHTML = tabbarHTML('news');
 
     const categories = [
@@ -512,14 +442,14 @@ function renderNews() {
                                 ${n.category === 'wait' ? iconLink('i-warn', 17) : ''}
                             </div>
                             <div class="c-sub">${n.subject} · ${n.level} ур.</div>
-                            <div class="c-text">${n.text}</div>
+                            <div class="c-text">${n.message || n.text || ''}</div>
                             <div class="c-foot">
                                 ${n.badge ? badge(n.badge, n.category === 'urgent' ? 'soon' : n.category === 'wait' ? 'lvl2' : 'grey') : ''}
-                                <span class="news-time" style="margin-left:auto">${n.date}</span>
+                                <span class="news-time" style="margin-left:auto">${n.date || ''}</span>
                             </div>
-                            ${n.category === 'wait' ? `<div class="c-foot" style="margin-top:6px">
-                                <button class="btn btn-sm btn-primary" data-action="answer-passed" data-news-id="${n.id}" data-subject="${n.subject}">Я прошёл(а)</button>
-                                <button class="btn btn-sm btn-ghost" data-action="answer-failed" data-news-id="${n.id}" data-subject="${n.subject}">Я не прошёл(а)</button>
+                            ${n.category === 'wait' && (n.stage_id || n.stageId) ? `<div class="c-foot" style="margin-top:6px">
+                                <button class="btn btn-sm btn-primary" data-action="answer-passed" data-stage-id="${n.stage_id || n.stageId}">Я прошёл(а)</button>
+                                <button class="btn btn-sm btn-ghost" data-action="answer-failed" data-stage-id="${n.stage_id || n.stageId}">Я не прошёл(а)</button>
                             </div>` : ''}
                         </div>
                     </div>
@@ -529,26 +459,24 @@ function renderNews() {
     }).join('');
 }
 
-function renderMyOlympiads(filter = '') {
+async function renderMyOlympiads(filter = '') {
     appbarEl.innerHTML = appbarHTML({ title: 'Мои олимпиады', settings: true });
     searchbarEl.style.display = 'block';
     searchbarEl.innerHTML = searchbarHTML();
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('my');
-    myOlympiadsContent(filter);
+    await myOlympiadsContent(filter);
 }
 
-function myOlympiadsContent(filter = '') {
-    let myOlympiadsData = state.myOlympiads
-        .map(id => OLYMPIADS_MOCK.find(o => o.id === id))
-        .filter(Boolean);
-
-    if (filter) {
-        const lower = filter.toLowerCase();
-        myOlympiadsData = myOlympiadsData.filter(o => o.name.toLowerCase().includes(lower));
+async function myOlympiadsContent(filter = '') {
+    let myOlympiadsData = [];
+    try {
+        const data = await Api.my.list({ sort: state.sort, q: filter });
+        myOlympiadsData = Array.isArray(data) ? data : (data.items || []);
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить мои олимпиады', err);
+        myOlympiadsData = [];
     }
-
-    sortMyOlympiads(myOlympiadsData);
 
     contentEl.innerHTML = `
         <div class="sort-row">
@@ -566,14 +494,14 @@ function myOlympiadsContent(filter = '') {
             const subject = SUBJECTS.find(s => s.id === o.subject_id);
             return `
                 <div class="card" data-olympiad-id="${o.id}" data-from-mine="true">
-                    ${dot(subject.name)}
+                    ${dot(subject ? subject.name : '')}
                     <div class="c-body">
                         <div class="c-top">
                             <span class="c-title">${o.name}</span>
                             ${badge(o.level + ' ур.', 'lvl')}
                         </div>
-                        <div class="c-sub">${subject.name}</div>
-                        <div class="c-text">${o.description}</div>
+                        <div class="c-sub">${subject ? subject.name : ''}</div>
+                        <div class="c-text">${o.description || ''}</div>
                     </div>
                 </div>
             `;
@@ -582,7 +510,28 @@ function myOlympiadsContent(filter = '') {
 }
 
 // ============ Календарь ============
-function renderCalendar(year, monthIndex) {
+function toISODate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function parseDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) {
+        return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    }
+    if (typeof value === 'string') {
+        const m = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        const d = new Date(value);
+        if (!isNaN(d.getTime())) return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+    return null;
+}
+
+async function renderCalendar(year, monthIndex) {
     if (year === undefined || monthIndex === undefined) {
         year = state.calendarDate.year || 2026;
         monthIndex = state.calendarDate.month ?? 8; // сентябрь по умолчанию
@@ -595,12 +544,26 @@ function renderCalendar(year, monthIndex) {
     tabbarEl.innerHTML = tabbarHTML('cal');
 
     const weeks = buildCalendarMonth(year, monthIndex);
-    const lanesByWeek = getDemoLanesForMonth(year, monthIndex, weeks);
+
+    const firstDay = weeks[0]?.days[0];
+    const lastDay = weeks[weeks.length - 1]?.days[6];
+    const from = toISODate(new Date(firstDay.year, firstDay.month, firstDay.day));
+    const to = toISODate(new Date(lastDay.year, lastDay.month, lastDay.day));
+
+    let events = [];
+    try {
+        const data = await Api.calendar.range(from, to);
+        events = Array.isArray(data) ? data : (data.items || data.events || []);
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить календарь', err);
+    }
+
+    const lanesByWeek = buildLanesForMonth(events, weeks);
 
     contentEl.innerHTML = `<div class="cal-card">` +
         calDow() +
         weeks.map((week, wi) => calWeek(week.days, lanesByWeek[wi] || [])).join('') +
-        legend(getLegendSubjects(year, monthIndex)) +
+        legend(getLegendSubjects(events)) +
         `</div>`;
 }
 
@@ -648,41 +611,25 @@ function formatMonthYear(year, monthIndex) {
     return `${monthNames[monthIndex]} ${year}`;
 }
 
-function getDemoLanesForMonth(year, monthIndex, weeks) {
-    if (year !== 2026 || monthIndex !== 8) return [];
-
-    const demoSchedules = [
-        { subject: 'Математика', start: '2026-09-03', end: '2026-09-07' },
-        { subject: 'Русский язык', start: '2026-09-09', end: '2026-09-13' },
-        { subject: 'Физика', start: '2026-09-11', end: '2026-09-17' },
-        { subject: 'Информатика', start: '2026-09-17', end: '2026-09-20' },
-        { subject: 'Химия', start: '2026-09-23', end: '2026-09-26' },
-        { subject: 'Биология', start: '2026-09-25', end: '2026-09-28' }
-    ];
-
-    const subjectColor = name => {
-        const sub = SUBJECTS.find(s => s.name === name);
-        return sub ? sub.color : '#ccc';
-    };
-
-    function parseDate(str) {
-        const [y, m, d] = str.split('-').map(Number);
-        return new Date(y, m - 1, d);
-    }
-
+function buildLanesForMonth(events, weeks) {
     const lanesByWeek = [];
 
     weeks.forEach(week => {
         const lanes = [];
-        demoSchedules.forEach(schedule => {
-            const start = parseDate(schedule.start);
-            const end = parseDate(schedule.end);
+        (events || []).forEach(ev => {
+            const start = parseDate(ev.start || ev.starts_on || ev.date_from || ev.start_date);
+            const end = parseDate(ev.end || ev.ends_on || ev.date_to || ev.end_date || ev.start || ev.starts_on || ev.date_from || ev.start_date);
+            if (!start || !end) return;
+
+            const subject = ev.subject || ev.subject_name || 'Олимпиада';
+            const color = ev.color || ev.subject_color || subjectColor(subject);
+
             week.days.forEach((dayObj, idx) => {
                 const current = new Date(dayObj.year, dayObj.month, dayObj.day);
                 if (current >= start && current <= end) {
-                    let lane = lanes.find(l => l.subject === schedule.subject);
+                    let lane = lanes.find(l => l.subject === subject);
                     if (!lane) {
-                        lane = { subject: schedule.subject, c: subjectColor(schedule.subject), from: idx, to: idx };
+                        lane = { subject, c: color, from: idx, to: idx };
                         lanes.push(lane);
                     } else {
                         lane.to = idx;
@@ -697,9 +644,16 @@ function getDemoLanesForMonth(year, monthIndex, weeks) {
     return lanesByWeek;
 }
 
-function getLegendSubjects(year, monthIndex) {
-    if (year !== 2026 || monthIndex !== 8) return [];
-    return ['Математика', 'Русский язык', 'Физика', 'Информатика', 'Химия', 'Биология'];
+function getLegendSubjects(events) {
+    const seen = new Set();
+    return (events || [])
+        .map(ev => ev.subject || ev.subject_name)
+        .filter(Boolean)
+        .filter(subject => {
+            if (seen.has(subject)) return false;
+            seen.add(subject);
+            return true;
+        });
 }
 
 function calDow() {
@@ -762,31 +716,47 @@ function legend(subjects) {
     }).join('')}</div>`;
 }
 
-function renderCalendarDayDetail(day) {
+async function renderCalendarDayDetail(day) {
     const { year, month } = state.calendarDate;
     const monthName = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
         'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'][month];
+    const dateStr = toISODate(new Date(year, month, day));
+
     appbarEl.innerHTML = appbarHTML({ back: true, title: `${day} ${monthName} ${year}`, sub: 'Среда' });
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('cal');
+
+    let items = [];
+    try {
+        const data = await Api.calendar.day(dateStr);
+        items = Array.isArray(data) ? data : (data.items || data.events || data.olympiads || []);
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить день календаря', err);
+    }
+
     contentEl.innerHTML = `
-        <div class="daybar"><div class="db-t">3 олимпиады в этот день</div>${iconLink('i-down', 18)}</div>
-        ${[
-            ['Химия', 'Ломоносов', 'I', 'Отборочный этап · дистанционно'],
-            ['Математика', 'Высшая проба', 'I', 'Отборочный этап · 3 часа на решение'],
-            ['Биология', 'Высшая проба', 'I', 'Заключительный этап · очно']
-        ].map(o => `
-            <div class="card">
-                ${dot(o[0])}
-                <div class="c-body">
-                    <div class="c-top"><span class="c-title">${o[1]}</span>${badge(o[2] + ' ур.', 'lvl')}</div>
-                    <div class="c-sub">${o[0]}</div>
-                    <div class="c-text">${o[3]}</div>
-                </div>
-            </div>
-        `).join('')}
+        <div class="daybar"><div class="db-t">${items.length} олимпиад(ы) в этот день</div>${iconLink('i-down', 18)}</div>
+        ${items.map(item => renderDayItem(item)).join('')}
         <button class="btn btn-ghost" style="margin-top:6px">Снять выбор со всех</button>
+    `;
+}
+
+function renderDayItem(item) {
+    const subjectName = item.subject || item.subject_name || '';
+    const title = item.title || item.name || item.olympiad_name || 'Олимпиада';
+    const level = item.level || '';
+    const text = item.description || item.message || item.stage_name || item.format || '';
+
+    return `
+        <div class="card">
+            ${dot(subjectName)}
+            <div class="c-body">
+                <div class="c-top"><span class="c-title">${title}</span>${level ? badge(level + ' ур.', 'lvl') : ''}</div>
+                <div class="c-sub">${subjectName}</div>
+                ${text ? `<div class="c-text">${text}</div>` : ''}
+            </div>
+        </div>
     `;
 }
 
@@ -847,7 +817,7 @@ function closeModal() {
 }
 
 // ============ Обработка кликов ============
-document.addEventListener('click', function (e) {
+document.addEventListener('click', async function (e) {
     // Клик по фону модалки (вне самой панели) — просто закрываем без применения
     const scrim = e.target.closest('.scrim');
     if (scrim && !e.target.closest('.sheet')) {
@@ -855,7 +825,7 @@ document.addEventListener('click', function (e) {
         return;
     }
 
-    const target = e.target.closest('[data-action], [data-tab], [data-subject-id], [data-olympiad-id], [data-day], [data-grade], [data-sort-value], [data-news-id]');
+    const target = e.target.closest('[data-action], [data-tab], [data-subject-id], [data-olympiad-id], [data-day], [data-grade], [data-sort-value], [data-stage-id]');
     if (!target) return;
 
     const action = target.dataset.action;
@@ -866,15 +836,14 @@ document.addEventListener('click', function (e) {
     const day = target.dataset.day;
     const grade = target.dataset.grade;
     const sortValue = target.dataset.sortValue;
-    const newsId = target.dataset.newsId;
+    const stageId = target.dataset.stageId;
     const fromMine = target.dataset.fromMine === 'true';
+    const savedFlag = target.dataset.saved === 'true';
 
-    
     if (action === 'close') {
-    if (window.WebApp) WebApp.close();
-    return;
-}
-
+        if (window.WebApp) WebApp.close();
+        return;
+    }
 
     if (action === 'back') {
         if (state.view === 'subject-olympiads') {
@@ -928,7 +897,15 @@ document.addEventListener('click', function (e) {
     }
     if (action === 'grade-confirm') {
         if (state.settingsNeedSave) {
-            apiPatchMeSettings();
+            try {
+                await Api.settings.save({
+                    grade: state.settings.grade,
+                    notifications_enabled: state.settings.notifications_enabled,
+                    colorblind_mode: state.settings.colorblind_mode
+                });
+            } catch (err) {
+                console.warn('[API] Не удалось сохранить настройки', err);
+            }
             state.settingsNeedSave = false;
         }
         state.view = 'subjects';
@@ -943,35 +920,44 @@ document.addEventListener('click', function (e) {
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = '';
         if (state.view === 'subject-olympiads') {
-            olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, '');
+            await olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, '');
         } else if (state.view === 'my-olympiads') {
-            myOlympiadsContent('');
+            await myOlympiadsContent('');
         }
         return;
     }
     if (action === 'add-olympiad') {
         const id = parseInt(target.dataset.id);
-        if (!state.myOlympiads.includes(id)) state.myOlympiads.push(id);
-        console.log('[API] POST /api/me/olympiads/' + id);
+        try {
+            await Api.my.add(id);
+        } catch (err) {
+            console.warn('[API] Не удалось добавить олимпиаду', err);
+        }
         renderOlympiadDetail(id, false);
         return;
     }
     if (action === 'remove-olympiad') {
         const id = parseInt(target.dataset.id);
-        state.myOlympiads = state.myOlympiads.filter(x => x !== id);
-        console.log('[API] DELETE /api/me/olympiads/' + id);
+        try {
+            await Api.my.remove(id);
+        } catch (err) {
+            console.warn('[API] Не удалось удалить олимпиаду', err);
+        }
         renderOlympiadDetail(id, false);
         return;
     }
     if (action === 'answer-passed' || action === 'answer-failed') {
-        const newsId = parseInt(target.dataset.newsId);
-        const newsItem = state.news.find(n => n.id === newsId);
-        if (newsItem) {
-            const result = action === 'answer-passed' ? 'passed' : 'failed';
-            console.log(`[API] PUT /api/me/stages/{stage_id}/result result=${result}`);
-            newsItem.category = 'done';
-            newsItem.badge = result === 'passed' ? 'Пройден' : 'Не пройден';
-            newsItem.text = result === 'passed' ? 'Вы прошли в следующий этап' : 'Вы не прошли';
+        const id = parseInt(stageId);
+        if (id) {
+            try {
+                if (action === 'answer-passed') {
+                    await Api.stage.markPassed(id);
+                } else {
+                    await Api.stage.markFailed(id);
+                }
+            } catch (err) {
+                console.warn('[API] Не удалось сохранить результат этапа', err);
+            }
             renderNews();
         }
         return;
@@ -1025,7 +1011,7 @@ document.addEventListener('click', function (e) {
     if (olympiadId) {
         const id = parseInt(olympiadId);
         state.selectedOlympiad = id;
-        if (state.myOlympiads.includes(id) || fromMine) {
+        if (savedFlag || fromMine) {
             state.view = 'olympiad-detail-mine';
             renderOlympiadDetail(id, true);
         } else {
@@ -1059,24 +1045,24 @@ document.addEventListener('click', function (e) {
         const searchInput = document.getElementById('searchInput');
         const query = searchInput ? searchInput.value : '';
         if (state.view === 'subject-olympiads') {
-            olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, query);
+            await olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, query);
         } else if (state.view === 'my-olympiads') {
-            myOlympiadsContent(query);
+            await myOlympiadsContent(query);
         }
         return;
     }
 });
 
 // ============ Поиск ============
-document.addEventListener('input', function (e) {
+document.addEventListener('input', async function (e) {
     if (e.target.id === 'searchInput') {
         const val = e.target.value;
         if (state.view === 'subjects') {
             renderSubjectList(val);
         } else if (state.view === 'subject-olympiads') {
-            olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, val);
+            await olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, val);
         } else if (state.view === 'my-olympiads') {
-            myOlympiadsContent(val);
+            await myOlympiadsContent(val);
         }
     }
 });
@@ -1089,12 +1075,19 @@ async function initApp() {
         console.warn('[API] Ошибка авторизации', err);
     }
 
-    const settings = await apiGetMeSettings();
-    state.settings.grade = settings.class ?? null;
-    state.settings.notifications_enabled = settings.push ?? true;
-    state.settings.colorblind_mode = settings.colorblind ?? false;
+    let settings = {};
+    try {
+        settings = (await apiGetMeSettings()) || {};
+    } catch (err) {
+        console.warn('[API] Не удалось получить настройки', err);
+    }
 
-    if (settings.class == null) {
+    const rawGrade = settings.grade ?? settings.class ?? null;
+    state.settings.grade = rawGrade !== null && rawGrade !== undefined ? Number(rawGrade) : null;
+    state.settings.notifications_enabled = settings.notifications_enabled ?? settings.push ?? true;
+    state.settings.colorblind_mode = settings.colorblind_mode ?? settings.colorblind ?? false;
+
+    if (state.settings.grade == null) {
         state.settingsNeedSave = true;
         state.view = 'grade-select';
         renderGradeSelect();
