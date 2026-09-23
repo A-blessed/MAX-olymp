@@ -127,6 +127,8 @@ class MyOlympiadOut(BaseModel):
     level: Optional[int] = None
     levels: List[int] = Field(default_factory=list)
     summary: Optional[str] = None
+    grade_min: Optional[int] = None
+    grade_max: Optional[int] = None
     subject_id: Optional[int] = None
     subject_name: Optional[str] = None
     subject: Optional[SubjectOut] = None
@@ -352,6 +354,8 @@ def _build_my_olympiad(
         subject_name=olympiad.subject.name if olympiad.subject else None,
         subject=SubjectOut.build(olympiad.subject) if olympiad.subject else None,
         grades=olympiad.grades,
+        grade_min=olympiad.grade_min,
+        grade_max=olympiad.grade_max,
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         official_url=olympiad.official_url,
@@ -498,6 +502,7 @@ def _sort_key(sort: MySort):
 async def list_my_olympiads(
     sort: MySort = Query(default=MySort.URGENCY),
     subject_id: List[int] = Query(default=[], description="фильтр, можно несколько"),
+    q: Optional[str] = Query(default=None, description="поиск по названию и предмету"),
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> MyOlympiadList:
@@ -511,6 +516,15 @@ async def list_my_olympiads(
     if subject_id:
         wanted = set(subject_id)
         items = [item for item in items if item.subject_id in wanted]
+    if q:
+        # Список сохранённого невелик, отдельный запрос в базу не нужен.
+        needle = q.strip().lower()
+        items = [
+            item
+            for item in items
+            if needle in item.name.lower()
+            or needle in (item.subject_name or "").lower()
+        ]
     items.sort(key=_sort_key(sort))
 
     return MyOlympiadList(items=items, total=len(items))

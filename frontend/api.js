@@ -55,6 +55,20 @@
     return query ? `?${query}` : "";
   }
 
+  /**
+   * Первое заданное значение из нескольких имён параметра.
+   *
+   * Вызывающий код пишет то `subjectId`, то `subject_id` — обе записи
+   * выглядят естественно, и ошибка в имени тихо отключала бы фильтр
+   * вместо явной ошибки. Поэтому принимаем оба написания.
+   */
+  function pick() {
+    for (let i = 0; i < arguments.length; i++) {
+      if (arguments[i] !== undefined && arguments[i] !== null) return arguments[i];
+    }
+    return undefined;
+  }
+
   /** Дата в формате, который понимает бэкенд: 2026-09-23. */
   function toApiDate(value) {
     if (typeof value === "string") return value;
@@ -152,7 +166,8 @@
       /**
        * @param {object} params
        * @param {string} [params.q]      поиск по названию
-       * @param {number} [params.subjectId]
+       * @param {number} [params.subjectId] можно и subject_id
+       * @param {number} [params.grade]  класс участника: 1–11
        * @param {number} [params.level]  1, 2 или 3
        * @param {string} [params.sort]   urgency | name | level
        * @param {number} [params.limit]  до 200
@@ -163,8 +178,10 @@
         return request("/api/catalog/olympiads", {
           query: {
             q: p.q,
-            subject_id: p.subjectId,
+            subject_id: pick(p.subjectId, p.subject_id),
             level: p.level,
+            // Класс участника: оставит только подходящие олимпиады.
+            grade: pick(p.grade, p.class),
             sort: p.sort,
             limit: p.limit,
             offset: p.offset,
@@ -182,13 +199,18 @@
     my: {
       /**
        * @param {object} params
+       * @param {string}   [params.q]          поиск по названию и предмету
        * @param {string}   [params.sort]       urgency | level | subject
        * @param {number[]} [params.subjectIds] фильтр по предметам
        */
       list(params) {
         const p = params || {};
         return request("/api/me/olympiads", {
-          query: { sort: p.sort, subject_id: p.subjectIds },
+          query: {
+            q: p.q,
+            sort: p.sort,
+            subject_id: pick(p.subjectIds, p.subject_id, p.subjectId),
+          },
         });
       },
 
