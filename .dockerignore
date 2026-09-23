@@ -1,0 +1,24 @@
+# На случай сборки из корня репозитория.
+# Основной контекст сборки — backend/, у него свой .dockerignore.
+
+.env
+.env.*
+!.env.example
+
+.git/
+.gitignore
+.vs/
+.idea/
+.vscode/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+node_modules/
+dist/
+build/
+
+*.log

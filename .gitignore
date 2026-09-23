@@ -1,0 +1,38 @@
+# Секреты. Токен бота в репозитории — прямое нарушение условий хакатона.
+.env
+.env.local
+.env.*.local
+
+# Сертификаты Минцифры скачиваются отдельно и в репозиторий не кладутся.
+certs/*
+!certs/README.md
+!certs/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Редакторы и ОС
+.idea/
+.vs/
+.vscode/
+*.suo
+*.user
+Thumbs.db
+.DS_Store
+
+# Логи
+*.log

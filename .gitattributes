@@ -1,0 +1,10 @@
+# Нормализация переносов строк.
+# Без этого файлы, закоммиченные с Windows, попадают в Linux-контейнер
+# с CRLF — Python это переживает, а shell-скрипты и Dockerfile не всегда.
+* text=auto eol=lf
+
+# Бинарные файлы не трогать.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ico binary

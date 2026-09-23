@@ -1,0 +1,887 @@
+[
+  {
+    "name": "Всероссийская олимпиада по финансовой грамотности, устойчивому развитию и защите прав потребителей финансовых услуг",
+    "url": "https://postupi.online/olimpiada/finatlon-dlya-starsheklassnikov-finansovaya-gramotnost/",
+    "universities": [],
+    "stages": [
+      {
+        "name": "Регистрация на олимпиаду",
+        "start_date": "1 сен 2026",
+        "end_date": "30 ноя 2026",
+        "date_range": "1 сен 2026 — 30 ноя 2026",
+        "url": "https://postupi.online/olimpiada/finatlon-dlya-starsheklassnikov-finansovaya-gramotnost/etap/registraciya-na-olimpiadu/"
+      },
+      {
+        "name": "Первый (отборочный) заочный этап",
+        "start_date": "1 сен 2026",
+        "end_date": "30 ноя 2026",
+        "date_range": "1 сен 2026 — 30 ноя 2026",
+        "url": "https://postupi.online/olimpiada/finatlon-dlya-starsheklassnikov-finansovaya-gramotnost/etap/pervyj-otborochnyj-zaochnyj-etap/"
+      },
+      {
+        "name": "Второй (заключительный) региональный очный этап",
+        "start_date": "фев 2027",
+        "end_date": "мар 2027",
+        "date_range": "фев 2027 — мар 2027",
+        "url": "https://postupi.online/olimpiada/finatlon-dlya-starsheklassnikov-finansovaya-gramotnost/etap/vtoroj-zaklyuchitelnyj-regionalnyj-ochnyj-etap/"
+      },
+      {
+        "name": "Подведение итогов",
+        "start_date": "мар 2027",
+        "end_date": "",
+        "date_range": "мар 2027",
+        "url": "https://postupi.online/olimpiada/finatlon-dlya-starsheklassnikov-finansovaya-gramotnost/etap/podvedenie-itogov/"
+      }
+    ]
+  },
+  {
+    "name": "Международная Олимпиада по финансовой безопасности для школьников",
+    "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/",
+    "universities": [
+      "Российский университет дружбы народов имени Патриса Лумумбы",
+      "Уральский федеральный университет имени первого Президента России Б.Н. Ельцина",
+      "Сибирский федеральный университет"
+    ],
+    "stages": [
+      {
+        "name": "Тематический урок по финансовой безопасности",
+        "start_date": "10 фев 2026",
+        "end_date": "30 апр 2026",
+        "date_range": "10 фев 2026 — 30 апр 2026",
+        "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/etap/tematicheskij-urok-po-finansovoj-bezopasnosti/"
+      },
+      {
+        "name": "Пригласительный этап",
+        "start_date": "2 фев 2026",
+        "end_date": "10 мар 2026",
+        "date_range": "2 фев 2026 — 10 мар 2026",
+        "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/etap/priglasitelnyj-etap/"
+      },
+      {
+        "name": "Регистрация",
+        "start_date": "24 фев 2026",
+        "end_date": "14 мар 2026",
+        "date_range": "24 фев 2026 — 14 мар 2026",
+        "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/etap/registraciya/"
+      },
+      {
+        "name": "Отборочный этап",
+        "start_date": "14 мар 2026",
+        "end_date": "21 апр 2026",
+        "date_range": "14 мар 2026 — 21 апр 2026",
+        "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/etap/otborochnyj-etap/"
+      },
+      {
+        "name": "Квалификационный этап",
+        "start_date": "1 июня 2026",
+        "end_date": "2 сен 2026",
+        "date_range": "1 июня 2026 — 2 сен 2026",
+        "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/etap/kvalifikacionnyj-etap/"
+      },
+      {
+        "name": "Финальный этап",
+        "start_date": "27 сен 2026",
+        "end_date": "2 окт 2026",
+        "date_range": "27 сен 2026 — 2 окт 2026",
+        "url": "https://postupi.online/olimpiada/mezhdunarodnaya-olimpiada-po-finansovoj-bezopasnosti-shkolniki/etap/finalnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Всероссийская олимпиада по искусственному интеллекту",
+    "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/",
+    "universities": [
+      "Государственный университет просвещения",
+      "Центральный университет"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация на тренировочный этап",
+        "start_date": "1 июля 2026",
+        "end_date": "20 сен 2026",
+        "date_range": "1 июля 2026 — 20 сен 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/etap/registraciya-na-trenirovochnyj-etap/"
+      },
+      {
+        "name": "Тренировочный этап",
+        "start_date": "1 июля 2026",
+        "end_date": "20 сен 2026",
+        "date_range": "1 июля 2026 — 20 сен 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/etap/trenirovochnyj-etap/"
+      },
+      {
+        "name": "Регистрация на отборочный этап",
+        "start_date": "7 сен 2026",
+        "end_date": "6 окт 2026",
+        "date_range": "7 сен 2026 — 6 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/etap/registraciya-na-otborochnyj-etap/"
+      },
+      {
+        "name": "Отборочный этап",
+        "start_date": "21 сен 2026",
+        "end_date": "6 окт 2026",
+        "date_range": "21 сен 2026 — 6 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/etap/otborochnyj-etap/"
+      },
+      {
+        "name": "Основной этап",
+        "start_date": "15 окт 2026",
+        "end_date": "21 окт 2026",
+        "date_range": "15 окт 2026 — 21 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/etap/osnovnoj-etap/"
+      },
+      {
+        "name": "Заключительный этап",
+        "start_date": "16 ноя 2026",
+        "end_date": "21 ноя 2026",
+        "date_range": "16 ноя 2026 — 21 ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-po-iskusstvennomu-intellektu/etap/zaklyuchitelnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Технокубок — олимпиада по программированию для школьников",
+    "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/",
+    "universities": [
+      "Санкт-Петербургский политехнический университет Петра Великого",
+      "Московский физико-технический институт (национальный исследовательский университет)",
+      "Московский государственный технический университет имени Н.Э. Баумана (национальный исследовательский университет)"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация на олимпиаду",
+        "start_date": "ноя 2026",
+        "end_date": "дек 2026",
+        "date_range": "ноя 2026 — дек 2026",
+        "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/etap/registraciya-na-olimpiadu/"
+      },
+      {
+        "name": "Ознакомительный раунд",
+        "start_date": "ноя 2026",
+        "end_date": "дек 2026",
+        "date_range": "ноя 2026 — дек 2026",
+        "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/etap/oznakomitelnyj-raund/"
+      },
+      {
+        "name": "Первая попытка: отборочный раунд",
+        "start_date": "ноя 2026",
+        "end_date": "",
+        "date_range": "ноя 2026",
+        "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/etap/pervaya-popytka-otborochnyj-raund/"
+      },
+      {
+        "name": "Вторая попытка: отборочный раунд",
+        "start_date": "дек 2026",
+        "end_date": "",
+        "date_range": "дек 2026",
+        "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/etap/vtoraya-popytka-otborochnyj-raund/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "фев 2027",
+        "end_date": "",
+        "date_range": "фев 2027",
+        "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Финальный этап",
+        "start_date": "мар 2027",
+        "end_date": "",
+        "date_range": "мар 2027",
+        "url": "https://postupi.online/olimpiada/tehnokubok-olimpiada-po-programirovaniyu/etap/finalnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Всероссийская академическая олимпиада школьников имени В.И. Вернадского по профилю «Экономика»",
+    "url": "https://postupi.online/olimpiada/olimpiada-kondrateva-ekonomika/",
+    "universities": [
+      "Российский новый университет",
+      "Московский университет имени С.Ю. Витте",
+      "Финансовый университет при Правительстве Российской Федерации"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "ноя 2026",
+        "end_date": "фев 2027",
+        "date_range": "ноя 2026 — фев 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-kondrateva-ekonomika/etap/registraciya/"
+      },
+      {
+        "name": "Отборочный этап",
+        "start_date": "мар 2027",
+        "end_date": "",
+        "date_range": "мар 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-kondrateva-ekonomika/etap/otborochnyj-etap/"
+      },
+      {
+        "name": "Регистрация на заключительный этап",
+        "start_date": "апр 2027",
+        "end_date": "",
+        "date_range": "апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-kondrateva-ekonomika/etap/registraciya-na-zaklyuchitelnyj-etap/"
+      },
+      {
+        "name": "Заключительный этап",
+        "start_date": "апр 2027",
+        "end_date": "",
+        "date_range": "апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-kondrateva-ekonomika/etap/zaklyuchitelnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Олимпиада «Росатом» по физике",
+    "url": "https://postupi.online/olimpiada/olimpiada-rosatom-fizika/",
+    "universities": [
+      "Уральский федеральный университет имени первого Президента России Б.Н. Ельцина",
+      "Национальный исследовательский ядерный университет МИФИ",
+      "Воронежский государственный университет"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "окт 2026",
+        "end_date": "ноя 2026",
+        "date_range": "окт 2026 — ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-fizika/etap/registraciya/"
+      },
+      {
+        "name": "Очный тур",
+        "start_date": "сен 2026",
+        "end_date": "ноя 2026",
+        "date_range": "сен 2026 — ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-fizika/etap/ochnyj-tur/"
+      },
+      {
+        "name": "Очно-заочный тур",
+        "start_date": "ноя 2026",
+        "end_date": "",
+        "date_range": "ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-fizika/etap/ochno-zaochnyj-tur/"
+      },
+      {
+        "name": "Дистанционный тур",
+        "start_date": "ноя 2026",
+        "end_date": "дек 2026",
+        "date_range": "ноя 2026 — дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-fizika/etap/distancionnyj-tur/"
+      },
+      {
+        "name": "Заключительный этап",
+        "start_date": "фев 2027",
+        "end_date": "",
+        "date_range": "фев 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-fizika/etap/zaklyuchitelnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Олимпиада «Росатом» по математике",
+    "url": "https://postupi.online/olimpiada/olimpiada-rosatom-matematika/",
+    "universities": [
+      "Уральский федеральный университет имени первого Президента России Б.Н. Ельцина",
+      "Национальный исследовательский ядерный университет МИФИ",
+      "Воронежский государственный университет"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "окт 2026",
+        "end_date": "ноя 2026",
+        "date_range": "окт 2026 — ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-matematika/etap/registraciya/"
+      },
+      {
+        "name": "Очный тур",
+        "start_date": "ноя 2026",
+        "end_date": "",
+        "date_range": "ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-matematika/etap/ochnyj-tur/"
+      },
+      {
+        "name": "Очно-заочный тур",
+        "start_date": "ноя 2026",
+        "end_date": "",
+        "date_range": "ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-matematika/etap/ochno-zaochnyj-tur/"
+      },
+      {
+        "name": "Дистанционный тур",
+        "start_date": "ноя 2026",
+        "end_date": "дек 2026",
+        "date_range": "ноя 2026 — дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-matematika/etap/distancionnyj-tur/"
+      },
+      {
+        "name": "Заключительный этап",
+        "start_date": "фев 2027",
+        "end_date": "",
+        "date_range": "фев 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-matematika/etap/zaklyuchitelnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Олимпиада «Формула Единства» / «Третье тысячелетие» по математике",
+    "url": "https://postupi.online/olimpiada/olimpiada-formula-edinstva-po-matematike/",
+    "universities": [
+      "РАНХиГС Санкт-Петербург",
+      "Санкт-Петербургский государственный электротехнический университет ЛЭТИ им. В.И. Ульянова (Ленина)",
+      "Балтийский государственный технический университет ВОЕНМЕХ им. Д.Ф. Устинова"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "окт 2026",
+        "end_date": "ноя 2026",
+        "date_range": "окт 2026 — ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-formula-edinstva-po-matematike/etap/registraciya/"
+      },
+      {
+        "name": "Отборочный этап",
+        "start_date": "15 окт 2026",
+        "end_date": "5 ноя 2026",
+        "date_range": "15 окт 2026 — 5 ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-formula-edinstva-po-matematike/etap/otborochnyj-etap/"
+      },
+      {
+        "name": "Заключительный этап",
+        "start_date": "мар 2027",
+        "end_date": "",
+        "date_range": "мар 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-formula-edinstva-po-matematike/etap/zaklyuchitelnyj-etap/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Искусственный интеллект»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/",
+    "universities": [
+      "Московский технический университет связи и информатики",
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Московский физико-технический институт (национальный исследовательский университет)"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Хакатон: практикум перед финалом",
+        "start_date": "дек 2026",
+        "end_date": "фев 2027",
+        "date_range": "дек 2026 — фев 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/etap/hakaton-praktikum-pered-finalom/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-iskusstvennyj-intellekt/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Отраслевая олимпиада школьников «Газпром» по информационным и коммуникационным технологиям (Информатика)",
+    "url": "https://postupi.online/olimpiada/olimpiada-gazprom-informatika/",
+    "universities": [
+      "Национальный исследовательский Томский политехнический университет",
+      "Уфимский государственный нефтяной технический университет",
+      "Санкт-Петербургский политехнический университет Петра Великого"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация на олимпиаду",
+        "start_date": "окт 2026",
+        "end_date": "янв 2027",
+        "date_range": "окт 2026 — янв 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-gazprom-informatika/etap/registraciya-na-olimpiadu/"
+      },
+      {
+        "name": "Подготовительный тур",
+        "start_date": "окт 2026",
+        "end_date": "",
+        "date_range": "окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-gazprom-informatika/etap/podgotovitelnyj-tur/"
+      },
+      {
+        "name": "Первый отборочный тур",
+        "start_date": "ноя 2026",
+        "end_date": "янв 2027",
+        "date_range": "ноя 2026 — янв 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-gazprom-informatika/etap/pervyj-otborochnyj-tur/"
+      },
+      {
+        "name": "Второй (заключительный) тур",
+        "start_date": "мар 2027",
+        "end_date": "",
+        "date_range": "мар 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-gazprom-informatika/etap/vtoroj-zaklyuchitelnyj-tur/"
+      }
+    ]
+  },
+  {
+    "name": "Олимпиада «Росатом» по информатике",
+    "url": "https://postupi.online/olimpiada/olimpiada-rosatom-informatika/",
+    "universities": [
+      "Уральский федеральный университет имени первого Президента России Б.Н. Ельцина",
+      "Национальный исследовательский ядерный университет МИФИ",
+      "Воронежский государственный университет"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "ноя 2026",
+        "end_date": "",
+        "date_range": "ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-informatika/etap/registraciya/"
+      },
+      {
+        "name": "Дистанционный тур",
+        "start_date": "ноя 2026",
+        "end_date": "",
+        "date_range": "ноя 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-informatika/etap/distancionnyj-tur/"
+      },
+      {
+        "name": "Заключительный тур",
+        "start_date": "янв 2027",
+        "end_date": "",
+        "date_range": "янв 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-rosatom-informatika/etap/zaklyuchitelnyj-tur/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Большие данные и машинное обучение»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-bolshie-dannye-i-mashinnoe-obuchenie/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Национальный исследовательский университет ИТМО"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-bolshie-dannye-i-mashinnoe-obuchenie/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-bolshie-dannye-i-mashinnoe-obuchenie/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-bolshie-dannye-i-mashinnoe-obuchenie/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-bolshie-dannye-i-mashinnoe-obuchenie/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-bolshie-dannye-i-mashinnoe-obuchenie/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Интеллектуальные робототехнические системы»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-robototehnika/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Национальный исследовательский университет ИТМО"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-robototehnika/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-robototehnika/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-robototehnika/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-robototehnika/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-robototehnika/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Геномное редактирование»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-genomnoe-redaktirovanie/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Новосибирский национальный исследовательский государственный университет"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-genomnoe-redaktirovanie/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-genomnoe-redaktirovanie/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-genomnoe-redaktirovanie/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-genomnoe-redaktirovanie/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-genomnoe-redaktirovanie/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Информационная безопасность»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-informacionnaya-bezopasnost/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Национальный исследовательский ядерный университет МИФИ"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-informacionnaya-bezopasnost/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-informacionnaya-bezopasnost/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-informacionnaya-bezopasnost/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-informacionnaya-bezopasnost/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-informacionnaya-bezopasnost/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Ядерные технологии»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-yadernye-tehnologii/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Национальный исследовательский ядерный университет МИФИ"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-yadernye-tehnologii/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-yadernye-tehnologii/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-yadernye-tehnologii/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-yadernye-tehnologii/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-yadernye-tehnologii/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Технологии беспроводной связи»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-besprovodnoj-svyazi/",
+    "universities": [
+      "Московский технический университет связи и информатики",
+      "Национальный исследовательский университет Высшая школа экономики"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-besprovodnoj-svyazi/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-besprovodnoj-svyazi/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-besprovodnoj-svyazi/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-besprovodnoj-svyazi/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-besprovodnoj-svyazi/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Технологии виртуальной реальности»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-virtualnoj-realnosti/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Национальный исследовательский университет ИТМО"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-virtualnoj-realnosti/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-virtualnoj-realnosti/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-virtualnoj-realnosti/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-virtualnoj-realnosti/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-tehnologii-virtualnoj-realnosti/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Программная инженерия в финансовых технологиях»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nto-programmnaya-inzheneriya-v-finansovyh-tehnologiyah/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Национальный исследовательский университет ИТМО"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nto-programmnaya-inzheneriya-v-finansovyh-tehnologiyah/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nto-programmnaya-inzheneriya-v-finansovyh-tehnologiyah/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nto-programmnaya-inzheneriya-v-finansovyh-tehnologiyah/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nto-programmnaya-inzheneriya-v-finansovyh-tehnologiyah/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nto-programmnaya-inzheneriya-v-finansovyh-tehnologiyah/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  },
+  {
+    "name": "Национальная технологическая олимпиада по профилю «Водные робототехнические системы»",
+    "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-vodnye-robototehnicheskie-sistemy/",
+    "universities": [
+      "Национальный исследовательский университет Высшая школа экономики",
+      "Дальневосточный федеральный университет"
+    ],
+    "stages": [
+      {
+        "name": "Регистрация",
+        "start_date": "26 авг 2026",
+        "end_date": "22 окт 2026",
+        "date_range": "26 авг 2026 — 22 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-vodnye-robototehnicheskie-sistemy/etap/registraciya/"
+      },
+      {
+        "name": "Первый отборочный этап",
+        "start_date": "17 сен 2026",
+        "end_date": "23 окт 2026",
+        "date_range": "17 сен 2026 — 23 окт 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-vodnye-robototehnicheskie-sistemy/etap/pervyj-otborochnyj-etap/"
+      },
+      {
+        "name": "Второй отборочный этап",
+        "start_date": "5 ноя 2026",
+        "end_date": "11 дек 2026",
+        "date_range": "5 ноя 2026 — 11 дек 2026",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-vodnye-robototehnicheskie-sistemy/etap/vtoroj-otborochnyj-etap/"
+      },
+      {
+        "name": "Индивидуальный предметный тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-vodnye-robototehnicheskie-sistemy/etap/individualnyj-predmetnyj-tur-finala/"
+      },
+      {
+        "name": "Командный практический тур финала",
+        "start_date": "15 фев 2027",
+        "end_date": "15 апр 2027",
+        "date_range": "15 фев 2027 — 15 апр 2027",
+        "url": "https://postupi.online/olimpiada/olimpiada-nti-nto-vodnye-robototehnicheskie-sistemy/etap/komandnyj-prakticheskij-tur-finala/"
+      }
+    ]
+  }
+]
