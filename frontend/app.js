@@ -468,15 +468,32 @@ async function renderMyOlympiads(filter = '') {
     await myOlympiadsContent(filter);
 }
 
+function sortMyOlympiads(list) {
+    switch (state.sort) {
+        case 'level':
+            list.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru'));
+            break;
+        case 'name':
+            list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+            break;
+        case 'urgency':
+        default:
+            break;
+    }
+    return list;
+}
+
 async function myOlympiadsContent(filter = '') {
     let myOlympiadsData = [];
     try {
-        const data = await Api.my.list({ sort: state.sort, q: filter });
+        const data = await Api.my.list({ q: filter });
         myOlympiadsData = Array.isArray(data) ? data : (data.items || []);
     } catch (err) {
         console.warn('[API] Не удалось загрузить мои олимпиады', err);
         myOlympiadsData = [];
     }
+
+    sortMyOlympiads(myOlympiadsData);
 
     contentEl.innerHTML = `
         <div class="sort-row">
