@@ -55,20 +55,6 @@
     return query ? `?${query}` : "";
   }
 
-  /**
-   * Первое заданное значение из нескольких имён параметра.
-   *
-   * Вызывающий код пишет то `subjectId`, то `subject_id` — обе записи
-   * выглядят естественно, и ошибка в имени тихо отключала бы фильтр
-   * вместо явной ошибки. Поэтому принимаем оба написания.
-   */
-  function pick() {
-    for (let i = 0; i < arguments.length; i++) {
-      if (arguments[i] !== undefined && arguments[i] !== null) return arguments[i];
-    }
-    return undefined;
-  }
-
   /** Дата в формате, который понимает бэкенд: 2026-09-23. */
   function toApiDate(value) {
     if (typeof value === "string") return value;
@@ -155,39 +141,10 @@
     /** Вкладка «Поиск»: каталог всех олимпиад. */
     catalog: {
       /**
-       * Справочник предметов: id, название, цвет кружка, короткий код
-       * для режима дальтоников и число олимпиад.
-       *
-       * Берите его отсюда, а не из константы в app.js — иначе цвета и
-       * идентификаторы разойдутся с базой.
-       *
-       * `grade` считает олимпиады под класс пользователя. Считает сервер:
-       * иначе ради цифры «5 олимпиад» пришлось бы выкачивать весь
-       * каталог, а по одной странице счётчик выходит заниженным.
-       *
-       * @param {number} [grade] класс, 1–11
-       */
-      subjects(grade) {
-        return request("/api/catalog/subjects", { query: { grade } });
-      },
-
-      /**
-       * Весь каталог одним запросом — под локальные поиск и сортировку
-       * и под офлайн-кэш. Сейчас это 220 записей.
-       *
-       * @param {number} [grade] оставить подходящие этому классу
-       */
-      all(grade) {
-        return request("/api/catalog/olympiads", {
-          query: { grade, limit: 500 },
-        });
-      },
-
-      /**
        * @param {object} params
        * @param {string} [params.q]      поиск по названию
-       * @param {number} [params.subjectId] можно и subject_id
-       * @param {number} [params.grade]  класс участника: 1–11
+       * @param {number} [params.subjectId]
+       * @param {number} [params.subject_id]  алиас subjectId
        * @param {number} [params.level]  1, 2 или 3
        * @param {string} [params.sort]   urgency | name | level
        * @param {number} [params.limit]  до 200
@@ -198,14 +155,23 @@
         return request("/api/catalog/olympiads", {
           query: {
             q: p.q,
-            subject_id: pick(p.subjectId, p.subject_id),
+            subject_id: p.subjectId ?? p.subject_id,
             level: p.level,
-            // Класс участника: оставит только подходящие олимпиады.
-            grade: pick(p.grade, p.class),
             sort: p.sort,
             limit: p.limit,
             offset: p.offset,
           },
+        });
+      },
+
+      /**
+       * Справочник предметов с числом олимпиад для класса.
+       * Каждый предмет: { id, name, color, short_code, olympiad_count }.
+       * @param {number} grade
+       */
+      subjects(grade) {
+        return request("/api/catalog/subjects", {
+          query: { grade },
         });
       },
 
@@ -219,18 +185,13 @@
     my: {
       /**
        * @param {object} params
-       * @param {string}   [params.q]          поиск по названию и предмету
        * @param {string}   [params.sort]       urgency | level | subject
        * @param {number[]} [params.subjectIds] фильтр по предметам
        */
       list(params) {
         const p = params || {};
         return request("/api/me/olympiads", {
-          query: {
-            q: p.q,
-            sort: p.sort,
-            subject_id: pick(p.subjectIds, p.subject_id, p.subjectId),
-          },
+          query: { sort: p.sort, subject_id: p.subjectIds },
         });
       },
 
