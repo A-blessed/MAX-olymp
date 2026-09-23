@@ -5,7 +5,7 @@
     {"subjects": [{"name": "Физика",
                    "olympiads": [{"name": ..., "level": "I", "grades": ...,
                                   "official_url": ..., "description": ...,
-                                  "id": "576", "организаторы": ...}]}]}
+                                  "id": "576", "organizers": ...}]}]}
 
 Главное, что выясняется из данных: одна олимпиада идёт сразу по многим
 предметам, и уровень у неё **по каждому предмету свой**. Московская
@@ -35,11 +35,14 @@ logger = logging.getLogger(__name__)
 # Имя источника: отличает эти записи от выгрузки парсера postupi.online.
 SOURCE_NAME = "subjects-file"
 
-# Ключ с организаторами в файле записан кириллицей; латинское написание
-# принимаем тоже — на случай, если формат поправят.
-ORGANIZERS_KEYS = ("организаторы", "organizers")
+# Ключ с организаторами переименовали из кириллического в латинский;
+# читаем оба, чтобы импорт не зависел от версии файла.
+ORGANIZERS_KEYS = ("organizers", "организаторы")
 
-# Значение, которым источник обозначает отсутствие данных о классах.
+# Строка, которой источник обозначает отсутствие данных. Встречается и
+# в классах, и в организаторах — пустых значений в файле нет вообще,
+# поэтому без этой проверки «Нет информации» уехало бы на карточку как
+# имя организатора.
 NO_DATA = "нет информации"
 
 # Справочник предметов. Идентификаторы и цвета совпадают со списком
@@ -95,21 +98,28 @@ def parse_levels(raw: Any) -> List[int]:
     return sorted(levels)
 
 
-def parse_grades(raw: Any) -> Optional[str]:
-    """Нормализует классы участников. «Нет информации» → ``None``."""
+def clean_text(raw: Any) -> Optional[str]:
+    """Схлопывает пробелы и превращает заглушку источника в ``None``."""
     if not raw:
         return None
     text = re.sub(r"\s+", " ", str(raw)).strip()
     if not text or text.lower().startswith(NO_DATA):
         return None
-    return text[:64]
+    return text
+
+
+def parse_grades(raw: Any) -> Optional[str]:
+    """Нормализует классы участников. «Нет информации» → ``None``."""
+    text = clean_text(raw)
+    return text[:64] if text else None
 
 
 def pick_organizers(payload: Dict[str, Any]) -> Optional[str]:
+    """Организаторы из того ключа, который есть в этой версии файла."""
     for key in ORGANIZERS_KEYS:
-        value = payload.get(key)
-        if value:
-            return re.sub(r"\s+", " ", str(value)).strip()
+        text = clean_text(payload.get(key))
+        if text:
+            return text
     return None
 
 
@@ -213,8 +223,8 @@ async def import_subject_tree(
             # Для сортировки «от I к III» нужен один уровень — берём лучший.
             olympiad.level = levels[0] if levels else None
             olympiad.grades = parse_grades(payload.get("grades"))
-            olympiad.summary = (payload.get("description") or "").strip() or None
-            olympiad.official_url = (payload.get("official_url") or "").strip() or None
+            olympiad.summary = clean_text(payload.get("description"))
+            olympiad.official_url = clean_text(payload.get("official_url"))
             olympiad.organizers = pick_organizers(payload)
             olympiad.source_checked_at = checked_at
 

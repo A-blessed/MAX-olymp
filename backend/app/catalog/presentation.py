@@ -9,9 +9,10 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from enum import Enum
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
 from .dates import Precision
 from .models import Stage
@@ -112,3 +113,23 @@ def pick_next_stage(stages: Iterable[Stage], today: Optional[date] = None) -> Op
     if not upcoming:
         return None
     return min(upcoming, key=lambda s: (not is_plannable(s), s.starts_on, s.position))
+
+
+# Механика показывает до трёх главных организаторов.
+MAX_ORGANIZERS = 3
+
+
+def split_organizers(raw: Optional[str]) -> List[str]:
+    """Разбивает строку организаторов на отдельные названия.
+
+    Источник отдаёт их одной строкой, разделяя запятыми, и разбор выходит
+    приблизительным: внутри одной части названия иногда стоят подряд без
+    разделителя вообще. Поэтому исходная строка остаётся в ответе как
+    есть — интерфейс может показать список, а может текст целиком.
+
+    Возвращается не больше трёх названий: столько показывает карточка.
+    """
+    if not raw:
+        return []
+    parts = [part.strip(" ;,") for part in re.split(r"\s*[,;]\s*", raw)]
+    return [part for part in parts if part][:MAX_ORGANIZERS]

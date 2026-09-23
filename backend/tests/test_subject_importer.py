@@ -1,14 +1,15 @@
 """Тесты разбора файла олимпиад, сгруппированных по предметам.
 
 Все случаи взяты из реального файла: римские уровни, список уровней по
-одному предмету, «Нет информации» вместо классов и ключ организаторов,
-записанный кириллицей.
+одному предмету, «Нет информации» вместо классов и организаторы, которые
+в разных версиях файла лежат под разными ключами.
 """
 
 from __future__ import annotations
 
 import pytest
 
+from app.catalog.presentation import split_organizers
 from app.catalog.subject_importer import (
     KNOWN_KEYS,
     SUBJECT_CATALOG,
@@ -69,10 +70,10 @@ class TestParseGrades:
 
 class TestPickOrganizers:
     def test_reads_cyrillic_key(self):
-        """В файле ключ называется «организаторы», а не organizers."""
+        """Ранняя версия файла называла ключ кириллицей."""
         assert pick_organizers({"организаторы": "МГУ"}) == "МГУ"
 
-    def test_reads_latin_key_too(self):
+    def test_reads_latin_key(self):
         assert pick_organizers({"organizers": "МФТИ"}) == "МФТИ"
 
     def test_collapses_whitespace(self):
@@ -80,6 +81,15 @@ class TestPickOrganizers:
 
     def test_missing_gives_none(self):
         assert pick_organizers({"name": "Олимпиада"}) is None
+
+    @pytest.mark.parametrize("raw", ["Нет информации", "нет информации", ""])
+    def test_placeholder_is_absence(self, raw):
+        """«Нет информации» стоит у 40 записей из 200.
+
+        Без этой проверки заглушка уехала бы на карточку как имя
+        организатора.
+        """
+        assert pick_organizers({"organizers": raw}) is None
 
 
 class TestSubjectCatalog:
@@ -117,3 +127,30 @@ def test_known_keys_cover_documented_format():
     """
     assert {"name", "level", "grades", "official_url", "description", "id"} <= KNOWN_KEYS
     assert "registration_dates" not in KNOWN_KEYS
+
+
+class TestSplitOrganizers:
+    def test_splits_by_comma(self):
+        raw = "Департамент образования, МГУ, ВШЭ"
+
+        assert split_organizers(raw) == ["Департамент образования", "МГУ", "ВШЭ"]
+
+    def test_keeps_at_most_three(self):
+        """Карточка показывает до трёх главных организаторов."""
+        raw = "А, Б, В, Г, Д"
+
+        assert split_organizers(raw) == ["А", "Б", "В"]
+
+    def test_old_semicolon_separator_still_works(self):
+        """Прошлая версия файла разделяла организаторов точкой с запятой."""
+        assert split_organizers("МГУ; СПбГУ") == ["МГУ", "СПбГУ"]
+
+    def test_trims_and_drops_empty(self):
+        assert split_organizers("  МГУ ,, , СПбГУ  ") == ["МГУ", "СПбГУ"]
+
+    @pytest.mark.parametrize("raw", [None, "", "   ", ",,,"])
+    def test_nothing_to_split(self, raw):
+        assert split_organizers(raw) == []
+
+    def test_single_organizer(self):
+        assert split_organizers("Департамент образования") == ["Департамент образования"]
