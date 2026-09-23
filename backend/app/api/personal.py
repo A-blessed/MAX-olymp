@@ -51,7 +51,7 @@ from ..personal.rules import (
     plan_window,
 )
 from ..security.deps import get_current_user
-from .catalog import StageOut
+from .catalog import StageOut, SubjectOut
 
 router = APIRouter(prefix="/api/me", tags=["personal"])
 
@@ -125,12 +125,16 @@ class MyOlympiadOut(BaseModel):
     id: int
     name: str
     level: Optional[int] = None
+    levels: List[int] = Field(default_factory=list)
     summary: Optional[str] = None
     subject_id: Optional[int] = None
     subject_name: Optional[str] = None
+    subject: Optional[SubjectOut] = None
+    grades: Optional[str] = None
     partner_universities: List[str] = Field(default_factory=list)
-    source_url: str
+    source_url: Optional[str] = None
     official_url: Optional[str] = None
+    organizers: Optional[str] = None
     added_at: datetime
     # Ответ «не прошёл» — олимпиада серая и уходит вниз списка.
     eliminated: bool = False
@@ -341,12 +345,16 @@ def _build_my_olympiad(
         id=olympiad.id,
         name=olympiad.name,
         level=olympiad.level,
+        levels=list(olympiad.levels or []),
         summary=olympiad.summary,
         subject_id=olympiad.subject_id,
         subject_name=olympiad.subject.name if olympiad.subject else None,
+        subject=SubjectOut.build(olympiad.subject) if olympiad.subject else None,
+        grades=olympiad.grades,
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         official_url=olympiad.official_url,
+        organizers=olympiad.organizers,
         added_at=added_at,
         eliminated=is_eliminated(results[s.id] for s in stages if s.id in results),
         next_stage=by_id.get(next_stage.id) if next_stage else None,
@@ -400,7 +408,7 @@ async def _stage_context(session: AsyncSession, user_id: int, stage_id: int) -> 
     olympiad = await session.scalar(
         select(Olympiad)
         .where(Olympiad.id == olympiad_id)
-        .options(selectinload(Olympiad.stages))
+        .options(selectinload(Olympiad.stages), selectinload(Olympiad.subject))
     )
     stage = next(s for s in olympiad.stages if s.id == stage_id)
     saved = await session.get(SavedOlympiad, (user_id, olympiad.id)) is not None

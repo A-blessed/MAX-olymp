@@ -21,7 +21,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from ..catalog.models import Olympiad, Stage, StageKind
+from ..catalog.models import Olympiad, Stage, StageKind, Subject
 from ..catalog.presentation import (
     StageStatus,
     days_until_start,
@@ -36,6 +36,24 @@ from ..db.session import get_session
 from ..security.deps import get_current_user
 
 router = APIRouter(prefix="/api/catalog", tags=["catalog"])
+
+
+class SubjectOut(BaseModel):
+    """Предмет: цвет для кружка и короткий код для режима дальтоников."""
+
+    id: int
+    name: str
+    color: Optional[str] = None
+    short_code: Optional[str] = None
+
+    @classmethod
+    def build(cls, subject: Subject) -> "SubjectOut":
+        return cls(
+            id=subject.id,
+            name=subject.name,
+            color=subject.color,
+            short_code=subject.short_code,
+        )
 
 
 class SortOrder(str, Enum):
@@ -89,11 +107,19 @@ class StageOut(BaseModel):
 class OlympiadListItem(BaseModel):
     id: int
     name: str
+    # Лучший уровень по перечню РСОШ — для сортировки «от I к III».
     level: Optional[int] = None
+    # Все уровни по этому предмету: иногда их два, тогда показывают «II–III ур.».
+    levels: List[int] = Field(default_factory=list)
     summary: Optional[str] = None
     subject_id: Optional[int] = None
+    subject: Optional[SubjectOut] = None
+    # Классы участников строкой источника: «7-11 классы» или null.
+    grades: Optional[str] = None
     partner_universities: List[str] = Field(default_factory=list)
-    source_url: str
+    # Ссылки на страницу источника есть не у всех записей: файл команды
+    # отдаёт только официальный сайт олимпиады.
+    source_url: Optional[str] = None
     # Ближайший идущий или предстоящий этап — для подписи на карточке.
     next_stage: Optional[StageOut] = None
     # Добавлена ли в «Мои олимпиады»: кнопка «Буду писать» / «✓ Добавлено».
@@ -102,6 +128,8 @@ class OlympiadListItem(BaseModel):
 
 class OlympiadDetail(OlympiadListItem):
     official_url: Optional[str] = None
+    # Организаторы одной строкой, как их отдаёт источник.
+    organizers: Optional[str] = None
     stages: List[StageOut] = Field(default_factory=list)
     # Откуда запись и когда её последний раз подтверждали в источнике.
     source: str
@@ -135,7 +163,10 @@ def _to_list_item(olympiad: Olympiad, today: date, saved: bool = False) -> Olymp
         name=olympiad.name,
         level=olympiad.level,
         summary=olympiad.summary,
+        levels=list(olympiad.levels or []),
         subject_id=olympiad.subject_id,
+        subject=SubjectOut.build(olympiad.subject) if olympiad.subject else None,
+        grades=olympiad.grades,
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         next_stage=StageOut.build(next_stage, today) if next_stage else None,
@@ -168,7 +199,11 @@ async def list_olympiads(
         select(func.count()).select_from(Olympiad).where(*filters)
     )
 
-    statement = select(Olympiad).where(*filters).options(selectinload(Olympiad.stages))
+    statement = (
+        select(Olympiad)
+        .where(*filters)
+        .options(selectinload(Olympiad.stages), selectinload(Olympiad.subject))
+    )
 
     if sort is SortOrder.NAME:
         statement = statement.order_by(Olympiad.name)
@@ -211,7 +246,7 @@ async def get_olympiad(
     olympiad = await session.scalar(
         select(Olympiad)
         .where(Olympiad.id == olympiad_id)
-        .options(selectinload(Olympiad.stages))
+        .options(selectinload(Olympiad.stages), selectinload(Olympiad.subject))
     )
     if olympiad is None:
         raise HTTPException(
@@ -225,7 +260,22 @@ async def get_olympiad(
     return OlympiadDetail(
         **base.model_dump(),
         official_url=olympiad.official_url,
+        organizers=olympiad.organizers,
         source=olympiad.source,
         source_checked_at=olympiad.source_checked_at,
         stages=[StageOut.build(stage, today) for stage in olympiad.stages],
     )
+
+
+@router.get("/subjects", response_model=List[SubjectOut], summary="Справочник предметов")
+async def list_subjects(
+    _user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> List[SubjectOut]:
+    """Предметы с цветами и короткими кодами.
+
+    Отдаётся сервером, чтобы цвета карточек и подписи в режиме для
+    дальтоников не расходились между фронтендом и базой.
+    """
+    subjects = await session.scalars(select(Subject).order_by(Subject.name))
+    return [SubjectOut.build(subject) for subject in subjects]

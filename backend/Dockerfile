@@ -19,6 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY scripts ./scripts
+# Миграции схемы едут в образе: сервис применяет их при старте.
+COPY alembic.ini ./
+COPY migrations ./migrations
 # Выгрузка источника едет в образе: проверка решения должна
 # воспроизводиться одной командой, без ручного подкладывания файлов.
 COPY data ./data

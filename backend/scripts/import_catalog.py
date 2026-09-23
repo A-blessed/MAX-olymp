@@ -14,7 +14,7 @@ import json
 import sys
 
 from app.catalog.importer import import_olympiads, load_rows
-from app.db.session import dispose_engine, get_session_factory, init_models
+from app.db.session import dispose_engine, get_session_factory
 
 DEFAULT_FILE = "data/olympiads.sample.json"
 
@@ -39,7 +39,6 @@ async def main() -> int:
 
     print(f"Читаем {args.file}: олимпиад — {len(rows)}")
 
-    await init_models()
     try:
         async with get_session_factory()() as session:
             stats = await import_olympiads(session, rows)
