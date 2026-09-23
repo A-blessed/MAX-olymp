@@ -113,29 +113,68 @@ class Subject(Base):
 
 
 class Olympiad(Base):
+    """Олимпиада по конкретному предмету.
+
+    Одна запись — это пара «олимпиада + предмет», а не олимпиада целиком.
+    Так сделано потому, что уровень по перечню РСОШ зависит от предмета:
+    Московская олимпиада по астрономии — I уровня, по биологии — II.
+    Интерфейс тоже всегда показывает олимпиаду внутри предмета, с
+    предметом и уровнем на карточке.
+
+    Следствие: «Олимпиада СПбГУ» присутствует четырнадцать раз, по разу
+    на предмет, и добавляется в «Мои олимпиады» тоже по предмету.
+    """
+
     __tablename__ = "olympiads"
+    __table_args__ = (
+        # Устойчивый ключ записи: идентификатор олимпиады в источнике
+        # плюс предмет. Позволяет обновлять данные, не пересоздавая
+        # строки, на которые ссылается прогресс пользователя.
+        UniqueConstraint(
+            "source", "external_id", "subject_id", name="uq_olympiad_source_key"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # Откуда запись и когда её последний раз видели в источнике —
     # без этого нельзя показать пользователю дату актуальности.
     source: Mapped[str] = mapped_column(String(64), nullable=False, default="postupi.online")
-    source_url: Mapped[str] = mapped_column(String(1024), unique=True, nullable=False)
+    # Идентификатор олимпиады в источнике. У выгрузки парсера его нет —
+    # там запись опознаётся по ссылке.
+    external_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    # Ссылка на страницу источника. Есть не у всех источников.
+    source_url: Mapped[Optional[str]] = mapped_column(
+        String(1024), unique=True, nullable=True
+    )
     source_checked_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
     name: Mapped[str] = mapped_column(Text, nullable=False)
 
-    # Поля ниже источник не отдаёт — заполняются отдельно и потому nullable.
     subject_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True
     )
     level: Mapped[Optional[int]] = mapped_column(
-        SmallInteger, nullable=True, doc="Уровень по перечню РСОШ: 1, 2 или 3"
+        SmallInteger,
+        nullable=True,
+        doc="Уровень по перечню РСОШ для этого предмета: 1, 2 или 3",
     )
+    # По одному предмету олимпиада иногда проходит сразу на нескольких
+    # уровнях. `level` тогда хранит лучший из них — для сортировки, —
+    # а полный список остаётся здесь, чтобы показать «II–III ур.».
+    levels: Mapped[list] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
+    # Классы участников строкой источника: «7-11 классы» или пустое,
+    # если источник их не знает.
+    grades: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     official_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    # Организаторы одной строкой, как их отдаёт источник. Это не вузы,
+    # засчитывающие олимпиаду, — те лежат в partner_universities.
+    organizers: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Вузы, засчитывающие олимпиаду. Это не организаторы — не путать.
     partner_universities: Mapped[list] = mapped_column(

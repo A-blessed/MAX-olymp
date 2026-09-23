@@ -36,6 +36,12 @@ services:
       # Адрес базы собирается здесь: внутри сети compose хост — имя сервиса.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
       EXTRA_CA_CERTS_DIR: /app/certs
+    # Схему создаёт и обновляет Alembic, а не приложение: так одна и та
+    # же команда поднимает и чистую базу, и уже существующую.
+    command:
+      - sh
+      - -c
+      - alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000
     depends_on:
       db:
         condition: service_healthy

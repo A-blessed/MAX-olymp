@@ -25,7 +25,7 @@ from .api.personal import router as personal_router
 from .api.router import router as api_router
 from .bot.router import router as bot_router
 from .config import get_settings
-from .db.session import dispose_engine, init_models
+from .db.session import dispose_engine
 from .max_api.client import MaxApiClient
 
 logger = logging.getLogger(__name__)
@@ -44,8 +44,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging(settings.log_level)
 
     logger.info("Запуск в режиме %s", settings.app_env)
-
-    await init_models()
 
     if settings.bot_token:
         ca_files = settings.extra_ca_files()

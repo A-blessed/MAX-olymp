@@ -1,0 +1,10 @@
+Миграции схемы (Alembic).
+
+Создать новую после правки моделей:
+    docker compose run --rm backend alembic revision --autogenerate -m "что меняем"
+
+Применить:
+    docker compose run --rm backend alembic upgrade head
+
+Сервис применяет миграции сам при старте — см. команду backend в
+docker-compose.yml.

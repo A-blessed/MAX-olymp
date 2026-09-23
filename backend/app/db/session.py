@@ -8,7 +8,7 @@ from typing import AsyncIterator, Optional
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from ..config import get_settings
-from .models import Base
+from .models import Base  # noqa: F401  (нужен для метаданных Alembic)
 
 # Импорт ради регистрации таблиц в метаданных Base: без него create_all
 # не увидит модели каталога и не создаст их.
@@ -46,18 +46,6 @@ async def get_session() -> AsyncIterator[AsyncSession]:
     """Зависимость FastAPI: сессия на время запроса."""
     async with get_session_factory()() as session:
         yield session
-
-
-async def init_models() -> None:
-    """Создаёт таблицы, которых ещё нет.
-
-    Для MVP этого достаточно. Для продакшена сюда встанет Alembic:
-    ``create_all`` не умеет изменять уже существующие таблицы.
-    """
-    engine = get_engine()
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    logger.info("Схема базы данных синхронизирована")
 
 
 async def dispose_engine() -> None:
