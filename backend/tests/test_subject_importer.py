@@ -13,6 +13,7 @@ from app.catalog.presentation import split_organizers
 from app.catalog.subject_importer import (
     KNOWN_KEYS,
     SUBJECT_CATALOG,
+    parse_grade_range,
     parse_grades,
     parse_levels,
     pick_organizers,
@@ -154,3 +155,34 @@ class TestSplitOrganizers:
 
     def test_single_organizer(self):
         assert split_organizers("Департамент образования") == ["Департамент образования"]
+
+
+class TestParseGradeRange:
+    """Границы классов: по строке «7-11 классы» отфильтровать нельзя."""
+
+    @pytest.mark.parametrize(
+        "raw,expected",
+        [
+            ("7-11 классы", (7, 11)),
+            ("7–11 классы", (7, 11)),   # длинное тире
+            ("7—11 классы", (7, 11)),   # ещё длиннее
+            ("7-11 класс", (7, 11)),
+            ("2–11 классы", (2, 11)),
+            ("10–11 классы", (10, 11)),
+            ("8–10 классы", (8, 10)),
+        ],
+    )
+    def test_ranges_from_real_data(self, raw, expected):
+        assert parse_grade_range(raw) == expected
+
+    def test_single_grade(self):
+        assert parse_grade_range("11 класс") == (11, 11)
+
+    def test_reversed_range_is_straightened(self):
+        assert parse_grade_range("11-7 классы") == (7, 11)
+
+    @pytest.mark.parametrize(
+        "raw", ["Нет информации", "", None, "все классы", "0-20 классы", "1998-2020"]
+    )
+    def test_unparseable_gives_nothing(self, raw):
+        assert parse_grade_range(raw) == (None, None)

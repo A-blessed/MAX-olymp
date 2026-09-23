@@ -114,6 +114,37 @@ def parse_grades(raw: Any) -> Optional[str]:
     return text[:64] if text else None
 
 
+# «7-11 классы», «2–11 классы», «7-11 класс» — различаются только тире
+# и окончанием. Одиночное число тоже допускаем.
+_GRADE_RANGE = re.compile(r"(\d{1,2})\s*[-–—]\s*(\d{1,2})")
+_GRADE_SINGLE = re.compile(r"^\D*(\d{1,2})\D*$")
+
+
+def parse_grade_range(raw: Any) -> Tuple[Optional[int], Optional[int]]:
+    """Границы классов из строки источника.
+
+    Нужны, чтобы подбирать олимпиады под класс пользователя: по тексту
+    «7-11 классы» отфильтровать нельзя.
+    """
+    text = clean_text(raw)
+    if not text:
+        return None, None
+
+    match = _GRADE_RANGE.search(text)
+    if match:
+        low, high = int(match.group(1)), int(match.group(2))
+        if 1 <= low <= 11 and 1 <= high <= 11:
+            return (low, high) if low <= high else (high, low)
+        return None, None
+
+    match = _GRADE_SINGLE.match(text)
+    if match:
+        only = int(match.group(1))
+        if 1 <= only <= 11:
+            return only, only
+    return None, None
+
+
 def pick_organizers(payload: Dict[str, Any]) -> Optional[str]:
     """Организаторы из того ключа, который есть в этой версии файла."""
     for key in ORGANIZERS_KEYS:
@@ -223,6 +254,7 @@ async def import_subject_tree(
             # Для сортировки «от I к III» нужен один уровень — берём лучший.
             olympiad.level = levels[0] if levels else None
             olympiad.grades = parse_grades(payload.get("grades"))
+            olympiad.grade_min, olympiad.grade_max = parse_grade_range(payload.get("grades"))
             olympiad.summary = clean_text(payload.get("description"))
             olympiad.official_url = clean_text(payload.get("official_url"))
             olympiad.organizers = pick_organizers(payload)

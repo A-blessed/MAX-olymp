@@ -17,7 +17,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -117,6 +117,9 @@ class OlympiadListItem(BaseModel):
     subject: Optional[SubjectOut] = None
     # Классы участников строкой источника: «7-11 классы» или null.
     grades: Optional[str] = None
+    # Та же строка числами — для подсветки «подходит вашему классу».
+    grade_min: Optional[int] = None
+    grade_max: Optional[int] = None
     partner_universities: List[str] = Field(default_factory=list)
     # Ссылки на страницу источника есть не у всех записей: файл команды
     # отдаёт только официальный сайт олимпиады.
@@ -171,6 +174,8 @@ def _to_list_item(olympiad: Olympiad, today: date, saved: bool = False) -> Olymp
         subject_id=olympiad.subject_id,
         subject=SubjectOut.build(olympiad.subject) if olympiad.subject else None,
         grades=olympiad.grades,
+        grade_min=olympiad.grade_min,
+        grade_max=olympiad.grade_max,
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         next_stage=StageOut.build(next_stage, today) if next_stage else None,
@@ -180,9 +185,12 @@ def _to_list_item(olympiad: Olympiad, today: date, saved: bool = False) -> Olymp
 
 @router.get("/olympiads", response_model=OlympiadPage, summary="Список олимпиад")
 async def list_olympiads(
-    q: Optional[str] = Query(default=None, description="поиск по названию"),
+    q: Optional[str] = Query(default=None, description="поиск по названию и предмету"),
     subject_id: Optional[int] = Query(default=None),
     level: Optional[int] = Query(default=None, ge=1, le=3),
+    grade: Optional[int] = Query(
+        default=None, ge=1, le=11, description="оставить подходящие этому классу"
+    ),
     sort: SortOrder = Query(default=SortOrder.URGENCY),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -193,11 +201,26 @@ async def list_olympiads(
 
     filters = []
     if q:
-        filters.append(Olympiad.name.ilike(f"%{q}%"))
+        # Механика ищет «по названию или предмету» — второе через
+        # подзапрос, чтобы не тащить join в основную выборку.
+        pattern = f"%{q}%"
+        by_subject = select(Subject.id).where(Subject.name.ilike(pattern)).scalar_subquery()
+        filters.append(
+            or_(Olympiad.name.ilike(pattern), Olympiad.subject_id.in_(by_subject))
+        )
     if subject_id is not None:
         filters.append(Olympiad.subject_id == subject_id)
     if level is not None:
         filters.append(Olympiad.level == level)
+    if grade is not None:
+        # Записи без данных о классах не прячем: неизвестно — не значит
+        # «не подходит», и скрывать их было бы враньём.
+        filters.append(
+            or_(Olympiad.grade_min.is_(None), Olympiad.grade_min <= grade)
+        )
+        filters.append(
+            or_(Olympiad.grade_max.is_(None), Olympiad.grade_max >= grade)
+        )
 
     total = await session.scalar(
         select(func.count()).select_from(Olympiad).where(*filters)

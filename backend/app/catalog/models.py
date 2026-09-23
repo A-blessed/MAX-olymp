@@ -168,8 +168,12 @@ class Olympiad(Base):
         JSONB, nullable=False, default=list, server_default="[]"
     )
     # Классы участников строкой источника: «7-11 классы» или пустое,
-    # если источник их не знает.
+    # если источник их не знает. Показывается как есть.
     grades: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    # Та же строка, разобранная в границы: по тексту не отфильтруешь, а
+    # подбор олимпиад под класс пользователя — основа вкладки «Поиск».
+    grade_min: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
+    grade_max: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     official_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
     # Организаторы одной строкой, как их отдаёт источник. Это не вузы,
