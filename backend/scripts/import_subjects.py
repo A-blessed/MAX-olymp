@@ -52,6 +52,13 @@ async def main() -> int:
         await dispose_engine()
 
     print(json.dumps(stats.as_dict(), ensure_ascii=False, indent=2))
+    if stats.duplicate_keys:
+        print()
+        print(f"Пропущено из-за повторного «id + предмет»: {len(stats.duplicate_keys)}")
+        for item in stats.duplicate_keys:
+            print(f"  - {item}")
+        print("В источнике под одним идентификатором лежат разные олимпиады —")
+        print("данные не угадываем, нужно поправить файл.")
     if stats.unknown_keys:
         print("\nВ файле есть поля, которые импорт пока не читает:")
         for key in sorted(stats.unknown_keys):

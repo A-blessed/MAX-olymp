@@ -136,7 +136,7 @@ class MyOlympiadOut(BaseModel):
     partner_universities: List[str] = Field(default_factory=list)
     source_url: Optional[str] = None
     official_url: Optional[str] = None
-    organizers: Optional[str] = None
+    organizers: List[str] = Field(default_factory=list)
     added_at: datetime
     # Ответ «не прошёл» — олимпиада серая и уходит вниз списка.
     eliminated: bool = False
@@ -358,7 +358,7 @@ def _build_my_olympiad(
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         official_url=olympiad.official_url,
-        organizers=olympiad.organizers,
+        organizers=list(olympiad.organizers or []),
         added_at=added_at,
         eliminated=is_eliminated(results[s.id] for s in stages if s.id in results),
         next_stage=by_id.get(next_stage.id) if next_stage else None,

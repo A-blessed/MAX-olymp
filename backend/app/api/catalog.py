@@ -136,9 +136,8 @@ class OlympiadListItem(BaseModel):
 
 class OlympiadDetail(OlympiadListItem):
     official_url: Optional[str] = None
-    # Организаторы одной строкой, как их отдаёт источник: их не больше
-    # трёх, и разбирать строку на части не требуется.
-    organizers: Optional[str] = None
+    # Организаторы: короткие названия, не больше трёх.
+    organizers: List[str] = Field(default_factory=list)
     stages: List[StageOut] = Field(default_factory=list)
     # Откуда запись и когда её последний раз подтверждали в источнике.
     source: str
@@ -305,7 +304,7 @@ async def get_olympiad(
     return OlympiadDetail(
         **base.model_dump(),
         official_url=olympiad.official_url,
-        organizers=olympiad.organizers,
+        organizers=list(olympiad.organizers or []),
         source=olympiad.source,
         source_checked_at=olympiad.source_checked_at,
         stages=[StageOut.build(stage, today) for stage in olympiad.stages],
