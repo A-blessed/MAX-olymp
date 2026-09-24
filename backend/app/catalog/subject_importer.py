@@ -15,6 +15,8 @@
 
 Описание, ссылка, классы и организаторы у всех предметов одной олимпиады
 совпадают — это проверено по файлу, — поэтому они просто дублируются.
+
+Организаторы приходят списком коротких названий, не больше трёх.
 """
 
 from __future__ import annotations
@@ -145,13 +147,27 @@ def parse_grade_range(raw: Any) -> Tuple[Optional[int], Optional[int]]:
     return None, None
 
 
-def pick_organizers(payload: Dict[str, Any]) -> Optional[str]:
-    """Организаторы из того ключа, который есть в этой версии файла."""
+# Механика показывает до трёх главных организаторов.
+MAX_ORGANIZERS = 3
+
+
+def parse_organizers(payload: Dict[str, Any]) -> List[str]:
+    """Список организаторов из того ключа, который есть в этой версии файла.
+
+    Источник отдаёт короткие названия массивом — «МГУ», «НИУ ВШЭ». Ранние
+    версии файла присылали их одной строкой через запятую, поэтому такой
+    вход тоже разбираем: пересобирать базу ради смены формата незачем.
+    """
     for key in ORGANIZERS_KEYS:
-        text = clean_text(payload.get(key))
-        if text:
-            return text
-    return None
+        raw = payload.get(key)
+        if not raw:
+            continue
+
+        values = raw if isinstance(raw, (list, tuple)) else re.split(r"\s*[,;]\s*", str(raw))
+        names = [name for name in (clean_text(value) for value in values) if name]
+        if names:
+            return names[:MAX_ORGANIZERS]
+    return []
 
 
 @dataclass
@@ -159,7 +175,10 @@ class SubjectImportStats:
     subjects_created: int = 0
     olympiads_created: int = 0
     olympiads_updated: int = 0
+    olympiads_removed: int = 0
     skipped: List[str] = field(default_factory=list)
+    # Записи, отброшенные из-за повторного ключа «id + предмет».
+    duplicate_keys: List[str] = field(default_factory=list)
     unique_olympiads: int = 0
     # Ключи источника, которых мы пока не читаем: сюда попадут будущие
     # поля с датами, когда они появятся в файле.
@@ -170,8 +189,10 @@ class SubjectImportStats:
             "subjects_created": self.subjects_created,
             "olympiads_created": self.olympiads_created,
             "olympiads_updated": self.olympiads_updated,
+            "olympiads_removed": self.olympiads_removed,
             "unique_olympiads": self.unique_olympiads,
             "skipped": self.skipped,
+            "duplicate_keys": self.duplicate_keys,
             "unknown_keys": sorted(self.unknown_keys),
         }
 
@@ -218,6 +239,9 @@ async def import_subject_tree(
     existing = {(row.external_id, row.subject_id): row for row in existing_rows}
 
     seen_ids: Set[str] = set()
+    # Ключ записи — идентификатор источника плюс предмет. В файле он
+    # иногда повторяется у разных олимпиад, и вторая затирала бы первую.
+    seen_keys: Set[Tuple[str, int]] = set()
 
     for subject_block in data.get("subjects") or []:
         subject_name = (subject_block.get("name") or "").strip()
@@ -234,6 +258,15 @@ async def import_subject_tree(
                 continue
 
             stats.unknown_keys |= set(payload) - KNOWN_KEYS
+
+            key = (external_id, subject.id)
+            if key in seen_keys:
+                # Данные не угадываем: под одним идентификатором в файле
+                # лежат разные олимпиады, и какая из них настоящая —
+                # знает только источник.
+                stats.duplicate_keys.append(f"{subject_name}: id={external_id} — {name}")
+                continue
+            seen_keys.add(key)
             seen_ids.add(external_id)
 
             olympiad = existing.get((external_id, subject.id))
@@ -257,12 +290,30 @@ async def import_subject_tree(
             olympiad.grade_min, olympiad.grade_max = parse_grade_range(payload.get("grades"))
             olympiad.summary = clean_text(payload.get("description"))
             olympiad.official_url = clean_text(payload.get("official_url"))
-            olympiad.organizers = pick_organizers(payload)
+            olympiad.organizers = parse_organizers(payload)
             olympiad.source_checked_at = checked_at
+
+    # Записи, которых в источнике больше нет. Без этого каталог копит
+    # мусор от прошлых версий файла: олимпиада, выпавшая из выгрузки,
+    # осталась бы в поиске навсегда.
+    #
+    # Вместе с записью уходят сохранения и прогресс тех, кто её добавил:
+    # держать в «Моих олимпиадах» то, чего больше нет в источнике, —
+    # хуже, чем убрать.
+    for key, olympiad in existing.items():
+        if key not in seen_keys:
+            await session.delete(olympiad)
+            stats.olympiads_removed += 1
 
     stats.unique_olympiads = len(seen_ids)
     await session.commit()
 
+    if stats.duplicate_keys:
+        logger.warning(
+            "Пропущено записей с повторным ключом «id + предмет»: %d. "
+            "В источнике под одним идентификатором лежат разные олимпиады.",
+            len(stats.duplicate_keys),
+        )
     if stats.unknown_keys:
         logger.warning(
             "В файле появились неизвестные поля: %s. Их никто не читает — "

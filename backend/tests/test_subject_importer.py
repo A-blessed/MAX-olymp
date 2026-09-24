@@ -15,7 +15,7 @@ from app.catalog.subject_importer import (
     parse_grade_range,
     parse_grades,
     parse_levels,
-    pick_organizers,
+    parse_organizers,
 )
 
 
@@ -68,29 +68,36 @@ class TestParseGrades:
         assert len(parse_grades("к" * 200)) == 64
 
 
-class TestPickOrganizers:
-    def test_reads_cyrillic_key(self):
-        """Ранняя версия файла называла ключ кириллицей."""
-        assert pick_organizers({"организаторы": "МГУ"}) == "МГУ"
+class TestParseOrganizers:
+    def test_list_from_source(self):
+        """Актуальный файл отдаёт короткие названия массивом."""
+        payload = {"organizers": ["МГУ", "МФТИ", "НИУ ВШЭ"]}
 
-    def test_reads_latin_key(self):
-        assert pick_organizers({"organizers": "МФТИ"}) == "МФТИ"
+        assert parse_organizers(payload) == ["МГУ", "МФТИ", "НИУ ВШЭ"]
+
+    def test_keeps_at_most_three(self):
+        payload = {"organizers": ["А", "Б", "В", "Г"]}
+
+        assert parse_organizers(payload) == ["А", "Б", "В"]
+
+    def test_string_from_older_file_is_split(self):
+        """Ранние версии присылали организаторов одной строкой."""
+        assert parse_organizers({"organizers": "МГУ, СПбГУ"}) == ["МГУ", "СПбГУ"]
+
+    def test_reads_cyrillic_key(self):
+        """Самая ранняя версия называла ключ кириллицей."""
+        assert parse_organizers({"организаторы": ["МГУ"]}) == ["МГУ"]
 
     def test_collapses_whitespace(self):
-        assert pick_organizers({"организаторы": "МГУ;\n\n  СПбГУ"}) == "МГУ; СПбГУ"
+        assert parse_organizers({"organizers": ["  МГУ  "]}) == ["МГУ"]
 
-    def test_missing_gives_none(self):
-        assert pick_organizers({"name": "Олимпиада"}) is None
+    def test_missing_gives_empty_list(self):
+        assert parse_organizers({"name": "Олимпиада"}) == []
 
-    @pytest.mark.parametrize("raw", ["Нет информации", "нет информации", ""])
+    @pytest.mark.parametrize("raw", ["Нет информации", "", ["Нет информации"], []])
     def test_placeholder_is_absence(self, raw):
-        """«Нет информации» стоит у 40 записей из 200.
-
-        Без этой проверки заглушка уехала бы на карточку как имя
-        организатора.
-        """
-        assert pick_organizers({"organizers": raw}) is None
-
+        """Заглушка источника не должна уехать на карточку как организатор."""
+        assert parse_organizers({"organizers": raw}) == []
 
 class TestSubjectCatalog:
     def test_ids_match_frontend_list(self):

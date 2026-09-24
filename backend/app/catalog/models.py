@@ -176,9 +176,11 @@ class Olympiad(Base):
     grade_max: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     official_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
-    # Организаторы одной строкой, как их отдаёт источник. Это не вузы,
-    # засчитывающие олимпиаду, — те лежат в partner_universities.
-    organizers: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    # Организаторы: список коротких названий, не больше трёх. Это не
+    # вузы, засчитывающие олимпиаду, — те лежат в partner_universities.
+    organizers: Mapped[list] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
 
     # Вузы, засчитывающие олимпиаду. Это не организаторы — не путать.
     partner_universities: Mapped[list] = mapped_column(
