@@ -23,6 +23,7 @@ from typing import Any, AsyncIterator, Dict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .api.catalog import router as catalog_router
 from .api.personal import router as personal_router
@@ -33,6 +34,20 @@ from .db.session import dispose_engine
 from .max_api.client import MaxApiClient
 
 logger = logging.getLogger(__name__)
+
+
+class NoCacheStaticFiles(StaticFiles):
+    """Статика мини-приложения, которую браузер не оставляет у себя.
+
+    MAX открывает приложение во встроенном браузере, и закэшированная
+    версия переживает выкладку: пользователь остаётся на старом коде, а
+    отладить это почти невозможно — на машине разработчика всё свежее.
+    """
+
+    def file_response(self, *args: Any, **kwargs: Any) -> Any:
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
 
 
 def configure_logging(level: str) -> None:
@@ -49,6 +64,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     logger.info("Запуск в режиме %s", settings.app_env)
     logger.info("Публичный адрес: %s, вебхук: %s", settings.public_origin, settings.webhook_url)
+
+    if settings.frontend_available:
+        logger.info("Мини-приложение отдаётся из %s", settings.frontend_path)
+    else:
+        logger.info(
+            "Статика не отдаётся: в %s нет index.html. Это нормально, когда "
+            "её отдаёт nginx; при запуске без него корень ответит 404 и "
+            "мини-приложение в MAX не откроется.",
+            settings.frontend_path,
+        )
 
     if not settings.public_base_url_is_https:
         # MAX доставляет события только по https на 443 и не принимает
@@ -146,6 +171,19 @@ def create_app() -> FastAPI:
             "bot_configured": bool(settings.bot_token),
             "webhook_secret_set": bool(settings.webhook_secret),
         }
+
+    # Статика — последней: путь "/" совпадает с чем угодно, и всё, что
+    # объявлено выше, должно попасть в маршрут раньше. Порядок здесь не
+    # стилистический, от него зависит, работает ли API.
+    #
+    # Каталога нет — раздача просто выключается. Так и устроен запуск в
+    # Docker: там статику отдаёт nginx, а в образ она не копируется.
+    if settings.frontend_available:
+        app.mount(
+            "/",
+            NoCacheStaticFiles(directory=settings.frontend_path, html=True),
+            name="frontend",
+        )
 
     return app
 
