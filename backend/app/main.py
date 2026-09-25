@@ -79,7 +79,16 @@ async def check_database(settings: Any) -> None:
             settings.database_url_safe,
             exc.__class__.__name__,
         )
-        if settings.database_host == "db":
+        if isinstance(exc, ConnectionRefusedError):
+            # Хост разрешился, но на порту тишина. Самый частый случай на
+            # Windows: установщик Postgres занимает 5433, когда 5432 уже
+            # занят, и делает это молча.
+            logger.error(
+                "Хост найден, но на указанном порту никто не слушает. Сверьте "
+                "порт в DATABASE_URL с тем, что выбрал установщик Postgres: "
+                "если 5432 был занят, он поднялся на 5433.",
+            )
+        elif settings.database_host == "db":
             logger.error(
                 "Хост «db» — это имя сервиса в docker compose, вне контейнера он "
                 "не существует. Укажите в DATABASE_URL адрес настоящей Postgres, "
