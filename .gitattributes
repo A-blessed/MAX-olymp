@@ -8,3 +8,8 @@
 *.jpg binary
 *.pdf binary
 *.ico binary
+
+# PowerShell-скрипты запускаются только на Windows, и CRLF там родной.
+# BOM в них обязателен отдельно: PowerShell 5.1 читает .ps1 без BOM как
+# ANSI, и кириллица в выводе рассыпается.
+*.ps1 text eol=crlf
