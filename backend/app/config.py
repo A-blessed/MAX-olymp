@@ -86,6 +86,20 @@ class Settings(BaseSettings):
     )
 
     @property
+    def env_file_path(self) -> Path:
+        """Куда приложение смотрит за файлом .env.
+
+        Путь считается от рабочего каталога процесса, а не от каталога с
+        кодом: запуск из другой папки — самая частая причина того, что
+        настройки «не подхватились».
+        """
+        return Path(".env").resolve()
+
+    @property
+    def env_file_found(self) -> bool:
+        return self.env_file_path.is_file()
+
+    @property
     def public_origin(self) -> str:
         """Публичный адрес без завершающего слеша."""
         return self.public_base_url.rstrip("/")
