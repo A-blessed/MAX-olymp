@@ -74,6 +74,16 @@ class Settings(BaseSettings):
         ),
     )
 
+    # --- Мини-приложение: статика ---
+    frontend_dir: str = Field(
+        default="frontend",
+        description=(
+            "Каталог с файлами мини-приложения. Считается от рабочего каталога. "
+            "Если каталога нет, раздача выключается: так и происходит в Docker, "
+            "где статику отдаёт nginx. Пустое значение выключает раздачу явно."
+        ),
+    )
+
     # --- База данных ---
     database_url: str = Field(
         default="postgresql+asyncpg://app:app@db:5432/app",
@@ -98,6 +108,17 @@ class Settings(BaseSettings):
     @property
     def env_file_found(self) -> bool:
         return self.env_file_path.is_file()
+
+    @property
+    def frontend_path(self) -> Path:
+        return Path(self.frontend_dir).resolve()
+
+    @property
+    def frontend_available(self) -> bool:
+        """Есть ли что отдавать: каталог с index.html внутри."""
+        if not self.frontend_dir.strip():
+            return False
+        return (self.frontend_path / "index.html").is_file()
 
     @property
     def public_origin(self) -> str:
