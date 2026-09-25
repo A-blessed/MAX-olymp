@@ -14,6 +14,10 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# Расширения, в которых ожидается сертификат в виде PEM или DER.
+CA_CERT_SUFFIXES = {".crt", ".pem", ".cer"}
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -91,8 +95,13 @@ class Settings(BaseSettings):
 
     # --- TLS ---
     extra_ca_certs_dir: str = Field(
-        default="/app/certs",
-        description="Каталог с дополнительными корневыми сертификатами (Минцифры).",
+        default="certs",
+        description=(
+            "Каталог с корневыми сертификатами Минцифры. Путь относительный — "
+            "считается от рабочего каталога. Абсолютный /app/certs задают оба "
+            "compose-файла: внутри контейнера каталог именно там, а на Windows "
+            "такой путь уехал бы в C:\\app\\certs."
+        ),
     )
 
     @property
@@ -147,15 +156,41 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.app_env.lower() in {"production", "prod"}
 
+    @property
+    def extra_ca_certs_path(self) -> Path:
+        """Абсолютный путь к каталогу сертификатов.
+
+        Сообщать в лог нужно именно его: относительный путь ничего не
+        говорит, а «/app/certs» на Windows и вовсе означает не тот каталог,
+        в который пользователь клал файлы.
+        """
+        return Path(self.extra_ca_certs_dir).resolve()
+
     def extra_ca_files(self) -> List[Path]:
         """Список файлов сертификатов, которые нужно добавить в доверенные."""
-        directory = Path(self.extra_ca_certs_dir)
+        directory = self.extra_ca_certs_path
         if not directory.is_dir():
             return []
         return sorted(
             path
             for path in directory.iterdir()
-            if path.is_file() and path.suffix.lower() in {".crt", ".pem", ".cer"}
+            if path.is_file() and path.suffix.lower() in CA_CERT_SUFFIXES
+        )
+
+    def foreign_files_in_certs_dir(self) -> List[str]:
+        """Файлы в каталоге, которые не будут подхвачены из-за расширения.
+
+        Отдельный случай: с Госуслуг сертификаты нередко скачиваются одним
+        файлом .p7b, а он сюда не годится — его нужно сначала разобрать.
+        Без этой подсказки каталог выглядит наполненным, а сертификатов нет.
+        """
+        directory = self.extra_ca_certs_path
+        if not directory.is_dir():
+            return []
+        return sorted(
+            path.name
+            for path in directory.iterdir()
+            if path.is_file() and path.suffix.lower() not in CA_CERT_SUFFIXES
         )
 
 

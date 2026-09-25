@@ -86,13 +86,36 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     if settings.bot_token:
         ca_files = settings.extra_ca_files()
-        if not ca_files:
+        if ca_files:
+            logger.info(
+                "Сертификаты из %s: %s",
+                settings.extra_ca_certs_path,
+                ", ".join(path.name for path in ca_files),
+            )
+        else:
+            # Печатаем разобранный абсолютный путь: относительный ни о чём не
+            # говорит, а «/app/certs» на Windows означает C:\app\certs —
+            # не тот каталог, в который файлы клали.
             logger.warning(
                 "В каталоге %s нет сертификатов. Обращения к %s, скорее всего, "
                 "упадут с ошибкой TLS: домен подписан сертификатом Минцифры.",
-                settings.extra_ca_certs_dir,
+                settings.extra_ca_certs_path,
                 settings.max_api_base_url,
             )
+            foreign = settings.foreign_files_in_certs_dir()
+            if foreign:
+                logger.warning(
+                    "Файлы в каталоге есть, но подходящих расширений среди них "
+                    "нет: %s. Годятся только .crt, .pem и .cer — связку .p7b "
+                    "нужно сначала разобрать на отдельные сертификаты.",
+                    ", ".join(foreign),
+                )
+            elif not settings.extra_ca_certs_path.is_dir():
+                logger.warning(
+                    "Каталога %s не существует. Путь задаётся EXTRA_CA_CERTS_DIR "
+                    "и считается от рабочего каталога.",
+                    settings.extra_ca_certs_path,
+                )
         app.state.max_client = MaxApiClient(
             token=settings.bot_token,
             base_url=settings.max_api_base_url,
