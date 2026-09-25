@@ -130,6 +130,26 @@ class Settings(BaseSettings):
         return (self.frontend_path / "index.html").is_file()
 
     @property
+    def database_url_safe(self) -> str:
+        """Строка подключения без пароля — её можно писать в лог."""
+        url = self.database_url
+        head, sep, tail = url.partition("://")
+        if not sep or "@" not in tail:
+            return url
+        credentials, _, host = tail.partition("@")
+        user, has_password, _ = credentials.partition(":")
+        if not has_password:
+            return url
+        return f"{head}://{user}:***@{host}"
+
+    @property
+    def database_host(self) -> str:
+        """Хост из строки подключения. Нужен, чтобы объяснить отказ DNS."""
+        tail = self.database_url.partition("://")[2]
+        host_part = tail.rpartition("@")[2]
+        return host_part.partition("/")[0].partition(":")[0]
+
+    @property
     def public_origin(self) -> str:
         """Публичный адрес без завершающего слеша."""
         return self.public_base_url.rstrip("/")

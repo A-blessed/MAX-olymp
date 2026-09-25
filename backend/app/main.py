@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict
@@ -30,7 +31,7 @@ from .api.personal import router as personal_router
 from .api.router import router as api_router
 from .bot.router import router as bot_router
 from .config import get_settings
-from .db.session import dispose_engine
+from .db.session import dispose_engine, get_engine
 from .max_api.client import MaxApiClient
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,44 @@ class NoCacheStaticFiles(StaticFiles):
         response = super().file_response(*args, **kwargs)
         response.headers["Cache-Control"] = "no-cache, must-revalidate"
         return response
+
+
+async def check_database(settings: Any) -> None:
+    """Достучаться до базы один раз при старте и сказать, что вышло.
+
+    Без этой проверки недоступная база проявляется только на первом
+    запросе пользователя — полотном трейсбека из глубины SQLAlchemy, где
+    настоящая причина («хост не резолвится») лежит в самой последней
+    строке. Одна строка в логе старта заменяет это полотно.
+
+    Падать не даём: база может подняться позже, а приложение должно
+    отвечать на /health и отдавать мини-приложение в любом случае.
+    """
+    from sqlalchemy import text
+
+    try:
+        async with asyncio.timeout(5):
+            async with get_engine().connect() as connection:
+                await connection.execute(text("SELECT 1"))
+    except asyncio.TimeoutError:
+        logger.error(
+            "База %s не ответила за 5 секунд. Запросы к API будут падать с 500.",
+            settings.database_url_safe,
+        )
+    except Exception as exc:  # носитель ошибки — драйвер, тип заранее не известен
+        logger.error(
+            "Нет связи с базой %s: %s. Запросы к API будут падать с 500.",
+            settings.database_url_safe,
+            exc.__class__.__name__,
+        )
+        if settings.database_host == "db":
+            logger.error(
+                "Хост «db» — это имя сервиса в docker compose, вне контейнера он "
+                "не существует. Укажите в DATABASE_URL адрес настоящей Postgres, "
+                "например postgresql+asyncpg://postgres:пароль@localhost:5432/max_olymp",
+            )
+    else:
+        logger.info("База %s отвечает", settings.database_url_safe)
 
 
 def configure_logging(level: str) -> None:
@@ -74,6 +113,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             "мини-приложение в MAX не откроется.",
             settings.frontend_path,
         )
+
+    await check_database(settings)
 
     if not settings.public_base_url_is_https:
         # MAX доставляет события только по https на 443 и не принимает
