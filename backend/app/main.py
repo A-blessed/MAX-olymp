@@ -8,7 +8,11 @@
 Контуры разные и не должны путаться, но живут в одном процессе
 сознательно: вебхук обязан быть доступен по HTTPS на порту 443, и держать
 ради этого два публичных адреса с двумя сертификатами незачем. Один
-домен — один туннель — один сертификат.
+домен — один сертификат.
+
+Наружу сервис смотрит через nginx на ``my-olymp.ru``: он обеспечивает TLS
+на 443, отдаёт статику мини-приложения и проксирует ``/api`` и
+``/webhook`` сюда. Приложение слушает обычный HTTP внутри сети.
 """
 
 from __future__ import annotations
@@ -44,6 +48,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     configure_logging(settings.log_level)
 
     logger.info("Запуск в режиме %s", settings.app_env)
+    logger.info("Публичный адрес: %s, вебхук: %s", settings.public_origin, settings.webhook_url)
+
+    if not settings.public_base_url_is_https:
+        # MAX доставляет события только по https на 443 и не принимает
+        # самоподписанные сертификаты: с таким адресом подписка не оформится.
+        logger.warning(
+            "PUBLIC_BASE_URL=%s — MAX принимает вебхук только по https. "
+            "Подписка на события с таким адресом не оформится.",
+            settings.public_base_url or "(пусто)",
+        )
 
     if settings.bot_token:
         ca_files = settings.extra_ca_files()
@@ -87,14 +101,15 @@ def create_app() -> FastAPI:
         openapi_url=None if settings.is_production else "/openapi.json",
     )
 
-    # Мини-приложение открывается с другого origin, поэтому CORS нужен.
+    # На `my-olymp.ru` фронтенд и API живут на одном origin, так что в бою
+    # CORS не участвует вовсе. Middleware остаётся для копий страницы,
+    # открытых с другого адреса: GitHub Pages, локальный файл, отладочный
+    # туннель. Список origin задаётся в CORS_ORIGINS.
     #
-    # Заголовки разрешаем любые. Жёсткий список тут не защита — доступ
+    # Заголовки разрешаем любые: жёсткий список тут не защита — доступ
     # ограничивают origin и подпись данных запуска, — зато он ломается,
     # как только между фронтендом и сервером появляется прокси со своим
-    # заголовком. Ровно так и происходит с туннелем ngrok: он требует
-    # `ngrok-skip-browser-warning`, браузер спрашивает разрешение на него
-    # в preflight и получает 400, после чего ни один запрос не проходит.
+    # заголовком.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,

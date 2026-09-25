@@ -47,8 +47,12 @@ class Settings(BaseSettings):
 
     # --- Вебхук ---
     public_base_url: str = Field(
-        default="",
-        description="Публичный HTTPS-адрес бэкенда, например https://abc.ngrok-free.app",
+        default="https://my-olymp.ru",
+        description=(
+            "Публичный HTTPS-адрес бэкенда. Постоянный домен проекта — "
+            "https://my-olymp.ru. Переопределяется в .env, если бэкенд "
+            "поднят на туннеле для отладки."
+        ),
     )
     webhook_path: str = Field(default="/webhook")
     webhook_secret: str = Field(
@@ -62,8 +66,12 @@ class Settings(BaseSettings):
         description="Максимальный возраст auth_date в секундах. 0 отключает проверку.",
     )
     cors_origins: str = Field(
-        default="*",
-        description="Список origin фронтенда через запятую.",
+        default="https://my-olymp.ru",
+        description=(
+            "Список origin фронтенда через запятую. Фронтенд отдаётся с того "
+            "же домена, так что кросс-доменных запросов в бою нет; список "
+            "нужен для копий страницы, открытых с другого адреса."
+        ),
     )
 
     # --- База данных ---
@@ -78,9 +86,19 @@ class Settings(BaseSettings):
     )
 
     @property
+    def public_origin(self) -> str:
+        """Публичный адрес без завершающего слеша."""
+        return self.public_base_url.rstrip("/")
+
+    @property
     def webhook_url(self) -> str:
         """Полный адрес вебхука для регистрации в MAX."""
-        return f"{self.public_base_url.rstrip('/')}{self.webhook_path}"
+        return f"{self.public_origin}{self.webhook_path}"
+
+    @property
+    def public_base_url_is_https(self) -> bool:
+        """MAX принимает вебхук только по https и только на 443."""
+        return self.public_origin.lower().startswith("https://")
 
     @property
     def cors_origin_list(self) -> List[str]:
