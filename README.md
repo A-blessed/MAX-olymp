@@ -265,7 +265,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 | `LAUNCH_DATA_TTL`   | `86400`                        | предельный возраст `auth_date`, секунды           |
 | `CORS_ORIGINS`      | `https://my-olymp.ru`          | origin фронтенда через запятую                     |
 | `DATABASE_URL`      | задаётся в compose             | строка подключения к Postgres                     |
-| `EXTRA_CA_CERTS_DIR`| `/app/certs`                   | каталог с сертификатами Минцифры                  |
+| `EXTRA_CA_CERTS_DIR`| `certs`                        | каталог с сертификатами Минцифры, путь от рабочего |
 | `APP_ENV`           | `development`                  | в `production` скрывается `/docs`                 |
 | `APP_TIMEZONE`      | `Europe/Moscow`                | в каком поясе считается «сегодня»                 |
 | `LOG_LEVEL`         | `INFO`                         | уровень логирования                               |
