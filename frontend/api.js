@@ -17,7 +17,7 @@
   "use strict";
 
   // Адрес бэкенда. При переезде на постоянный хостинг меняется только он.
-  const BASE_URL = "https://hatching-landside-crown.ngrok-free.dev";
+  const BASE_URL = "https://my-olymp.ru";
 
   /**
    * Ошибка от бэкенда.
