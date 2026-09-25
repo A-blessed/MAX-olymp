@@ -273,6 +273,19 @@ dir /a C:\Server\.env
 ren C:\Server\.env.txt .env
 ```
 
+**Не создавайте файл через `>` в PowerShell.** `... > .env` и `Out-File`
+в Windows PowerShell 5.1 пишут UTF-16, и приложение падает на старте с
+`UnicodeDecodeError`. Надёжнее из `cmd`:
+
+```
+cd /d C:\Server
+(echo BOT_TOKEN=ваш_токен)>.env
+```
+
+Всё остальное файл переживает: переводы строк CRLF, BOM, кавычки вокруг
+значения и пробелы вокруг `=` разбираются правильно. Пути Windows можно
+писать как есть: `EXTRA_CA_CERTS_DIR=C:\Server\certs`.
+
 **Что задать помимо токена.** Значения по умолчанию рассчитаны на Docker и
 вне его не работают:
 
