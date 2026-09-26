@@ -235,6 +235,57 @@ Add-Section 'Переменные окружения (.env)' {
             }
         }
     }
+    else {
+        ''
+        '(.env.example рядом нет — он лежит в корне репозитория, а в'
+        ' раскладке без Docker туда не попадает. Сверка с полным списком'
+        ' переменных пропущена, но разбор по существу ниже её заменяет.)'
+    }
+}
+
+# Перечислить переменные мало: беда обычно не в том, что видно, а в том,
+# чего нет. Эти проверки — про уже наступавшие грабли, а не абстрактные.
+Add-Section 'Разбор .env по существу' {
+    if (-not $repoRoot) { 'Репозиторий не найден — смотреть нечего.'; return }
+    if (-not (Test-Path .env)) { 'Файла .env нет — проверять нечего.'; return }
+
+    $problems = @()
+
+    $dbUrl = $envValues['DATABASE_URL']
+    if (-not $dbUrl) {
+        $problems += 'DATABASE_URL не задан. Умолчание ведёт на хост db, который существует только в сети Docker: вне контейнера бэкенд упадёт на getaddrinfo. POSTGRES_USER, POSTGRES_PASSWORD и POSTGRES_PORT его НЕ заменяют — их читает только docker compose, приложение берёт адрес базы целиком из DATABASE_URL.'
+    }
+    elseif ($dbUrl -match '@db[:/]') {
+        $problems += 'DATABASE_URL ведёт на хост db из Docker, вне контейнера такого хоста нет.'
+    }
+
+    $appEnv = $envValues['APP_ENV']
+    if ($appEnv -and $appEnv -ne 'production') {
+        $problems += "APP_ENV=$appEnv. На публичном сервере это отдаёт /docs и /openapi.json наружу. В Docker значение принудительно ставил compose-файл, без него не ставит никто."
+    }
+
+    if ($envValues['CORS_ORIGINS'] -eq '*') {
+        $problems += 'CORS_ORIGINS=*, в шаблоне стоит адрес домена. Фронтенд отдаётся с того же origin, так что звёздочка ничего не решает, а ограничение снимает.'
+    }
+
+    $dbPass = $envValues['POSTGRES_PASSWORD']
+    if ($dbPass -and $dbPass.Length -le 4) {
+        $problems += "POSTGRES_PASSWORD длиной $($dbPass.Length) символа — похоже на пример из шаблона. Postgres слушает на всех интерфейсах, пароль стоит сменить."
+    }
+
+    foreach ($key in 'BOT_TOKEN', 'WEBHOOK_SECRET', 'PUBLIC_BASE_URL') {
+        if (-not $envValues[$key]) { $problems += "$key не задан — без него работать не будет." }
+    }
+
+    if ($problems) {
+        "Найдено проблем: $($problems.Count)"
+        ''
+        for ($i = 0; $i -lt $problems.Count; $i++) {
+            "$($i + 1). $($problems[$i])"
+            ''
+        }
+    }
+    else { 'Ничего подозрительного.' }
 }
 
 Add-Section 'Python и зависимости' {
