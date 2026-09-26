@@ -23,7 +23,9 @@ from sqlalchemy.orm import selectinload
 
 from ..catalog.models import Olympiad, Stage, StageKind, Subject
 from ..catalog.presentation import (
+    DatePrecision,
     StageStatus,
+    date_precision,
     days_until_start,
     is_plannable,
     pick_next_stage,
@@ -83,6 +85,12 @@ class StageOut(BaseModel):
     # Исходная строка источника. Показывать, когда точности не хватает.
     raw_date_range: Optional[str] = None
 
+    # Чем изобразить этап в календаре: "exact" — кружок, "range" —
+    # полоса, "until" — полоса с нарастающей непрозрачностью к дедлайну,
+    # "unknown" — на сетке дней не показывать. Вычисляется по датам, а не
+    # хранится, поэтому разойтись с ними не может.
+    date_precision: DatePrecision
+
     status: StageStatus
     # null, если точного дня нет — таймер в этом случае недопустим.
     days_until_start: Optional[int] = None
@@ -102,6 +110,7 @@ class StageOut(BaseModel):
             start_precision=stage.start_precision.value if stage.start_precision else None,
             end_precision=stage.end_precision.value if stage.end_precision else None,
             raw_date_range=stage.raw_date_range,
+            date_precision=date_precision(stage),
             status=stage_status(stage, today),
             days_until_start=days_until_start(stage, today),
             plannable=is_plannable(stage),

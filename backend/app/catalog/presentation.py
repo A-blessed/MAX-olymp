@@ -26,6 +26,50 @@ class StageStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
+class DatePrecision(str, Enum):
+    """Форма сроков этапа — то, что нужно календарю, чтобы его нарисовать.
+
+    Это не точность отдельной даты: она хранится в ``Precision`` и никуда
+    не девается. Здесь ответ на другой вопрос — что вообще известно про
+    сроки, и, стало быть, чем этап на сетке дней изображать:
+
+        ``EXACT``   — один день: кружок;
+        ``RANGE``   — с какого по какое: непрерывная полоса;
+        ``UNTIL``   — известен только дедлайн: полоса, набирающая
+                      непрозрачность к последнему дню;
+        ``UNKNOWN`` — на сетке дней показывать нечего.
+
+    Значение вычисляется, а не хранится: так оно не может разойтись с
+    датами, по которым посчитано.
+    """
+
+    EXACT = "exact"
+    RANGE = "range"
+    UNTIL = "until"
+    UNKNOWN = "unknown"
+
+
+def date_precision(stage: Stage) -> DatePrecision:
+    """Какой формой изобразить этап в календаре.
+
+    Дата с точностью до месяца попадает в ``UNKNOWN``: конкретного дня у
+    неё нет, а календарь размечает именно дни. Это не потеря — исходная
+    строка и признак точности остаются в ответе отдельными полями, и
+    карточка этапа по-прежнему покажет «март 2027».
+    """
+    start_day = stage.starts_on is not None and stage.start_precision is Precision.DAY
+    end_day = stage.ends_on is not None and stage.end_precision is Precision.DAY
+
+    if start_day and end_day:
+        # Диапазон длиной в сутки — та же точка, полосу рисовать незачем.
+        return DatePrecision.RANGE if stage.ends_on > stage.starts_on else DatePrecision.EXACT
+    if start_day:
+        return DatePrecision.EXACT
+    if end_day:
+        return DatePrecision.UNTIL
+    return DatePrecision.UNKNOWN
+
+
 def _month_key(value: date) -> int:
     return value.year * 12 + value.month
 

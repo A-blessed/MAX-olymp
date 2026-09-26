@@ -1,0 +1,3141 @@
+{
+  "generated_at": "2026-09-26T18:24:18",
+  "total": 146,
+  "schedules": {
+    "99": {
+      "subject": "Астрономия",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 99,
+      "url": "https://olimpiada.ru/activity/99",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 9 сентября",
+      "stages": [
+        {
+          "name_stage": "Дистанционный этап",
+          "start_stage": "2026-12-04",
+          "end_stage": "2026-12-17",
+          "date_precision": "range",
+          "source_text": "4...17 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:42"
+    },
+    "287": {
+      "subject": "Астрономия",
+      "name": "Санкт-Петербургская Астрономическая олимпиада",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 287,
+      "url": "https://olimpiada.ru/activity/287",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:44"
+    },
+    "4": {
+      "subject": "Химия",
+      "name": "Турнир имени М.В. Ломоносова",
+      "level": "III",
+      "grades": "6–11",
+      "activity_id": 4,
+      "url": "https://olimpiada.ru/activity/4",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:06"
+    },
+    "5668": {
+      "subject": "Биология",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 5668,
+      "url": "https://olimpiada.ru/activity/5668",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа",
+          "start_stage": "2026-10-04",
+          "end_stage": "2026-10-04",
+          "date_precision": "exact",
+          "source_text": "4 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:48"
+    },
+    "5149": {
+      "subject": "Биология",
+      "name": "Всероссийская Сеченовская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5149,
+      "url": "https://olimpiada.ru/activity/5149",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 8 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-10-01",
+          "end_stage": "2026-10-29",
+          "date_precision": "range",
+          "source_text": "1...29 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-10",
+          "end_stage": "2026-11-30",
+          "date_precision": "range",
+          "source_text": "10...30 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:50"
+    },
+    "5430": {
+      "subject": "Русский язык",
+      "name": "Герценовская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5430,
+      "url": "https://olimpiada.ru/activity/5430",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:10"
+    },
+    "318": {
+      "subject": "Биология",
+      "name": "Всесибирская открытая олимпиада школьников",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 318,
+      "url": "https://olimpiada.ru/activity/318",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 20 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-10-12",
+          "end_stage": "2026-10-30",
+          "date_precision": "range",
+          "source_text": "12...30 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-01",
+          "end_stage": "2026-11-01",
+          "date_precision": "exact",
+          "source_text": "1 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на заключительный этап",
+          "start_stage": "2027-02-01",
+          "end_stage": "2027-03-05",
+          "date_precision": "range",
+          "source_text": "1 фев...5 мар",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-03-07",
+          "end_stage": "2027-03-07",
+          "date_precision": "exact",
+          "source_text": "7 мар",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:53"
+    },
+    "358": {
+      "subject": "Биология",
+      "name": "Межрегиональная олимпиада школьников «Будущие исследователи — будущее науки»",
+      "level": "III",
+      "grades": "7–11",
+      "activity_id": 358,
+      "url": "https://olimpiada.ru/activity/358",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 23 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный этап",
+          "start_stage": "2026-11-21",
+          "end_stage": "2026-11-22",
+          "date_precision": "range",
+          "source_text": "21...22 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:55"
+    },
+    "378": {
+      "subject": "Биология",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 378,
+      "url": "https://olimpiada.ru/activity/378",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:57"
+    },
+    "433": {
+      "subject": "Биология",
+      "name": "Многопредметная олимпиада «Юные таланты»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 433,
+      "url": "https://olimpiada.ru/activity/433",
+      "academic_year": "2021/22",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:19:58"
+    },
+    "324": {
+      "subject": "Биология",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 324,
+      "url": "https://olimpiada.ru/activity/324",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:00"
+    },
+    "5735": {
+      "subject": "Биология",
+      "name": "Олимпиада школьников «Физтех»",
+      "level": "II",
+      "grades": "9–11",
+      "activity_id": 5735,
+      "url": "https://olimpiada.ru/activity/5735",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:02"
+    },
+    "5765": {
+      "subject": "Биология",
+      "name": "Олимпиада школьников «Шаг в будущее»",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 5765,
+      "url": "https://olimpiada.ru/activity/5765",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:04"
+    },
+    "124": {
+      "subject": "Биология",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 124,
+      "url": "https://olimpiada.ru/activity/124",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:05"
+    },
+    "5777": {
+      "subject": "Биология",
+      "name": "Пироговская олимпиада для школьников по химии и биологии",
+      "level": "III",
+      "grades": "9–11",
+      "activity_id": 5777,
+      "url": "https://olimpiada.ru/activity/5777",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:07"
+    },
+    "5028": {
+      "subject": "География",
+      "name": "Герценовская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5028,
+      "url": "https://olimpiada.ru/activity/5028",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:11"
+    },
+    "211": {
+      "subject": "География",
+      "name": "Многопредметная олимпиада «Юные таланты»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 211,
+      "url": "https://olimpiada.ru/activity/211",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:12"
+    },
+    "104": {
+      "subject": "География",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 104,
+      "url": "https://olimpiada.ru/activity/104",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:14"
+    },
+    "58": {
+      "subject": "География",
+      "name": "Московская открытая олимпиада школьников по геологии",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 58,
+      "url": "https://olimpiada.ru/activity/58",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:16"
+    },
+    "354": {
+      "subject": "География",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 354,
+      "url": "https://olimpiada.ru/activity/354",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:17"
+    },
+    "5444": {
+      "subject": "География",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 5444,
+      "url": "https://olimpiada.ru/activity/5444",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:19"
+    },
+    "446": {
+      "subject": "География",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 446,
+      "url": "https://olimpiada.ru/activity/446",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:21"
+    },
+    "469": {
+      "subject": "География",
+      "name": "Открытая региональная межвузовская олимпиада школьников (ОРМО)",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 469,
+      "url": "https://olimpiada.ru/activity/469",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:23"
+    },
+    "5208": {
+      "subject": "Иностранный язык",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 5208,
+      "url": "https://olimpiada.ru/activity/5208",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: английский язык",
+          "start_stage": "2026-09-28",
+          "end_stage": "2026-09-28",
+          "date_precision": "exact",
+          "source_text": "28 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: все языки",
+          "start_stage": "2026-10-03",
+          "end_stage": "2026-10-03",
+          "date_precision": "exact",
+          "source_text": "3 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:24"
+    },
+    "5029": {
+      "subject": "Иностранный язык",
+      "name": "Герценовская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5029,
+      "url": "https://olimpiada.ru/activity/5029",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:26"
+    },
+    "5003": {
+      "subject": "Иностранный язык",
+      "name": "Международная олимпиада школьников «Евразийская лингвистическая олимпиада»",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 5003,
+      "url": "https://olimpiada.ru/activity/5003",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 27 мая",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2026-11-16",
+          "end_stage": "2026-12-30",
+          "date_precision": "range",
+          "source_text": "16 ноя...30 дек",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-16",
+          "end_stage": "2027-01-14",
+          "date_precision": "range",
+          "source_text": "16 ноя...14 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-14",
+          "end_stage": "2027-02-14",
+          "date_precision": "exact",
+          "source_text": "14 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:28"
+    },
+    "171": {
+      "subject": "Иностранный язык",
+      "name": "Межрегиональная олимпиада школьников на базе ведомственных образовательных организаций",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 171,
+      "url": "https://olimpiada.ru/activity/171",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:30"
+    },
+    "5664": {
+      "subject": "Иностранный язык",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 5664,
+      "url": "https://olimpiada.ru/activity/5664",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:31"
+    },
+    "5005": {
+      "subject": "История",
+      "name": "Олимпиада МГИМО МИД России для школьников",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 5005,
+      "url": "https://olimpiada.ru/activity/5005",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:34"
+    },
+    "390": {
+      "subject": "Физика",
+      "name": "Олимпиада Курчатов",
+      "level": "II",
+      "grades": "6–11",
+      "activity_id": 390,
+      "url": "https://olimpiada.ru/activity/390",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 18 мая",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-12-01",
+          "end_stage": "2027-01-11",
+          "date_precision": "range",
+          "source_text": "1 дек...11 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-01-27",
+          "date_precision": "range",
+          "source_text": "13...27 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-21",
+          "end_stage": "2027-02-22",
+          "date_precision": "range",
+          "source_text": "21...22 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:36"
+    },
+    "325": {
+      "subject": "Иностранный язык",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 325,
+      "url": "https://olimpiada.ru/activity/325",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:37"
+    },
+    "163": {
+      "subject": "Иностранный язык",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 163,
+      "url": "https://olimpiada.ru/activity/163",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:38"
+    },
+    "5008": {
+      "subject": "Иностранный язык",
+      "name": "Олимпиада школьников Российской академии народного хозяйства и государственной службы при Президенте РФ",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5008,
+      "url": "https://olimpiada.ru/activity/5008",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 10 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-20",
+          "end_stage": "2026-11-18",
+          "date_precision": "range",
+          "source_text": "20 окт...18 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация",
+          "start_stage": null,
+          "end_stage": "2026-11-18",
+          "date_precision": "until",
+          "source_text": "До 18 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:40"
+    },
+    "461": {
+      "subject": "Иностранный язык",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 461,
+      "url": "https://olimpiada.ru/activity/461",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:42"
+    },
+    "5710": {
+      "subject": "Иностранный язык",
+      "name": "Плехановская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5710,
+      "url": "https://olimpiada.ru/activity/5710",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:43"
+    },
+    "5401": {
+      "subject": "Иностранный язык",
+      "name": "Региональный конкурс школьников Челябинского университетского образовательного округа",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 5401,
+      "url": "https://olimpiada.ru/activity/5401",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:45"
+    },
+    "5369": {
+      "subject": "Информатика",
+      "name": "Всероссийская междисциплинарная олимпиада школьников 8–11 классов «Национальная технологическая олимпиада»",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 5369,
+      "url": "https://olimpiada.ru/activity/5369",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 26 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": null,
+          "end_stage": "2026-10-22",
+          "date_precision": "until",
+          "source_text": "До 22 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый отборочный этап",
+          "start_stage": null,
+          "end_stage": "2026-10-23",
+          "date_precision": "until",
+          "source_text": "До 23 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Второй отборочный этап",
+          "start_stage": "2026-11-05",
+          "end_stage": "2026-12-11",
+          "date_precision": "range",
+          "source_text": "5 ноя...11 дек",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": null,
+          "end_stage": null,
+          "date_precision": "unknown",
+          "source_text": "Уточняется",
+          "parser_warning": "date_not_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:47"
+    },
+    "153": {
+      "subject": "Информатика",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 153,
+      "url": "https://olimpiada.ru/activity/153",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 6 июля",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:49"
+    },
+    "316": {
+      "subject": "Информатика",
+      "name": "Всесибирская открытая олимпиада школьников",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 316,
+      "url": "https://olimpiada.ru/activity/316",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 1 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-10-19",
+          "end_stage": "2026-11-06",
+          "date_precision": "range",
+          "source_text": "19 окт...6 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-08",
+          "end_stage": "2026-11-08",
+          "date_precision": "exact",
+          "source_text": "8 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на заключительный этап",
+          "start_stage": "2027-02-01",
+          "end_stage": "2027-02-19",
+          "date_precision": "range",
+          "source_text": "1...19 фев",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-21",
+          "end_stage": "2027-02-21",
+          "date_precision": "exact",
+          "source_text": "21 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:50"
+    },
+    "5283": {
+      "subject": "Информатика",
+      "name": "Международная олимпиада Иннополиса",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 5283,
+      "url": "https://olimpiada.ru/activity/5283",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:52"
+    },
+    "5638": {
+      "subject": "Информатика",
+      "name": "Международная олимпиада школьников Уральского федерального университета «Изумруд»",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 5638,
+      "url": "https://olimpiada.ru/activity/5638",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 4 июня",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": null,
+          "end_stage": "2027-01-19",
+          "date_precision": "until",
+          "source_text": "До 19 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2027-01-31",
+          "end_stage": "2027-02-02",
+          "date_precision": "range",
+          "source_text": "31 янв...2 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:54"
+    },
+    "236": {
+      "subject": "Информатика",
+      "name": "Межрегиональная олимпиада школьников имени И.Я. Верченко",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 236,
+      "url": "https://olimpiada.ru/activity/236",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:56"
+    },
+    "377": {
+      "subject": "Информатика",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 377,
+      "url": "https://olimpiada.ru/activity/377",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:57"
+    },
+    "102": {
+      "subject": "Информатика",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 102,
+      "url": "https://olimpiada.ru/activity/102",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:20:59"
+    },
+    "5481": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников «Гранит науки»",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5481,
+      "url": "https://olimpiada.ru/activity/5481",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 27 августа",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-05",
+          "end_stage": "2027-01-13",
+          "date_precision": "range",
+          "source_text": "5 окт...13 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-06",
+          "end_stage": "2027-02-06",
+          "date_precision": "exact",
+          "source_text": "6 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:01"
+    },
+    "343": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 343,
+      "url": "https://olimpiada.ru/activity/343",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:03"
+    },
+    "5898": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников «Физтех»",
+      "level": "II",
+      "grades": "9–11",
+      "activity_id": 5898,
+      "url": "https://olimpiada.ru/activity/5898",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 17 сентября",
+      "stages": [
+        {
+          "name_stage": "I отборочный этап",
+          "start_stage": "2026-09-28",
+          "end_stage": "2026-11-05",
+          "date_precision": "range",
+          "source_text": "28 сен...5 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация",
+          "start_stage": null,
+          "end_stage": "2026-09-30",
+          "date_precision": "until",
+          "source_text": "До 30 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "II отборочный этап",
+          "start_stage": "2026-11-20",
+          "end_stage": "2027-01-25",
+          "date_precision": "range",
+          "source_text": "20 ноя...25 янв",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:04"
+    },
+    "406": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников «Шаг в будущее»",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 406,
+      "url": "https://olimpiada.ru/activity/406",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 16 сентября",
+      "stages": [
+        {
+          "name_stage": "I волна отборочного этапа",
+          "start_stage": "2026-10-23",
+          "end_stage": "2026-10-25",
+          "date_precision": "range",
+          "source_text": "23...25 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "II волна отборочного этапа",
+          "start_stage": "2026-12-05",
+          "end_stage": "2026-12-07",
+          "date_precision": "range",
+          "source_text": "5...7 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:06"
+    },
+    "4337": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников по информатике и программированию",
+      "level": "I",
+      "grades": "9–11",
+      "activity_id": 4337,
+      "url": "https://olimpiada.ru/activity/4337",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:08"
+    },
+    "5371": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников по программированию «ТехноКубок»",
+      "level": "I",
+      "grades": "8–11",
+      "activity_id": 5371,
+      "url": "https://olimpiada.ru/activity/5371",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:10"
+    },
+    "465": {
+      "subject": "Информатика",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 465,
+      "url": "https://olimpiada.ru/activity/465",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:11"
+    },
+    "4357": {
+      "subject": "Информатика",
+      "name": "Открытая олимпиада школьников (ИТМО)",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 4357,
+      "url": "https://olimpiada.ru/activity/4357",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:13"
+    },
+    "23": {
+      "subject": "Информатика",
+      "name": "Открытая олимпиада школьников по программированию",
+      "level": "I",
+      "grades": "9–11",
+      "activity_id": 23,
+      "url": "https://olimpiada.ru/activity/23",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:15"
+    },
+    "5185": {
+      "subject": "Информатика",
+      "name": "Открытая олимпиада школьников по программированию «Когнитивные технологии»",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5185,
+      "url": "https://olimpiada.ru/activity/5185",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:17"
+    },
+    "5881": {
+      "subject": "Информатика",
+      "name": "Отраслевая физико-математическая олимпиада школьников «Росатом»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 5881,
+      "url": "https://olimpiada.ru/activity/5881",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:18"
+    },
+    "398": {
+      "subject": "Информатика",
+      "name": "Университетская олимпиада школьников «Бельчонок»",
+      "level": "III",
+      "grades": "2–11",
+      "activity_id": 398,
+      "url": "https://olimpiada.ru/activity/398",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 11 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-01",
+          "end_stage": "2027-01-12",
+          "date_precision": "range",
+          "source_text": "1 окт...12 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Финал",
+          "start_stage": "2027-02-14",
+          "end_stage": "2027-02-14",
+          "date_precision": "exact",
+          "source_text": "14 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:20"
+    },
+    "5054": {
+      "subject": "Обществознание",
+      "name": "Всероссийская академическая олимпиада школьников имени В.И. Вернадского",
+      "level": "I",
+      "grades": "6–11",
+      "activity_id": 5054,
+      "url": "https://olimpiada.ru/activity/5054",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:36"
+    },
+    "147": {
+      "subject": "История",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 147,
+      "url": "https://olimpiada.ru/activity/147",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 1 день",
+          "start_stage": "2026-09-29",
+          "end_stage": "2026-09-29",
+          "date_precision": "exact",
+          "source_text": "29 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 2 день",
+          "start_stage": "2026-10-03",
+          "end_stage": "2026-10-03",
+          "date_precision": "exact",
+          "source_text": "3 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:23"
+    },
+    "5207": {
+      "subject": "История",
+      "name": "Всероссийская Толстовская олимпиада",
+      "level": "III",
+      "grades": "10–11",
+      "activity_id": 5207,
+      "url": "https://olimpiada.ru/activity/5207",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:25"
+    },
+    "5349": {
+      "subject": "История",
+      "name": "Герценовская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5349,
+      "url": "https://olimpiada.ru/activity/5349",
+      "academic_year": "2024/25",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:27"
+    },
+    "359": {
+      "subject": "История",
+      "name": "Межрегиональная олимпиада школьников «Будущие исследователи — будущее науки»",
+      "level": "III",
+      "grades": "7–11",
+      "activity_id": 359,
+      "url": "https://olimpiada.ru/activity/359",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 23 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный этап",
+          "start_stage": "2026-11-14",
+          "end_stage": "2026-11-15",
+          "date_precision": "range",
+          "source_text": "14...15 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:29"
+    },
+    "382": {
+      "subject": "История",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 382,
+      "url": "https://olimpiada.ru/activity/382",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:30"
+    },
+    "103": {
+      "subject": "История",
+      "name": "Московская олимпиада школьников",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 103,
+      "url": "https://olimpiada.ru/activity/103",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:32"
+    },
+    "392": {
+      "subject": "История",
+      "name": "Олимпиада РГГУ для школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 392,
+      "url": "https://olimpiada.ru/activity/392",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 18 мая",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-12-01",
+          "end_stage": "2027-01-11",
+          "date_precision": "range",
+          "source_text": "1 дек...11 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-01-27",
+          "date_precision": "range",
+          "source_text": "13...27 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-21",
+          "end_stage": "2027-02-22",
+          "date_precision": "range",
+          "source_text": "21...22 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:35"
+    },
+    "353": {
+      "subject": "История",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 353,
+      "url": "https://olimpiada.ru/activity/353",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:37"
+    },
+    "164": {
+      "subject": "История",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 164,
+      "url": "https://olimpiada.ru/activity/164",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:39"
+    },
+    "5285": {
+      "subject": "История",
+      "name": "Олимпиада школьников Российской академии народного хозяйства и государственной службы при Президенте РФ",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5285,
+      "url": "https://olimpiada.ru/activity/5285",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 10 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-20",
+          "end_stage": "2026-11-18",
+          "date_precision": "range",
+          "source_text": "20 окт...18 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация",
+          "start_stage": null,
+          "end_stage": "2026-11-18",
+          "date_precision": "until",
+          "source_text": "До 18 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:41"
+    },
+    "459": {
+      "subject": "История",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 459,
+      "url": "https://olimpiada.ru/activity/459",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:42"
+    },
+    "5726": {
+      "subject": "Право",
+      "name": "Олимпиада школьников федерального государственного бюджетного образовательного учреждения высшего образования «Всероссийский государственный университет юстиции (РПА Минюста России)» «В мир права»",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5726,
+      "url": "https://olimpiada.ru/activity/5726",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:03"
+    },
+    "470": {
+      "subject": "История",
+      "name": "Открытая региональная межвузовская олимпиада школьников (ОРМО)",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 470,
+      "url": "https://olimpiada.ru/activity/470",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:46"
+    },
+    "5428": {
+      "subject": "Литература",
+      "name": "Всероссийская Толстовская олимпиада",
+      "level": "III",
+      "grades": "10–11",
+      "activity_id": 5428,
+      "url": "https://olimpiada.ru/activity/5428",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:49"
+    },
+    "5360": {
+      "subject": "Литература",
+      "name": "Олимпиада РГГУ для школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5360,
+      "url": "https://olimpiada.ru/activity/5360",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 18 мая",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-12-01",
+          "end_stage": "2027-01-11",
+          "date_precision": "range",
+          "source_text": "1 дек...11 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-01-27",
+          "date_precision": "range",
+          "source_text": "13...27 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-21",
+          "end_stage": "2027-02-22",
+          "date_precision": "range",
+          "source_text": "21...22 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:51"
+    },
+    "349": {
+      "subject": "Литература",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 349,
+      "url": "https://olimpiada.ru/activity/349",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:53"
+    },
+    "165": {
+      "subject": "Литература",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 165,
+      "url": "https://olimpiada.ru/activity/165",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:55"
+    },
+    "471": {
+      "subject": "Литература",
+      "name": "Открытая региональная межвузовская олимпиада школьников (ОРМО)",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 471,
+      "url": "https://olimpiada.ru/activity/471",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:56"
+    },
+    "223": {
+      "subject": "Математика",
+      "name": "«Формула единства»/«Третье тысячелетие»",
+      "level": "III",
+      "grades": "5–11",
+      "activity_id": 223,
+      "url": "https://olimpiada.ru/activity/223",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 15 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-15",
+          "end_stage": "2026-11-05",
+          "date_precision": "range",
+          "source_text": "15 окт...5 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:21:58"
+    },
+    "149": {
+      "subject": "Математика",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 149,
+      "url": "https://olimpiada.ru/activity/149",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа",
+          "start_stage": "2026-09-27",
+          "end_stage": "2026-09-27",
+          "date_precision": "exact",
+          "source_text": "27 сен",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:00"
+    },
+    "315": {
+      "subject": "Математика",
+      "name": "Всесибирская открытая олимпиада школьников",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 315,
+      "url": "https://olimpiada.ru/activity/315",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 20 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-09-28",
+          "end_stage": "2026-10-16",
+          "date_precision": "range",
+          "source_text": "28 сен...16 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-18",
+          "end_stage": "2026-10-18",
+          "date_precision": "exact",
+          "source_text": "18 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на заключительный этап",
+          "start_stage": "2027-02-01",
+          "end_stage": "2027-02-12",
+          "date_precision": "range",
+          "source_text": "1...12 фев",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-14",
+          "end_stage": "2027-02-14",
+          "date_precision": "exact",
+          "source_text": "14 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:02"
+    },
+    "5367": {
+      "subject": "Математика",
+      "name": "Международная олимпиада Иннополиса",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 5367,
+      "url": "https://olimpiada.ru/activity/5367",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 18 сентября",
+      "stages": [
+        {
+          "name_stage": "Первый тур отбора",
+          "start_stage": "2026-10-24",
+          "end_stage": "2026-10-25",
+          "date_precision": "range",
+          "source_text": "24...25 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Второй тур отбора",
+          "start_stage": "2026-11-28",
+          "end_stage": "2026-11-29",
+          "date_precision": "range",
+          "source_text": "28...29 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Финал",
+          "start_stage": "2027-03-05",
+          "end_stage": "2027-03-07",
+          "date_precision": "range",
+          "source_text": "5...7 мар",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:03"
+    },
+    "360": {
+      "subject": "Математика",
+      "name": "Межрегиональная олимпиада школьников «Будущие исследователи — будущее науки»",
+      "level": "III",
+      "grades": "7–11",
+      "activity_id": 360,
+      "url": "https://olimpiada.ru/activity/360",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 23 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный этап",
+          "start_stage": "2026-11-07",
+          "end_stage": "2026-11-08",
+          "date_precision": "range",
+          "source_text": "7...8 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:05"
+    },
+    "24": {
+      "subject": "Математика",
+      "name": "Межрегиональная олимпиада школьников имени И.Я. Верченко",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 24,
+      "url": "https://olimpiada.ru/activity/24",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:07"
+    },
+    "375": {
+      "subject": "Математика",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 375,
+      "url": "https://olimpiada.ru/activity/375",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:08"
+    },
+    "1": {
+      "subject": "Математика",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 1,
+      "url": "https://olimpiada.ru/activity/1",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:10"
+    },
+    "6": {
+      "subject": "Математика",
+      "name": "Объединенная межвузовская олимпиада школьников",
+      "level": "II",
+      "grades": "9–11",
+      "activity_id": 6,
+      "url": "https://olimpiada.ru/activity/6",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:12"
+    },
+    "389": {
+      "subject": "Математика",
+      "name": "Олимпиада Курчатов",
+      "level": "II",
+      "grades": "6–11",
+      "activity_id": 389,
+      "url": "https://olimpiada.ru/activity/389",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:14"
+    },
+    "348": {
+      "subject": "Математика",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 348,
+      "url": "https://olimpiada.ru/activity/348",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:15"
+    },
+    "115": {
+      "subject": "Математика",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 115,
+      "url": "https://olimpiada.ru/activity/115",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:17"
+    },
+    "395": {
+      "subject": "Математика",
+      "name": "Олимпиада школьников «Физтех»",
+      "level": "I",
+      "grades": "9–11",
+      "activity_id": 395,
+      "url": "https://olimpiada.ru/activity/395",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 24 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация на первый тур",
+          "start_stage": null,
+          "end_stage": "2026-10-10",
+          "date_precision": "until",
+          "source_text": "До 10 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур",
+          "start_stage": "2026-10-11",
+          "end_stage": "2026-10-11",
+          "date_precision": "exact",
+          "source_text": "11 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на второй тур",
+          "start_stage": null,
+          "end_stage": "2026-10-31",
+          "date_precision": "until",
+          "source_text": "До 31 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Второй тур",
+          "start_stage": "2026-11-01",
+          "end_stage": "2026-11-01",
+          "date_precision": "exact",
+          "source_text": "1 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на третий тур для 11 классов",
+          "start_stage": null,
+          "end_stage": "2026-11-06",
+          "date_precision": "until",
+          "source_text": "До 6 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Третий тур для 11 классов",
+          "start_stage": "2026-11-07",
+          "end_stage": "2026-11-07",
+          "date_precision": "exact",
+          "source_text": "7 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Финал",
+          "start_stage": "2027-02-14",
+          "end_stage": "2027-02-14",
+          "date_precision": "exact",
+          "source_text": "14 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:19"
+    },
+    "168": {
+      "subject": "Математика",
+      "name": "Олимпиада школьников «Шаг в будущее»",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 168,
+      "url": "https://olimpiada.ru/activity/168",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 16 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-16",
+          "end_stage": "2026-11-22",
+          "date_precision": "range",
+          "source_text": "16...22 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:21"
+    },
+    "443": {
+      "subject": "Математика",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 443,
+      "url": "https://olimpiada.ru/activity/443",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:23"
+    },
+    "66": {
+      "subject": "Математика",
+      "name": "Олимпиада Юношеской математической школы",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 66,
+      "url": "https://olimpiada.ru/activity/66",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 28 августа",
+      "stages": [
+        {
+          "name_stage": "Первый отборочный этап",
+          "start_stage": "2026-09-13",
+          "end_stage": "2026-09-13",
+          "date_precision": "exact",
+          "source_text": "13 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Второй отборочный этап",
+          "start_stage": "2026-10-17",
+          "end_stage": "2026-10-17",
+          "date_precision": "exact",
+          "source_text": "17 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:24"
+    },
+    "121": {
+      "subject": "Математика",
+      "name": "Открытая олимпиада школьников (ИТМО)",
+      "level": "III",
+      "grades": "5–11",
+      "activity_id": 121,
+      "url": "https://olimpiada.ru/activity/121",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:26"
+    },
+    "411": {
+      "subject": "Математика",
+      "name": "Отраслевая физико-математическая олимпиада школьников «Росатом»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 411,
+      "url": "https://olimpiada.ru/activity/411",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 25 сентября",
+      "stages": [
+        {
+          "name_stage": "Дистанционный тур",
+          "start_stage": "2026-11-17",
+          "end_stage": "2026-12-21",
+          "date_precision": "range",
+          "source_text": "17 ноя...21 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:28"
+    },
+    "246": {
+      "subject": "Математика",
+      "name": "Санкт-Петербургская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 246,
+      "url": "https://olimpiada.ru/activity/246",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 21 сентября",
+      "stages": [
+        {
+          "name_stage": "Районный тур",
+          "start_stage": "2026-11-14",
+          "end_stage": "2026-11-14",
+          "date_precision": "exact",
+          "source_text": "14 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:29"
+    },
+    "5": {
+      "subject": "Математика",
+      "name": "Турнир городов",
+      "level": "I",
+      "grades": "8–11",
+      "activity_id": 5,
+      "url": "https://olimpiada.ru/activity/5",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 2 сентября",
+      "stages": [
+        {
+          "name_stage": "Базовый осенний тур",
+          "start_stage": "2026-10-04",
+          "end_stage": "2026-10-04",
+          "date_precision": "exact",
+          "source_text": "4 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Сложный осенний тур",
+          "start_stage": "2026-10-18",
+          "end_stage": "2026-10-18",
+          "date_precision": "exact",
+          "source_text": "18 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:31"
+    },
+    "397": {
+      "subject": "Математика",
+      "name": "Университетская олимпиада школьников «Бельчонок»",
+      "level": "III",
+      "grades": "2–11",
+      "activity_id": 397,
+      "url": "https://olimpiada.ru/activity/397",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 11 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-01",
+          "end_stage": "2027-01-12",
+          "date_precision": "range",
+          "source_text": "1 окт...12 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Финал",
+          "start_stage": "2027-02-07",
+          "end_stage": "2027-02-07",
+          "date_precision": "exact",
+          "source_text": "7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:35"
+    },
+    "150": {
+      "subject": "Обществознание",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 150,
+      "url": "https://olimpiada.ru/activity/150",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 1 день",
+          "start_stage": "2026-09-26",
+          "end_stage": "2026-09-26",
+          "date_precision": "exact",
+          "source_text": "26 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 2 день",
+          "start_stage": "2026-10-02",
+          "end_stage": "2026-10-02",
+          "date_precision": "exact",
+          "source_text": "2 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:38"
+    },
+    "5214": {
+      "subject": "Экономика",
+      "name": "Всероссийская олимпиада школьников «Миссия выполнима Твое призвание — финансист!»",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 5214,
+      "url": "https://olimpiada.ru/activity/5214",
+      "academic_year": "2016/17",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:10"
+    },
+    "5443": {
+      "subject": "Обществознание",
+      "name": "Всероссийская Толстовская олимпиада",
+      "level": "III",
+      "grades": "10–11",
+      "activity_id": 5443,
+      "url": "https://olimpiada.ru/activity/5443",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:42"
+    },
+    "174": {
+      "subject": "Обществознание",
+      "name": "Межрегиональная олимпиада школьников на базе ведомственных образовательных организаций",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 174,
+      "url": "https://olimpiada.ru/activity/174",
+      "academic_year": "2024/25",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:44"
+    },
+    "380": {
+      "subject": "Обществознание",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 380,
+      "url": "https://olimpiada.ru/activity/380",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:45"
+    },
+    "106": {
+      "subject": "Обществознание",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 106,
+      "url": "https://olimpiada.ru/activity/106",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:47"
+    },
+    "393": {
+      "subject": "Обществознание",
+      "name": "Олимпиада РГГУ для школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 393,
+      "url": "https://olimpiada.ru/activity/393",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 18 мая",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-12-01",
+          "end_stage": "2027-01-11",
+          "date_precision": "range",
+          "source_text": "1 дек...11 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-01-27",
+          "date_precision": "range",
+          "source_text": "13...27 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-21",
+          "end_stage": "2027-02-22",
+          "date_precision": "range",
+          "source_text": "21...22 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:49"
+    },
+    "351": {
+      "subject": "Обществознание",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 351,
+      "url": "https://olimpiada.ru/activity/351",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:51"
+    },
+    "116": {
+      "subject": "Обществознание",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 116,
+      "url": "https://olimpiada.ru/activity/116",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:52"
+    },
+    "5284": {
+      "subject": "Экономика",
+      "name": "Олимпиада школьников Российской академии народного хозяйства и государственной службы при Президенте РФ",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5284,
+      "url": "https://olimpiada.ru/activity/5284",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:17"
+    },
+    "462": {
+      "subject": "Обществознание",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 462,
+      "url": "https://olimpiada.ru/activity/462",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:56"
+    },
+    "5400": {
+      "subject": "Обществознание",
+      "name": "Региональный конкурс школьников Челябинского университетского образовательного округа",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 5400,
+      "url": "https://olimpiada.ru/activity/5400",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:58"
+    },
+    "151": {
+      "subject": "Право",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 151,
+      "url": "https://olimpiada.ru/activity/151",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 1 день",
+          "start_stage": "2026-09-25",
+          "end_stage": "2026-09-25",
+          "date_precision": "exact",
+          "source_text": "25 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 2 день",
+          "start_stage": "2026-10-04",
+          "end_stage": "2026-10-04",
+          "date_precision": "exact",
+          "source_text": "4 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:22:59"
+    },
+    "5611": {
+      "subject": "Право",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 5611,
+      "url": "https://olimpiada.ru/activity/5611",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:01"
+    },
+    "340": {
+      "subject": "Право",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 340,
+      "url": "https://olimpiada.ru/activity/340",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:05"
+    },
+    "464": {
+      "subject": "Право",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 464,
+      "url": "https://olimpiada.ru/activity/464",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:06"
+    },
+    "160": {
+      "subject": "Русский язык",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 160,
+      "url": "https://olimpiada.ru/activity/160",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 1 день",
+          "start_stage": "2026-09-25",
+          "end_stage": "2026-09-25",
+          "date_precision": "exact",
+          "source_text": "25 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 2 день",
+          "start_stage": "2026-10-04",
+          "end_stage": "2026-10-04",
+          "date_precision": "exact",
+          "source_text": "4 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:08"
+    },
+    "372": {
+      "subject": "Русский язык",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 372,
+      "url": "https://olimpiada.ru/activity/372",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:12"
+    },
+    "391": {
+      "subject": "Русский язык",
+      "name": "Олимпиада РГГУ для школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 391,
+      "url": "https://olimpiada.ru/activity/391",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 18 мая",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-12-01",
+          "end_stage": "2027-01-11",
+          "date_precision": "range",
+          "source_text": "1 дек...11 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-01-27",
+          "date_precision": "range",
+          "source_text": "13...27 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-21",
+          "end_stage": "2027-02-22",
+          "date_precision": "range",
+          "source_text": "21...22 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:13"
+    },
+    "347": {
+      "subject": "Русский язык",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 347,
+      "url": "https://olimpiada.ru/activity/347",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:15"
+    },
+    "357": {
+      "subject": "Русский язык",
+      "name": "Олимпиада школьников «Покори Воробьевы горы!»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 357,
+      "url": "https://olimpiada.ru/activity/357",
+      "academic_year": null,
+      "updated_text": null,
+      "stages": [],
+      "parse_error": "timetable_section_not_found",
+      "fetched_at": "2026-09-26T18:23:17"
+    },
+    "460": {
+      "subject": "Русский язык",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 460,
+      "url": "https://olimpiada.ru/activity/460",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:19"
+    },
+    "161": {
+      "subject": "Физика",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 161,
+      "url": "https://olimpiada.ru/activity/161",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:22"
+    },
+    "317": {
+      "subject": "Физика",
+      "name": "Всесибирская открытая олимпиада школьников",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 317,
+      "url": "https://olimpiada.ru/activity/317",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 20 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-20",
+          "date_precision": "range",
+          "source_text": "26 окт...20 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-22",
+          "end_stage": "2026-11-22",
+          "date_precision": "exact",
+          "source_text": "22 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на заключительный этап",
+          "start_stage": "2027-02-01",
+          "end_stage": "2027-02-26",
+          "date_precision": "range",
+          "source_text": "1...26 фев",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-28",
+          "end_stage": "2027-02-28",
+          "date_precision": "exact",
+          "source_text": "28 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:24"
+    },
+    "282": {
+      "subject": "Физика",
+      "name": "Инженерная олимпиада школьников",
+      "level": "III",
+      "grades": "9–11",
+      "activity_id": 282,
+      "url": "https://olimpiada.ru/activity/282",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 25 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный этап в Москве и Белгороде",
+          "start_stage": "2026-10-11",
+          "end_stage": "2026-10-11",
+          "date_precision": "exact",
+          "source_text": "11 окт",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:26"
+    },
+    "57": {
+      "subject": "Физика",
+      "name": "Интернет-олимпиада школьников по физике",
+      "level": "III",
+      "grades": "7–11",
+      "activity_id": 57,
+      "url": "https://olimpiada.ru/activity/57",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 2 сентября",
+      "stages": [
+        {
+          "name_stage": "Первый дистанционный тур",
+          "start_stage": "2026-11-22",
+          "end_stage": "2026-11-28",
+          "date_precision": "range",
+          "source_text": "22...28 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Второй дистанционный тур",
+          "start_stage": "2027-01-17",
+          "end_stage": "2027-01-23",
+          "date_precision": "range",
+          "source_text": "17...23 янв",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Финал",
+          "start_stage": "2027-03-13",
+          "end_stage": "2027-03-13",
+          "date_precision": "exact",
+          "source_text": "13 мар",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:28"
+    },
+    "361": {
+      "subject": "Физика",
+      "name": "Межрегиональная олимпиада школьников «Будущие исследователи — будущее науки»",
+      "level": "III",
+      "grades": "7–11",
+      "activity_id": 361,
+      "url": "https://olimpiada.ru/activity/361",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 23 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный этап",
+          "start_stage": "2026-12-05",
+          "end_stage": "2026-12-06",
+          "date_precision": "range",
+          "source_text": "5...6 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:29"
+    },
+    "376": {
+      "subject": "Физика",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 376,
+      "url": "https://olimpiada.ru/activity/376",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:31"
+    },
+    "108": {
+      "subject": "Физика",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 108,
+      "url": "https://olimpiada.ru/activity/108",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 16 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-15",
+          "end_stage": "2026-10-22",
+          "date_precision": "range",
+          "source_text": "15...22 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-02-28",
+          "end_stage": "2027-02-28",
+          "date_precision": "exact",
+          "source_text": "28 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:33"
+    },
+    "7": {
+      "subject": "Физика",
+      "name": "Объединенная межвузовская олимпиада школьников",
+      "level": "II",
+      "grades": "9–11",
+      "activity_id": 7,
+      "url": "https://olimpiada.ru/activity/7",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:35"
+    },
+    "344": {
+      "subject": "Физика",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 344,
+      "url": "https://olimpiada.ru/activity/344",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:38"
+    },
+    "394": {
+      "subject": "Физика",
+      "name": "Олимпиада школьников «Физтех»",
+      "level": "I",
+      "grades": "9–11",
+      "activity_id": 394,
+      "url": "https://olimpiada.ru/activity/394",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 24 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация на первый тур",
+          "start_stage": null,
+          "end_stage": "2026-10-03",
+          "date_precision": "until",
+          "source_text": "До 3 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур",
+          "start_stage": "2026-10-04",
+          "end_stage": "2026-10-04",
+          "date_precision": "exact",
+          "source_text": "4 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на второй тур",
+          "start_stage": null,
+          "end_stage": "2026-10-24",
+          "date_precision": "until",
+          "source_text": "До 24 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Второй тур",
+          "start_stage": "2026-10-25",
+          "end_stage": "2026-10-25",
+          "date_precision": "exact",
+          "source_text": "25 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на третий тур для 11 классов",
+          "start_stage": null,
+          "end_stage": "2026-11-07",
+          "date_precision": "until",
+          "source_text": "До 7 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Третий тур для 11 классов",
+          "start_stage": "2026-11-08",
+          "end_stage": "2026-11-08",
+          "date_precision": "exact",
+          "source_text": "8 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Финал",
+          "start_stage": "2027-02-13",
+          "end_stage": "2027-02-13",
+          "date_precision": "exact",
+          "source_text": "13 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:40"
+    },
+    "169": {
+      "subject": "Физика",
+      "name": "Олимпиада школьников «Шаг в будущее»",
+      "level": "III",
+      "grades": "8–11",
+      "activity_id": 169,
+      "url": "https://olimpiada.ru/activity/169",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 16 сентября",
+      "stages": [
+        {
+          "name_stage": "I волна отборочного этапа",
+          "start_stage": "2026-10-23",
+          "end_stage": "2026-10-25",
+          "date_precision": "range",
+          "source_text": "23...25 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "II волна отборочного этапа",
+          "start_stage": "2026-12-05",
+          "end_stage": "2026-12-07",
+          "date_precision": "range",
+          "source_text": "5...7 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:42"
+    },
+    "447": {
+      "subject": "Физика",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 447,
+      "url": "https://olimpiada.ru/activity/447",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:43"
+    },
+    "122": {
+      "subject": "Физика",
+      "name": "Открытая олимпиада школьников (ИТМО)",
+      "level": "III",
+      "grades": "5–11",
+      "activity_id": 122,
+      "url": "https://olimpiada.ru/activity/122",
+      "academic_year": "2026/27",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:45"
+    },
+    "412": {
+      "subject": "Физика",
+      "name": "Отраслевая физико-математическая олимпиада школьников «Росатом»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 412,
+      "url": "https://olimpiada.ru/activity/412",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 25 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный тур в Москве",
+          "start_stage": "2026-09-27",
+          "end_stage": "2026-09-27",
+          "date_precision": "exact",
+          "source_text": "27 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Дистанционный тур",
+          "start_stage": "2026-11-17",
+          "end_stage": "2026-12-21",
+          "date_precision": "range",
+          "source_text": "17 ноя...21 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:47"
+    },
+    "5148": {
+      "subject": "Химия",
+      "name": "Всероссийская Сеченовская олимпиада школьников",
+      "level": "II",
+      "grades": "8–11",
+      "activity_id": 5148,
+      "url": "https://olimpiada.ru/activity/5148",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 8 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-10-01",
+          "end_stage": "2026-10-29",
+          "date_precision": "range",
+          "source_text": "1...29 окт",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-10",
+          "end_stage": "2026-11-30",
+          "date_precision": "range",
+          "source_text": "10...30 ноя",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:50"
+    },
+    "319": {
+      "subject": "Химия",
+      "name": "Всесибирская открытая олимпиада школьников",
+      "level": "II",
+      "grades": "7–11",
+      "activity_id": 319,
+      "url": "https://olimpiada.ru/activity/319",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 20 августа",
+      "stages": [
+        {
+          "name_stage": "Регистрация на отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-13",
+          "date_precision": "range",
+          "source_text": "26 окт...13 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-11-15",
+          "end_stage": "2026-11-15",
+          "date_precision": "exact",
+          "source_text": "15 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Регистрация на заключительный этап",
+          "start_stage": "2027-02-01",
+          "end_stage": "2027-03-12",
+          "date_precision": "range",
+          "source_text": "1 фев...12 мар",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-03-14",
+          "end_stage": "2027-03-14",
+          "date_precision": "exact",
+          "source_text": "14 мар",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:52"
+    },
+    "362": {
+      "subject": "Химия",
+      "name": "Межрегиональная олимпиада школьников «Будущие исследователи — будущее науки»",
+      "level": "III",
+      "grades": "7–11",
+      "activity_id": 362,
+      "url": "https://olimpiada.ru/activity/362",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 23 сентября",
+      "stages": [
+        {
+          "name_stage": "Очный отборочный этап",
+          "start_stage": "2026-12-12",
+          "end_stage": "2026-12-13",
+          "date_precision": "range",
+          "source_text": "12...13 дек",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:54"
+    },
+    "379": {
+      "subject": "Химия",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 379,
+      "url": "https://olimpiada.ru/activity/379",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 14 сентября",
+      "stages": [
+        {
+          "name_stage": "Отборочный этап",
+          "start_stage": "2026-10-26",
+          "end_stage": "2026-11-23",
+          "date_precision": "range",
+          "source_text": "26 окт...23 ноя",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Заключительный этап",
+          "start_stage": "2027-01-13",
+          "end_stage": "2027-02-07",
+          "date_precision": "range",
+          "source_text": "13 янв...7 фев",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:56"
+    },
+    "109": {
+      "subject": "Химия",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 109,
+      "url": "https://olimpiada.ru/activity/109",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:57"
+    },
+    "350": {
+      "subject": "Химия",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 350,
+      "url": "https://olimpiada.ru/activity/350",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:23:59"
+    },
+    "448": {
+      "subject": "Химия",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 448,
+      "url": "https://olimpiada.ru/activity/448",
+      "academic_year": "2026/27",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:01"
+    },
+    "5206": {
+      "subject": "Химия",
+      "name": "Открытая химическая олимпиада",
+      "level": "III",
+      "grades": "9–11",
+      "activity_id": 5206,
+      "url": "https://olimpiada.ru/activity/5206",
+      "academic_year": "2014/15",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:03"
+    },
+    "5778": {
+      "subject": "Химия",
+      "name": "Пироговская олимпиада для школьников по химии и биологии",
+      "level": "III",
+      "grades": "9–11",
+      "activity_id": 5778,
+      "url": "https://olimpiada.ru/activity/5778",
+      "academic_year": "2024/25",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:04"
+    },
+    "152": {
+      "subject": "Экономика",
+      "name": "Всероссийская олимпиада школьников «Высшая проба»",
+      "level": "I",
+      "grades": "7–11",
+      "activity_id": 152,
+      "url": "https://olimpiada.ru/activity/152",
+      "academic_year": "2025/26",
+      "updated_text": "Обновлено 7 сентября",
+      "stages": [
+        {
+          "name_stage": "Регистрация",
+          "start_stage": "2027-08-20",
+          "end_stage": "2026-09-22",
+          "date_precision": "range",
+          "source_text": "20 авг...22 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 1 день",
+          "start_stage": "2026-09-26",
+          "end_stage": "2026-09-26",
+          "date_precision": "exact",
+          "source_text": "26 сен",
+          "parser_warning": "date_parsed"
+        },
+        {
+          "name_stage": "Первый тур отборочного этапа: 2 день",
+          "start_stage": "2026-09-30",
+          "end_stage": "2026-09-30",
+          "date_precision": "exact",
+          "source_text": "30 сен",
+          "parser_warning": "date_parsed"
+        }
+      ],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:08"
+    },
+    "381": {
+      "subject": "Экономика",
+      "name": "Межрегиональные предметные олимпиады КФУ",
+      "level": "II",
+      "grades": "5–11",
+      "activity_id": 381,
+      "url": "https://olimpiada.ru/activity/381",
+      "academic_year": "2024/25",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:11"
+    },
+    "110": {
+      "subject": "Экономика",
+      "name": "Московская олимпиада школьников",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 110,
+      "url": "https://olimpiada.ru/activity/110",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:13"
+    },
+    "352": {
+      "subject": "Экономика",
+      "name": "Олимпиада школьников «Ломоносов»",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 352,
+      "url": "https://olimpiada.ru/activity/352",
+      "academic_year": "2025/26",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:15"
+    },
+    "450": {
+      "subject": "Экономика",
+      "name": "Олимпиада школьников Санкт-Петербургского государственного университета",
+      "level": "I",
+      "grades": "5–11",
+      "activity_id": 450,
+      "url": "https://olimpiada.ru/activity/450",
+      "academic_year": "2026/27",
+      "updated_text": null,
+      "stages": [],
+      "parse_error": null,
+      "fetched_at": "2026-09-26T18:24:18"
+    }
+  }
+}
