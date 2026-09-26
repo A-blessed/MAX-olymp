@@ -31,12 +31,30 @@ $ErrorActionPreference = 'Continue'
 # deploy\) и скачанным отдельно, когда кода на машине может не быть
 # вовсе. Слепой переход на каталог выше во втором случае уводил бы в
 # случайную папку, и снимок выходил бы про неё — молча и неправильно.
+# Раскладок две, и выглядят они совершенно по-разному.
+#
+#   repo     — клон или распакованный архив: docker-compose.prod.yml,
+#              рядом каталоги backend\ и frontend\;
+#   deployed — запуск без Docker: содержимое backend\ разложено в корень
+#              (app\, migrations\, alembic.ini), frontend\ и certs\ лежат
+#              рядом. Именно так описан C:\Server в документации.
+#
+# Искать только первую — значит пройти мимо рабочего сервера и заявить,
+# что кода на машине нет.
+function Get-RepoKind([string]$dir) {
+    if (-not $dir) { return $null }
+    if ((Test-Path (Join-Path $dir 'docker-compose.prod.yml')) -and
+        (Test-Path (Join-Path $dir 'backend'))) { return 'repo' }
+    if ((Test-Path (Join-Path $dir 'app')) -and
+        (Test-Path (Join-Path $dir 'alembic.ini'))) { return 'deployed' }
+    return $null
+}
+
 function Find-RepoRoot([string]$start) {
     if (-not $start) { return $null }
     $dir = $start
     for ($i = 0; $i -lt 6; $i++) {
-        if ((Test-Path (Join-Path $dir 'docker-compose.prod.yml')) -and
-            (Test-Path (Join-Path $dir 'backend'))) { return $dir }
+        if (Get-RepoKind $dir) { return $dir }
         $parent = Split-Path $dir -Parent
         if (-not $parent -or $parent -eq $dir) { break }
         $dir = $parent
@@ -47,8 +65,17 @@ function Find-RepoRoot([string]$start) {
 $repoRoot = $null
 if ($Path) {
     $resolved = (Resolve-Path $Path -ErrorAction SilentlyContinue)
-    if ($resolved) { $repoRoot = Find-RepoRoot $resolved.Path }
-    if (-not $repoRoot) { Write-Host "В каталоге $Path репозитория нет, ищу сам." }
+    if ($resolved) {
+        $repoRoot = Find-RepoRoot $resolved.Path
+        # Путь указали руками — значит знают лучше скрипта. Берём как
+        # есть, даже без знакомых меток: пусть снимок выйдет неполным,
+        # чем скрипт уйдёт собирать данные про другой каталог.
+        if (-not $repoRoot) {
+            $repoRoot = $resolved.Path
+            Write-Host "Знакомых меток по этому пути нет, но беру его как есть."
+        }
+    }
+    else { Write-Host "Каталога $Path не существует, ищу сам." }
 }
 if (-not $repoRoot) { $repoRoot = Find-RepoRoot $PSScriptRoot }
 if (-not $repoRoot) { $repoRoot = Find-RepoRoot (Get-Location).Path }
@@ -106,7 +133,11 @@ Add-Line ("Снят: " + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'))
 Add-Line "Домен: $Domain"
 Add-Line ("Каталог: " + (Get-Location).Path)
 if ($repoRoot) {
-    Add-Line "Репозиторий: найден"
+    switch (Get-RepoKind $repoRoot) {
+        'repo'     { Add-Line "Код: репозиторий целиком (docker-compose.prod.yml и backend\)" }
+        'deployed' { Add-Line "Код: раскладка для запуска без Docker (app\ и alembic.ini в корне)" }
+        default    { Add-Line "Код: каталог указан вручную, знакомых меток в нём нет" }
+    }
 }
 else {
     Add-Line "Репозиторий: НЕ НАЙДЕН — кода на этой машине нет или он лежит не здесь."
@@ -125,24 +156,46 @@ Add-Section 'Машина' {
 
 Add-Section 'Версия кода' {
     if (-not $repoRoot) { 'Репозиторий не найден — смотреть нечего.'; return }
-    git rev-parse --short HEAD
-    git log -1 --format='%s (%ci)'
-    ''
-    'Незакоммиченные изменения:'
-    git status --porcelain
+    if (Test-Path (Join-Path $repoRoot '.git')) {
+        git rev-parse --short HEAD
+        git log -1 --format='%s (%ci)'
+        ''
+        'Незакоммиченные изменения:'
+        git status --porcelain
+    }
+    else {
+        # Определяет способ доставки правок, поэтому не мелочь.
+        'Это НЕ git-клон: каталога .git нет.'
+        'Код скопирован или распакован из архива, поэтому git pull сюда'
+        'ничего не доставит, а какой версии этот срез — по файлам не'
+        'определить.'
+        ''
+        'Даты изменения в корне (что правили и когда):'
+        Get-ChildItem $repoRoot | Sort-Object LastWriteTime -Descending |
+            Select-Object -First 12 Name, LastWriteTime | Format-Table -AutoSize
+    }
 }
 
 # .env печатаем построчно: секретные значения нельзя показывать даже
 # замаскированными — по длине строки токен угадывается.
 if (-not $repoRoot) {
     Add-Section 'Поиск репозитория по диску' {
-        'Ищу docker-compose.prod.yml в C:\ (до 5 уровней вглубь), это займёт полминуты.'
+        'Ищу в C:\ (до 5 уровней вглубь), это займёт полминуты.'
         ''
-        $found = Get-ChildItem 'C:\' -Filter 'docker-compose.prod.yml' -Recurse -Depth 5 -ErrorAction SilentlyContinue |
-            Select-Object -First 10 -ExpandProperty FullName
+        # Две метки на две раскладки: docker-compose.prod.yml у полного
+        # репозитория, alembic.ini у развёрнутого без Docker.
+        $found = @()
+        foreach ($mark in 'docker-compose.prod.yml', 'alembic.ini') {
+            $found += Get-ChildItem 'C:\' -Filter $mark -Recurse -Depth 5 -ErrorAction SilentlyContinue |
+                ForEach-Object { $_.DirectoryName }
+        }
+        $found = $found | Sort-Object -Unique | Select-Object -First 10
         if ($found) {
-            'Нашёл. Перезапустите скрипт с -Path на каталог выше найденного файла:'
-            $found
+            'Нашёл. Перезапустите скрипт с -Path на один из этих каталогов:'
+            $found | ForEach-Object { "  -Path " + [char]34 + $_ + [char]34 }
+            ''
+            'Каталогов несколько — значит на машине лежит несколько копий'
+            'кода, и стоит разобраться, какая из них рабочая.'
         }
         else { 'Не нашёл — кода на этой машине действительно нет.' }
     }
