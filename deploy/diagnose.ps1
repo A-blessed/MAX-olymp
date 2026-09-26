@@ -134,6 +134,20 @@ Add-Section 'Версия кода' {
 
 # .env печатаем построчно: секретные значения нельзя показывать даже
 # замаскированными — по длине строки токен угадывается.
+if (-not $repoRoot) {
+    Add-Section 'Поиск репозитория по диску' {
+        'Ищу docker-compose.prod.yml в C:\ (до 5 уровней вглубь), это займёт полминуты.'
+        ''
+        $found = Get-ChildItem 'C:\' -Filter 'docker-compose.prod.yml' -Recurse -Depth 5 -ErrorAction SilentlyContinue |
+            Select-Object -First 10 -ExpandProperty FullName
+        if ($found) {
+            'Нашёл. Перезапустите скрипт с -Path на каталог выше найденного файла:'
+            $found
+        }
+        else { 'Не нашёл — кода на этой машине действительно нет.' }
+    }
+}
+
 Add-Section 'Переменные окружения (.env)' {
     if (-not $repoRoot) { 'Репозиторий не найден — смотреть нечего.'; return }
     if (-not (Test-Path .env)) {
@@ -175,8 +189,16 @@ Add-Section 'Python и зависимости' {
     "где: " + ((cmd /c 'where python 2>&1') -join '; ')
     ''
     'Запущенные процессы python/uvicorn:'
-    $procs = Get-Process python, pythonw, uvicorn -ErrorAction SilentlyContinue
-    if ($procs) { $procs | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize }
+    # Именно с командной строкой: без неё видно только «что-то работает»,
+    # а нужно знать что, откуда запущено и с какими ключами.
+    $procs = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^(python|pythonw|uvicorn)' }
+    if ($procs) {
+        foreach ($proc in $procs) {
+            "  PID $($proc.ProcessId), запущен $($proc.CreationDate)"
+            "    $($proc.CommandLine)"
+        }
+    }
     else { '  ни одного — бэкенд не запущен' }
 }
 
@@ -195,15 +217,22 @@ Add-Section 'PostgreSQL' {
 # Кто занимает порты. 80 и 443 — веб, 8000 — бэкенд, 5432/5433 — база.
 # Занятый не тем процессом порт 80 (обычно это IIS) — самая частая
 # причина, по которой certbot и Caddy не могут выпустить сертификат.
-Add-Section 'Кто слушает порты 80, 443, 8000, 5432, 5433' {
-    $conns = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
-        Where-Object { $_.LocalPort -in 80, 443, 8000, 5432, 5433 }
+Add-Section 'Все слушающие порты' {
+    $conns = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue
     if ($conns) {
         $conns | Select-Object LocalAddress, LocalPort, OwningProcess,
             @{ n = 'Процесс'; e = { (Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).ProcessName } } |
             Sort-Object LocalPort | Format-Table -AutoSize
+        ''
+        # Отдельной строкой, потому что отсутствие порта в списке выше
+        # заметить труднее, чем присутствие.
+        $busy = $conns.LocalPort
+        foreach ($port in 80, 443, 8000) {
+            if ($busy -contains $port) { "Порт ${port}: занят" }
+            else { "Порт ${port}: СВОБОДЕН — на нём никто не слушает" }
+        }
     }
-    else { 'никто не слушает ни один из них' }
+    else { 'никто не слушает ничего — это странно' }
 }
 
 Add-Section 'IIS (частый захватчик порта 80)' {
