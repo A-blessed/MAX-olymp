@@ -21,13 +21,39 @@
 #>
 
 param(
-    [string]$Domain
+    [string]$Domain,
+    [string]$Path
 )
 
 $ErrorActionPreference = 'Continue'
 
-# Репозиторий лежит на уровень выше каталога deploy\.
-Set-Location (Join-Path $PSScriptRoot '..')
+# Скрипт запускают двумя способами: из репозитория (тогда он лежит в
+# deploy\) и скачанным отдельно, когда кода на машине может не быть
+# вовсе. Слепой переход на каталог выше во втором случае уводил бы в
+# случайную папку, и снимок выходил бы про неё — молча и неправильно.
+function Find-RepoRoot([string]$start) {
+    if (-not $start) { return $null }
+    $dir = $start
+    for ($i = 0; $i -lt 6; $i++) {
+        if ((Test-Path (Join-Path $dir 'docker-compose.prod.yml')) -and
+            (Test-Path (Join-Path $dir 'backend'))) { return $dir }
+        $parent = Split-Path $dir -Parent
+        if (-not $parent -or $parent -eq $dir) { break }
+        $dir = $parent
+    }
+    return $null
+}
+
+$repoRoot = $null
+if ($Path) {
+    $resolved = (Resolve-Path $Path -ErrorAction SilentlyContinue)
+    if ($resolved) { $repoRoot = Find-RepoRoot $resolved.Path }
+    if (-not $repoRoot) { Write-Host "В каталоге $Path репозитория нет, ищу сам." }
+}
+if (-not $repoRoot) { $repoRoot = Find-RepoRoot $PSScriptRoot }
+if (-not $repoRoot) { $repoRoot = Find-RepoRoot (Get-Location).Path }
+
+if ($repoRoot) { Set-Location $repoRoot }
 
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $out = "diagnostics-$stamp.txt"
@@ -79,6 +105,14 @@ Add-Line 'Снимок состояния MAX-olymp (Windows)'
 Add-Line ("Снят: " + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz'))
 Add-Line "Домен: $Domain"
 Add-Line ("Каталог: " + (Get-Location).Path)
+if ($repoRoot) {
+    Add-Line "Репозиторий: найден"
+}
+else {
+    Add-Line "Репозиторий: НЕ НАЙДЕН — кода на этой машине нет или он лежит не здесь."
+    Add-Line "             Разделы про версию кода, .env и сертификаты будут пустыми."
+    Add-Line "             Укажите путь вручную: -Path C:\путь\к\MAX-olymp"
+}
 
 Add-Section 'Машина' {
     $os = Get-CimInstance Win32_OperatingSystem
@@ -90,6 +124,7 @@ Add-Section 'Машина' {
 }
 
 Add-Section 'Версия кода' {
+    if (-not $repoRoot) { 'Репозиторий не найден — смотреть нечего.'; return }
     git rev-parse --short HEAD
     git log -1 --format='%s (%ci)'
     ''
@@ -100,6 +135,7 @@ Add-Section 'Версия кода' {
 # .env печатаем построчно: секретные значения нельзя показывать даже
 # замаскированными — по длине строки токен угадывается.
 Add-Section 'Переменные окружения (.env)' {
+    if (-not $repoRoot) { 'Репозиторий не найден — смотреть нечего.'; return }
     if (-not (Test-Path .env)) {
         'Файла .env нет. Без него не заданы ни токен бота, ни секрет вебхука.'
         return
@@ -145,6 +181,7 @@ Add-Section 'Python и зависимости' {
 }
 
 Add-Section 'Сертификаты Минцифры (certs\)' {
+    if (-not $repoRoot) { 'Репозиторий не найден — смотреть нечего.'; return }
     if (Test-Path certs) { Get-ChildItem certs | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize }
     else { 'каталога нет — запросы к platform-api2.max.ru упадут на TLS' }
 }
@@ -251,5 +288,6 @@ foreach ($key in $secretKeys) {
 
 Set-Content -Path $out -Value $text -Encoding UTF8
 
-Write-Host "Готово: $out"
+$full = (Resolve-Path $out).Path
+Write-Host "Готово: $full"
 Write-Host 'Секреты в файле заменены на «<скрыто>», его можно пересылать целиком.'
