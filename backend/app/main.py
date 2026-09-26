@@ -21,6 +21,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict
+from zoneinfo import ZoneInfoNotFoundError
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,6 +31,7 @@ from .api.catalog import router as catalog_router
 from .api.personal import router as personal_router
 from .api.router import router as api_router
 from .bot.router import router as bot_router
+from .clock import app_timezone
 from .config import get_settings
 from .db.session import dispose_engine, get_engine
 from .max_api.client import MaxApiClient
@@ -98,6 +100,33 @@ async def check_database(settings: Any) -> None:
         logger.info("База %s отвечает", settings.database_url_safe)
 
 
+def check_timezone(settings: Any) -> None:
+    """Убедиться при старте, что часовой пояс приложения системе известен.
+
+    ``zoneinfo`` берёт базу часовых поясов у операционной системы. В
+    Linux она есть всегда, а в Windows её нет вовсе — там база приезжает
+    отдельным пакетом ``tzdata``. Без него ``ZoneInfo`` падает, но не при
+    старте, а на первом же запросе, который считает «сегодня»: каталог
+    олимпиад, новости, мои олимпиады. Пользователь видит 500, в логе —
+    полотно трейсбека, и причина лежит в самой последней его строке.
+
+    Падать не даём: список предметов, статика и /health работают и без
+    часового пояса, а одна строка в логе старта заменяет то полотно.
+    """
+    try:
+        app_timezone()
+    except ZoneInfoNotFoundError:
+        logger.error(
+            "Часовой пояс %s системе неизвестен: базы часовых поясов нет. "
+            "Запросы, которые считают «сегодня» — каталог олимпиад, "
+            "новости, мои олимпиады, — будут падать с 500. Лечится "
+            "установкой пакета: pip install tzdata",
+            settings.app_timezone,
+        )
+    else:
+        logger.info("Часовой пояс приложения: %s", settings.app_timezone)
+
+
 def configure_logging(level: str) -> None:
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),
@@ -123,6 +152,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             settings.frontend_path,
         )
 
+    check_timezone(settings)
     await check_database(settings)
 
     if not settings.public_base_url_is_https:
