@@ -264,8 +264,10 @@
 
     calendar: {
       /**
-       * Полосы этапов за период. Без аргументов — текущий месяц.
-       * У каждой записи есть window_start, window_end, single_day и planned_on.
+       * События этапов за период. Без аргументов — текущий месяц.
+       * Формат записи: { activity_id, name, subject, date_precision,
+       * start_stage, end_stage, color? }, где date_precision —
+       * range | exact | until | unknown.
        */
       range(dateFrom, dateTo) {
         return request("/api/me/calendar", {

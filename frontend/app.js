@@ -40,6 +40,25 @@ const state = {
     today: new Date(), // реальная сегодняшняя дата
 };
 
+// Резервный справочник предметов, пока основной не загрузился с бэкенда.
+// Используется только для сопоставления названия предмета с цветом.
+const SUBS = [
+    { n: 'Астрономия', c: '#FFE0B2' },
+    { n: 'Биология', c: '#F4B3C4' },
+    { n: 'География', c: '#E9C2E8' },
+    { n: 'Иностранный язык', c: '#D4A5F7' },
+    { n: 'Информатика', c: '#C9CFF5' },
+    { n: 'История', c: '#A8D8FF' },
+    { n: 'Литература', c: '#B2E6F5' },
+    { n: 'Математика', c: '#8FDCE0' },
+    { n: 'Обществознание', c: '#A7D9B5' },
+    { n: 'Право', c: '#C5E6B0' },
+    { n: 'Русский язык', c: '#FFF0B3' },
+    { n: 'Физика', c: '#F5E6C8' },
+    { n: 'Химия', c: '#BAAC9B' },
+    { n: 'Экономика', c: '#BFBAB4' }
+];
+
 // DOM элементы
 const appbarEl = document.getElementById('appbar');
 const searchbarEl = document.getElementById('searchbar');
@@ -60,18 +79,21 @@ function subjectById(id) {
 }
 
 function subjectByName(name) {
-    return (state.subjects || []).find(s => s.name === name);
+    return (state.subjects || []).find(s => s.name === name) ||
+        SUBS.find(s => s.n === name);
 }
 
 function dot(subjectOrName, large = false) {
     const subject = typeof subjectOrName === 'string' ? subjectByName(subjectOrName) : subjectOrName;
     if (!subject) return '';
-    return `<span class="dot-c${large ? ' lg' : ''}" style="background:${subject.color};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;line-height:1;color:var(--text-1);overflow:hidden;">${subject.short_code || ''}</span>`;
+    const color = subject.color || subject.c;
+    const code = subject.short_code || (subject.n || subject.name || '').charAt(0);
+    return `<span class="dot-c${large ? ' lg' : ''}" style="background:${color};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;line-height:1;color:var(--text-1);overflow:hidden;">${code}</span>`;
 }
 
 function subjectColor(name) {
     const subject = subjectByName(name);
-    return subject ? subject.color : '#ccc';
+    return subject ? (subject.color || subject.c) : '#ccc';
 }
 
 function appbarHTML(options = {}) {
@@ -534,43 +556,103 @@ function formatMonthYear(year, monthIndex) {
     return `${monthNames[monthIndex]} ${year}`;
 }
 
-function buildLanesForMonth(events, weeks) {
-    const lanesByWeek = [];
+function addDays(date, days) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+}
 
-    weeks.forEach(week => {
-        const lanes = [];
-        (events || []).forEach(ev => {
-            const start = parseDate(ev.start || ev.starts_on || ev.date_from || ev.start_date);
-            const end = parseDate(ev.end || ev.ends_on || ev.date_to || ev.end_date || ev.start || ev.starts_on || ev.date_from || ev.start_date);
-            if (!start || !end) return;
+function diffDays(from, to) {
+    const a = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    const b = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+    return Math.round((b - a) / 86400000);
+}
 
-            const subject = ev.subject || ev.subject_name || 'Олимпиада';
-            const color = ev.color || ev.subject_color || subjectColor(subject);
+function eventSubject(ev) {
+    return ev.subject || ev.subject_name || 'Олимпиада';
+}
 
-            week.days.forEach((dayObj, idx) => {
-                const current = new Date(dayObj.year, dayObj.month, dayObj.day);
-                if (current >= start && current <= end) {
-                    let lane = lanes.find(l => l.subject === subject);
-                    if (!lane) {
-                        lane = { subject, c: color, from: idx, to: idx };
-                        lanes.push(lane);
-                    } else {
-                        lane.to = idx;
-                    }
-                }
-            });
+function eventColor(ev) {
+    return ev.color || ev.subject_color || subjectColor(eventSubject(ev)) || '#ccc';
+}
+
+function pushRangeLane(lanesByWeek, weeks, lane) {
+    weeks.forEach((week, wi) => {
+        const weekStart = new Date(week.days[0].year, week.days[0].month, week.days[0].day);
+        const weekEnd = new Date(week.days[6].year, week.days[6].month, week.days[6].day);
+
+        if (lane.end < weekStart || lane.start > weekEnd) return;
+
+        const fromDate = lane.start > weekStart ? lane.start : weekStart;
+        const toDate = lane.end < weekEnd ? lane.end : weekEnd;
+
+        const from = Math.max(0, Math.min(6, diffDays(weekStart, fromDate)));
+        const to = Math.max(0, Math.min(6, diffDays(weekStart, toDate)));
+
+        lanesByWeek[wi].push({
+            subject: lane.subject,
+            c: lane.color,
+            from,
+            to,
+            ...(lane.type === 'until' ? { type: 'until' } : {})
         });
-        lanes.sort((a, b) => a.from - b.from);
-        lanesByWeek.push(lanes);
+    });
+}
+
+function buildLanesForMonth(events, weeks) {
+    const lanesByWeek = weeks.map(() => []);
+
+    (events || []).forEach(ev => {
+        const precision = ev.date_precision || ev.precision || 'unknown';
+        const subject = eventSubject(ev);
+        const color = eventColor(ev);
+
+        if (precision === 'range') {
+            const start = parseDate(ev.start_stage);
+            const end = parseDate(ev.end_stage);
+            if (!start || !end) return;
+            pushRangeLane(lanesByWeek, weeks, { subject, color, start, end, type: 'range' });
+        } else if (precision === 'until') {
+            const end = parseDate(ev.end_stage);
+            if (!end) return;
+            const start = addDays(end, -5);
+            pushRangeLane(lanesByWeek, weeks, { subject, color, start, end, type: 'until' });
+        } else if (precision === 'exact') {
+            const date = parseDate(ev.start_stage || ev.end_stage || ev.date || ev.exact_date);
+            if (!date) return;
+
+            weeks.forEach(week => {
+                week.days.forEach(dayObj => {
+                    const current = new Date(dayObj.year, dayObj.month, dayObj.day);
+                    if (!isSameDate(current, date)) return;
+
+                    if (!dayObj.exactColors) dayObj.exactColors = [];
+                    if (dayObj.exactColors.length < 3) dayObj.exactColors.push(color);
+                    dayObj.exactCount = (dayObj.exactCount || 0) + 1;
+                });
+            });
+        }
+        // precision === 'unknown' — полностью игнорируем
     });
 
+    // Метка «+N» для дней, где больше трёх exact-событий.
+    weeks.forEach(week => {
+        week.days.forEach(dayObj => {
+            const count = dayObj.exactCount || 0;
+            if (count > 3) dayObj.plus = count - 3;
+            if (dayObj.exactColors) dayObj.sel = dayObj.exactColors;
+        });
+    });
+
+    lanesByWeek.forEach(lanes => lanes.sort((a, b) => a.from - b.from || a.to - b.to));
     return lanesByWeek;
 }
 
 function getLegendSubjects(events) {
     const seen = new Set();
     return (events || [])
-        .map(ev => ev.subject || ev.subject_name)
+        .filter(ev => (ev.date_precision || ev.precision || 'unknown') !== 'unknown')
+        .map(ev => eventSubject(ev))
         .filter(Boolean)
         .filter(subject => {
             if (seen.has(subject)) return false;
@@ -593,9 +675,22 @@ function calDay(dayObj) {
     // Синяя обводка — только у сегодняшней даты
     if (isToday) cls.push('today');
 
+    let vars = '';
+    const sel = dayObj.sel || [];
+    if (sel.length === 1) {
+        cls.push('sel1');
+        vars = `--seg1:${sel[0]}`;
+    } else if (sel.length === 2) {
+        cls.push('sel2');
+        vars = `--seg1:${sel[0]};--seg2:${sel[1]}`;
+    } else if (sel.length >= 3) {
+        cls.push('sel3');
+        vars = `--seg1:${sel[0]};--seg2:${sel[1]};--seg3:${sel[2]}`;
+    }
+
     const plus = dayObj.plus ? `<span class="plus">+${dayObj.plus}</span>` : '';
 
-    return `<div class="${cls.join(' ')}" data-day="${day}" data-month="${dayObj.month}" data-year="${dayObj.year}" data-other-month="${!isCurrentMonth}">
+    return `<div class="${cls.join(' ')}" style="${vars}" data-day="${day}" data-month="${dayObj.month}" data-year="${dayObj.year}" data-other-month="${!isCurrentMonth}">
         <div class="circle"><span class="num">${day}</span></div>
         ${plus}
     </div>`;
@@ -622,7 +717,11 @@ function calWeek(days, lanes) {
         lanesHtml += '<div class="lane-row">' + row.map(l => {
             const left = (l.from / 7 * 100);
             const w = ((l.to - l.from + 1) / 7 * 100);
-            return `<span class="lane" style="left:calc(${left}% + 3px);width:calc(${w}% - 6px);background:${l.c}"></span>`;
+            const background = l.type === 'until'
+                ? `linear-gradient(to right, transparent 0%, ${l.c} 100%)`
+                : l.c;
+            const laneClass = 'lane' + (l.type === 'until' ? ' lane-until' : '');
+            return `<span class="${laneClass}" style="left:calc(${left}% + 3px);width:calc(${w}% - 6px);background:${background}"></span>`;
         }).join('') + '</div>';
     });
     lanesHtml += '</div>';
@@ -634,8 +733,8 @@ function calWeek(days, lanes) {
 function legend(subjects) {
     return `<div class="legend">${subjects.map(s => {
         const sub = subjectByName(s);
-        if (!sub) return '';
-        return `<div class="li"><i style="background:${sub.color}"></i>${s}</div>`;
+        const color = sub ? (sub.color || sub.c) : subjectColor(s);
+        return `<div class="li"><i style="background:${color}"></i>${s}</div>`;
     }).join('')}</div>`;
 }
 
