@@ -28,7 +28,6 @@ const state = {
     sort: 'urgency',
     grade: null,
     subjects: [],                   // справочник предметов с сервера
-    settingsNeedSave: false,        // true, если при первом запуске класса не было
     news: [],                       // кеш новостей для счётчика на таббаре
     settings: {
         grade: null,
@@ -739,11 +738,31 @@ function closeModal() {
     if (modal) modal.remove();
 }
 
+// Переключатель в настройках: меняется сразу и сохраняется на сервере.
+// Если сохранить не вышло, возвращаем как было, чтобы переключатель
+// не показывал то, чего на сервере нет.
+async function toggleSetting(field) {
+    const value = !state.settings[field];
+    state.settings[field] = value;
+    closeModal();
+    renderSettingsModal();
+    try {
+        await Api.settings.save({ [field]: value });
+    } catch (err) {
+        console.warn('[API] Не удалось сохранить настройки', err);
+        if (state.settings[field] === value) state.settings[field] = !value;
+        if (document.querySelector('.scrim .modal')) {
+            closeModal();
+            renderSettingsModal();
+        }
+    }
+}
+
 // ============ Обработка кликов ============
 document.addEventListener('click', async function (e) {
     // Клик по фону модалки (вне самой панели) — просто закрываем без применения
     const scrim = e.target.closest('.scrim');
-    if (scrim && !e.target.closest('.sheet')) {
+    if (scrim && !e.target.closest('.sheet, .modal')) {
         closeModal();
         return;
     }
@@ -801,15 +820,11 @@ document.addEventListener('click', async function (e) {
         return;
     }
     if (action === 'toggle-notifications') {
-        state.settings.notifications_enabled = !state.settings.notifications_enabled;
-        closeModal();
-        renderSettingsModal();
+        await toggleSetting('notifications_enabled');
         return;
     }
     if (action === 'toggle-colorblind') {
-        state.settings.colorblind_mode = !state.settings.colorblind_mode;
-        closeModal();
-        renderSettingsModal();
+        await toggleSetting('colorblind_mode');
         return;
     }
     if (action === 'change-grade') {
@@ -819,17 +834,15 @@ document.addEventListener('click', async function (e) {
         return;
     }
     if (action === 'grade-confirm') {
-        if (state.settingsNeedSave) {
-            try {
-                await Api.settings.save({
-                    grade: state.settings.grade,
-                    notifications_enabled: state.settings.notifications_enabled,
-                    colorblind_mode: state.settings.colorblind_mode
-                });
-            } catch (err) {
-                console.warn('[API] Не удалось сохранить настройки', err);
-            }
-            state.settingsNeedSave = false;
+        // Сохраняем всегда: и при первом запуске, и после «Изменить» в настройках.
+        try {
+            await Api.settings.save({
+                grade: state.settings.grade,
+                notifications_enabled: state.settings.notifications_enabled,
+                colorblind_mode: state.settings.colorblind_mode
+            });
+        } catch (err) {
+            console.warn('[API] Не удалось сохранить настройки', err);
         }
         state.view = 'subjects';
         renderSubjects();
@@ -1011,7 +1024,6 @@ async function initApp() {
     state.settings.colorblind_mode = settings.colorblind_mode ?? settings.colorblind ?? false;
 
     if (state.settings.grade == null) {
-        state.settingsNeedSave = true;
         state.view = 'grade-select';
         renderGradeSelect();
     } else {
