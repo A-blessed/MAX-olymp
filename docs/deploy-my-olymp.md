@@ -186,7 +186,14 @@ Alembic применяет сам при старте бэкенда.
 ```bash
 docker compose -f docker-compose.prod.yml run --rm backend python -m scripts.import_subjects
 docker compose -f docker-compose.prod.yml run --rm backend python -m scripts.import_catalog
+docker compose -f docker-compose.prod.yml run --rm backend python -m scripts.import_schedule
 ```
+
+Последняя команда обязательна: только она кладёт даты этапов в олимпиады
+каталога. Без неё поиск работает, а «Календарь» и «Новости» пусты —
+`/api/me/calendar` отвечает `"entries": []` при любых сохранённых
+олимпиадах. Ожидается строка `этапов добавлено: 150` (при повторном
+запуске — `этапов обновлено`).
 
 Проверить снаружи:
 
@@ -395,7 +402,10 @@ cd /d C:\Server
    alembic upgrade head
    python -m scripts.import_subjects
    python -m scripts.import_catalog
+   python -m scripts.import_schedule
    ```
+
+   Без `import_schedule` у олимпиад каталога нет дат, и календарь пуст.
 
 Связь с базой проверяется при старте: в логе будет либо «База … отвечает»,
 либо причина отказа. Пароль в лог не попадает.
@@ -518,6 +528,20 @@ docker compose -f docker-compose.prod.yml up -d --build backend
 Статика отдаётся с `Cache-Control: no-cache`, иначе встроенный браузер
 MAX держал бы старую версию и после деплоя.
 
+Бэкенд, наоборот, живёт в образе, и `git pull` его не меняет. Пропущенная
+пересборка коварна именно поэтому: новый фронтенд уже в браузере, а
+отвечает ему старый бэкенд — запросы проходят, но в ответах не хватает
+полей, и экраны молча пустеют. Проверить, что бэкенд обновился, можно по
+календарю: в ответе `/api/me/calendar` должно быть поле `olympiads`.
+
+Если `git pull` принёс новый `backend/data/olympiads_schedule.json`, после
+пересборки обновите расписание в базе — импорт обновляет этапы на месте,
+прогресс пользователей не теряется:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm backend python -m scripts.import_schedule
+```
+
 ### Без Docker
 
 ```powershell
@@ -533,6 +557,9 @@ alembic upgrade head
 руками, этого не делает. Если шаг пропустить, новые таблицы не появятся —
 бэкенд при этом поднимется и про утренние напоминания скажет одной
 строкой в логе, что они отключены и почему.
+
+Если `git pull` принёс новый `data\olympiads_schedule.json`, следом
+выполните `python -m scripts.import_schedule`.
 
 Проверить напоминания после обновления, не дожидаясь утра:
 
@@ -615,6 +642,8 @@ DNS.
 | В MAX вместо приложения `404` | то же самое: корень домена не отдаёт `index.html` |
 | `500` на `/api/*`, в трейсбеке `getaddrinfo failed` | `DATABASE_URL` ведёт на хост `db` из Docker; лог старта пишет это отдельной строкой |
 | `ConnectionRefusedError` вместо `getaddrinfo` | хост верный, а порт нет: установщик мог занять 5433; сверьте с логом старта |
+| Календарь пуст, в ответе `/api/me/calendar` нет поля `olympiads` | после `git pull` не пересобран бэкенд: `docker compose -f docker-compose.prod.yml up -d --build backend` |
+| Календарь пуст, `olympiads` есть, но `entries` и `olympiads` пустые при сохранённых олимпиадах | в базу не загружено расписание: `python -m scripts.import_schedule`. Если уже загружено — у выбранных олимпиад на olimpiada.ru нет дат (так у 85 из 146) |
 | «Утренние напоминания отключены: в базе нет таблицы reminder_log» | после `git pull` не выполнен `alembic upgrade head`; выполнить и перезапустить бэкенд |
 | Бот не прислал утреннюю сводку | `python -m scripts.send_reminders --user <id>` скажет причину: от человека не было событий бота, уведомления выключены, нет сохранённых олимпиад или сказать нечего |
 | В `--users` у всех «нет событий» | MAX не присылает события серверу: нет подписки на `https://my-olymp.ru/webhook`. `python -m scripts.setup_webhook`, затем каждому написать боту любое сообщение |
