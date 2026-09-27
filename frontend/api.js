@@ -265,9 +265,8 @@
     calendar: {
       /**
        * События этапов за период. Без аргументов — текущий месяц.
-       * Формат записи: { activity_id, name, subject, date_precision,
-       * start_stage, end_stage, color? }, где date_precision —
-       * range | exact | until | unknown.
+       * Может вернуть массив или словарь олимпиад; каждая олимпиада
+       * содержит stages[] с полями start_stage, end_stage, date_precision.
        */
       range(dateFrom, dateTo) {
         return request("/api/me/calendar", {

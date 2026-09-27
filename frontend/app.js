@@ -476,11 +476,92 @@ function parseDate(value) {
     return null;
 }
 
+function calendarOlympiadsFromData(data) {
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== 'object') return [];
+
+    // Массив внутри обёртки: { items: [...] }, { events: [...] }, { olympiads: [...] }
+    const arrayKeys = ['items', 'events', 'olympiads'];
+    for (const key of arrayKeys) {
+        if (Array.isArray(data[key])) return data[key];
+    }
+
+    // Словарь внутри обёртки: { items: { "392": {...} } }
+    const candidates = [];
+    for (const key of arrayKeys) {
+        const dict = data[key];
+        if (dict && typeof dict === 'object' && !Array.isArray(dict)) {
+            candidates.push(...Object.values(dict));
+        }
+    }
+
+    // Словарь на верхнем уровне: { "392": {...} }
+    if (!candidates.length) {
+        candidates.push(...Object.values(data));
+    }
+
+    return candidates.filter(v => v && typeof v === 'object');
+}
+
+function normalizeCalendarEvents(data) {
+    const events = [];
+
+    calendarOlympiadsFromData(data).forEach(item => {
+        if (!item) return;
+
+        if (Array.isArray(item.stages)) {
+            item.stages.forEach(stage => {
+                if (!stage) return;
+                events.push({
+                    activity_id: item.activity_id,
+                    name: item.name,
+                    subject: item.subject || item.subject_name,
+                    date_precision: stage.date_precision,
+                    start_stage: stage.start_stage,
+                    end_stage: stage.end_stage,
+                    color: item.color || item.subject_color,
+                    name_stage: stage.name_stage,
+                    source_text: stage.source_text,
+                    parser_warning: stage.parser_warning
+                });
+            });
+        } else if (item.date_precision || item.start_stage || item.end_stage) {
+            // Уже плоское событие (старый формат)
+            events.push(item);
+        }
+    });
+
+    return events;
+}
+
+function isStageInFuture(ev) {
+    const precision = ev.date_precision || ev.precision;
+    if (precision === 'unknown' || !precision) return false;
+
+    const today = new Date(state.today.getFullYear(), state.today.getMonth(), state.today.getDate());
+
+    if (precision === 'range' || precision === 'until') {
+        const end = parseDate(ev.end_stage);
+        return !!end && end >= today;
+    }
+
+    if (precision === 'exact') {
+        const date = parseDate(ev.start_stage || ev.end_stage);
+        return !!date && date >= today;
+    }
+
+    return false;
+}
+
 async function getMyOlympiadNames() {
     try {
         const data = await Api.my.list({ q: '' });
         const list = Array.isArray(data) ? data : ((data && (data.items || [])) || []);
-        return new Set(list.map(o => o.name || o.olympiad_name || o.title).filter(Boolean));
+        return new Set(list
+            .map(o => o.name || o.olympiad_name || o.title)
+            .filter(Boolean)
+            .map(name => name.trim().toLowerCase())
+        );
     } catch (err) {
         console.warn('[API] Не удалось загрузить мои олимпиады для календаря', err);
         return null;
@@ -509,7 +590,7 @@ async function renderCalendar(year, monthIndex) {
     let events = [];
     try {
         const data = await Api.calendar.range(from, to);
-        events = Array.isArray(data) ? data : (data.items || data.events || []);
+        events = normalizeCalendarEvents(data).filter(isStageInFuture);
     } catch (err) {
         console.warn('[API] Не удалось загрузить календарь', err);
     }
@@ -517,7 +598,10 @@ async function renderCalendar(year, monthIndex) {
     // В календаре показываем только олимпиады из вкладки «Мои олимпиады».
     const myOlympiadNames = await getMyOlympiadNames();
     if (myOlympiadNames) {
-        events = events.filter(ev => myOlympiadNames.has(ev.name || ev.olympiad_name || ev.title));
+        events = events.filter(ev => {
+            const name = (ev.name || ev.olympiad_name || ev.title || '').trim().toLowerCase();
+            return myOlympiadNames.has(name);
+        });
     }
 
     const lanesByWeek = buildLanesForMonth(events, weeks);
@@ -769,7 +853,7 @@ async function renderCalendarDayDetail(day) {
     let items = [];
     try {
         const data = await Api.calendar.day(dateStr);
-        items = Array.isArray(data) ? data : (data.items || data.events || data.olympiads || []);
+        items = Array.isArray(data) ? data : ((data && (data.items || data.events || data.olympiads)) || []);
     } catch (err) {
         console.warn('[API] Не удалось загрузить день календаря', err);
     }
