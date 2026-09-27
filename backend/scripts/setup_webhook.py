@@ -7,6 +7,10 @@
 Адрес берётся из PUBLIC_BASE_URL и WEBHOOK_PATH. При смене адреса
 туннеля подписку нужно перерегистрировать — иначе события продолжат
 уходить на старый адрес.
+
+``--list`` кроме ответа MAX пишет, оформлена ли подписка на текущий адрес
+и куда ещё уходят события. Старую подписку снимает
+``--delete --url <старый адрес>``.
 """
 
 from __future__ import annotations
@@ -15,20 +19,13 @@ import argparse
 import asyncio
 import json
 import sys
-from typing import List
 
+from app.bot.subscription import UPDATE_TYPES, describe, parse_subscriptions
 from app.config import get_settings
 from app.max_api.client import MaxApiClient, MaxApiError
 
 # События, которых достаточно для базового сценария.
-# Полный список — в описании объекта Update.
-DEFAULT_UPDATE_TYPES: List[str] = [
-    "bot_started",
-    "bot_stopped",
-    "dialog_removed",
-    "message_created",
-    "message_callback",
-]
+DEFAULT_UPDATE_TYPES = UPDATE_TYPES
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -58,6 +55,9 @@ async def main() -> int:
         if args.list:
             result = await client.list_subscriptions()
             print(json.dumps(result, ensure_ascii=False, indent=2))
+            print()
+            for line in describe(parse_subscriptions(result, args.url or settings.webhook_url)):
+                print(line)
             return 0
 
         url = args.url or settings.webhook_url

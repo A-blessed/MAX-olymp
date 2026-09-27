@@ -30,7 +30,7 @@ from app.db.models import BotDialog, User
 from app.db.session import dispose_engine, get_session_factory
 from app.max_api.client import MaxApiClient
 from app.personal.models import SavedOlympiad, UserSettings
-from app.personal.reminder_service import run_daily_pass, why_not_recipient
+from app.personal.reminder_service import build_digest, run_daily_pass, why_not_recipient
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,14 +63,23 @@ async def list_users() -> None:
         print("Пользователей нет: мини-приложение ещё никто не открывал.")
         return
 
-    print(f"{'id':>12}  {'бот':<10} {'увед.':<6} {'олимп.':>6}  имя")
+    # «нет событий» — не то же, что «не запущен»: сервер просто ничего не
+    # слышал от этого человека. Запуск, остановка и любое сообщение боту
+    # приходят событием MAX, и без подписки на события не приходит ничего.
+    print(f"{'id':>12}  {'бот':<11} {'увед.':<6} {'олимп.':>6}  имя")
     for user, dialog_active, notifications, saved_count in rows:
-        bot = "не запущен" if dialog_active is None else ("запущен" if dialog_active else "остановлен")
+        bot = "нет событий" if dialog_active is None else ("запущен" if dialog_active else "остановлен")
         notify = "выкл" if notifications is False else "вкл"
         name = " ".join(filter(None, [user.first_name, user.last_name])) or "—"
         if user.username:
             name += f" (@{user.username})"
-        print(f"{user.id:>12}  {bot:<10} {notify:<6} {saved_count or 0:>6}  {name}")
+        print(f"{user.id:>12}  {bot:<11} {notify:<6} {saved_count or 0:>6}  {name}")
+
+    if all(dialog_active is None for _, dialog_active, _, _ in rows):
+        print(
+            "\nНи от кого не пришло ни одного события бота — похоже, MAX не присылает "
+            "их серверу. Проверьте подписку: python -m scripts.setup_webhook --list"
+        )
 
 
 async def main() -> int:
@@ -95,15 +104,22 @@ async def main() -> int:
     # Сначала — придёт ли сводка вообще. Для этого нужна только база, и
     # «уведомления выключены» полезнее услышать раньше, чем «нет токена».
     if args.user is not None:
+        preview = None
         try:
             async with get_session_factory()() as session:
                 reason = await why_not_recipient(session, args.user)
+                if reason and args.dry_run:
+                    # Текст сводки от причины не зависит — посмотреть его можно.
+                    _, preview = await build_digest(session, args.user, day)
         except Exception:
             await dispose_engine()
             raise
         if reason:
             await dispose_engine()
             print(f"Пользователю {args.user} сводка не придёт: {reason}.")
+            if args.dry_run:
+                print(f"\nКогда это исправят, за {day.isoformat()} он получил бы:\n")
+                print(preview or "ничего: на этот день сказать нечего.")
             return 1
 
     client = None

@@ -69,6 +69,21 @@ class UpdateContext:
                 return str(body.get("text") or "")
         return ""
 
+    @property
+    def from_bot(self) -> bool:
+        """Сообщение написал бот, а не человек."""
+        message = self.update.get("message")
+        sender = message.get("sender") if isinstance(message, dict) else None
+        return isinstance(sender, dict) and bool(sender.get("is_bot"))
+
+    @property
+    def in_dialog(self) -> bool:
+        """Сообщение из личного чата с ботом, а не из группы или канала."""
+        message = self.update.get("message")
+        recipient = message.get("recipient") if isinstance(message, dict) else None
+        chat_type = recipient.get("chat_type") if isinstance(recipient, dict) else None
+        return chat_type in (None, "", "dialog")
+
 
 def _as_int(value: Any) -> Optional[int]:
     try:
@@ -187,8 +202,15 @@ async def on_dialog_removed(ctx: UpdateContext) -> None:
 async def on_message_created(ctx: UpdateContext) -> None:
     """Сообщение в чате с ботом."""
     user_id = ctx.user_id
-    if user_id is None:
+    if user_id is None or ctx.from_bot:
         return
+
+    if ctx.in_dialog:
+        # Человек пишет боту — значит, и бот может писать ему. bot_started
+        # приходит один раз, при первом запуске; кто запустил бота, пока
+        # события до сервера не доходили, иначе навсегда остался бы для
+        # рассылки «не запустившим».
+        await _set_dialog_active(user_id, True)
 
     button = _mini_app_button(ctx.settings)
     await ctx.client.send_message(

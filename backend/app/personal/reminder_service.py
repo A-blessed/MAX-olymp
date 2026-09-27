@@ -124,7 +124,18 @@ async def why_not_recipient(session: AsyncSession, user_id: int) -> Optional[str
         return "такого пользователя нет: он ни разу не открывал мини-приложение"
     dialog = await session.get(BotDialog, user_id)
     if dialog is None:
-        return "бот у него не запущен — писать ему MAX не разрешит"
+        if not await session.scalar(select(exists().select_from(BotDialog))):
+            # Пусто у всех — дело не в человеке, а в том, что события MAX
+            # до сервера не доходят вовсе.
+            return (
+                "сервер не знает, что у него запущен бот: от MAX не пришло ни "
+                "одного события ни от кого — похоже, нет подписки на события "
+                "(проверка: python -m scripts.setup_webhook --list)"
+            )
+        return (
+            "сервер не знает, что у него запущен бот: от него не приходило "
+            "событий MAX. Пусть напишет боту любое сообщение"
+        )
     if not dialog.is_active:
         return "он остановил бота"
     settings_row = await session.get(UserSettings, user_id)

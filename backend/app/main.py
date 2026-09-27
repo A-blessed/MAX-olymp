@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Any, AsyncIterator, Dict, Optional
 from zoneinfo import ZoneInfoNotFoundError
 
@@ -31,6 +31,7 @@ from .api.catalog import router as catalog_router
 from .api.personal import router as personal_router
 from .api.router import router as api_router
 from .bot.router import router as bot_router
+from .bot.subscription import log_subscription
 from .clock import app_timezone
 from .config import get_settings
 from .db.session import dispose_engine, get_engine, get_session_factory
@@ -224,6 +225,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 settings.env_file_path,
             )
 
+    # Подписка на события — в фоне: MAX может отвечать долго, а старт ждать
+    # его незачем. Без подписки бот молчит, и понять это иначе, чем по этой
+    # строке в логе, трудно: всё остальное продолжает работать.
+    subscription_check: Optional[asyncio.Task] = None
+    if app.state.max_client is not None:
+        subscription_check = asyncio.create_task(
+            log_subscription(app.state.max_client, settings)
+        )
+
     scheduler: Optional[ReminderScheduler] = None
     reminders_blocked = None
     if app.state.max_client is not None and settings.reminders_enabled:
@@ -252,6 +262,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # момент остановки, упёрлась бы в уже закрытое соединение.
         if scheduler is not None:
             await scheduler.stop()
+        if subscription_check is not None and not subscription_check.done():
+            subscription_check.cancel()
+            with suppress(asyncio.CancelledError):
+                await subscription_check
         if app.state.max_client is not None:
             await app.state.max_client.aclose()
         await dispose_engine()
