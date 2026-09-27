@@ -174,7 +174,27 @@ class TestActivityIndex:
                 }
             ]
         }
-        assert build_activity_index(catalog) == {99: ["576"], 287: ["631"]}
+        assert build_activity_index(catalog) == {
+            99: [("576", "Астрономия")],
+            287: [("631", "Астрономия")],
+        }
+
+    def test_same_olympiad_under_two_subjects_are_different_targets(self):
+        """У каждого предмета своя страница источника и своё расписание.
+
+        Потеряй мы здесь предмет — расписание одной страницы легло бы на
+        оба предмета, а следующая затёрла бы его чужими датами.
+        """
+        catalog = {
+            "subjects": [
+                {"name": "Физика", "olympiads": [{"id": "698", "activity_id": 147}]},
+                {"name": "Математика", "olympiads": [{"id": "698", "activity_id": 149}]},
+            ]
+        }
+        assert build_activity_index(catalog) == {
+            147: [("698", "Физика")],
+            149: [("698", "Математика")],
+        }
 
     def test_same_activity_on_two_olympiads_keeps_both(self):
         """В каталоге такие пары есть — терять вторую нельзя."""
@@ -189,16 +209,25 @@ class TestActivityIndex:
                 }
             ]
         }
-        assert build_activity_index(catalog) == {5430: ["227", "443"]}
+        assert build_activity_index(catalog) == {
+            5430: [("227", "X"), ("443", "X")]
+        }
 
-    def test_one_olympiad_under_many_subjects_is_not_a_duplicate(self):
+    def test_one_page_serving_two_subjects_keeps_both(self):
+        """Одна страница на два предмета — обе строки её и получат."""
         catalog = {
             "subjects": [
                 {"name": "Физика", "olympiads": [{"id": "576", "activity_id": 99}]},
                 {"name": "Математика", "olympiads": [{"id": "576", "activity_id": 99}]},
             ]
         }
-        assert build_activity_index(catalog) == {99: ["576"]}
+        assert build_activity_index(catalog) == {
+            99: [("576", "Физика"), ("576", "Математика")]
+        }
+
+    def test_subject_without_a_name_is_skipped(self):
+        catalog = {"subjects": [{"name": "  ", "olympiads": [{"id": "1", "activity_id": 2}]}]}
+        assert build_activity_index(catalog) == {}
 
     @pytest.mark.parametrize(
         "olympiad",

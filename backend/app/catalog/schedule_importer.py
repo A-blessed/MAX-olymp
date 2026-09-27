@@ -30,12 +30,12 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .dates import Precision
 from .importer import classify_stage
-from .models import Olympiad, Stage
+from .models import Olympiad, Stage, Subject
 from .subject_importer import SOURCE_NAME
 
 logger = logging.getLogger(__name__)
@@ -57,6 +57,9 @@ def parse_iso(value: Any) -> Optional[date]:
 
 
 StageDates = Tuple[Optional[date], Optional[Precision], Optional[date], Optional[Precision]]
+
+# Куда ложится расписание одной страницы источника: олимпиада и её предмет.
+Target = Tuple[str, str]
 
 
 def stage_dates(payload: Dict[str, Any]) -> StageDates:
@@ -110,20 +113,28 @@ def stage_external_key(name: str, taken: Set[str]) -> str:
     return key
 
 
-def build_activity_index(catalog: Dict[str, Any]) -> Dict[int, List[str]]:
-    """Соответствие ``activity_id`` с olimpiada.ru → ``external_id`` в базе.
+def build_activity_index(catalog: Dict[str, Any]) -> Dict[int, List[Target]]:
+    """Соответствие ``activity_id`` → пары «олимпиада и её предмет».
 
-    Значение — список, а не одна строка. Один и тот же ``activity_id``
-    встречается у разных олимпиад: в каталоге такие пары есть, и хранить
-    только последнюю значило бы молча лишить вторую расписания. Пусть
-    лучше обе получат одинаковые этапы — это видно и поправимо, а тихая
-    пропажа — нет.
+    Предмет в паре обязателен, и это главное здесь. На olimpiada.ru у
+    одной олимпиады своя страница на каждый предмет: у всероссийской их
+    десяток, и у каждой свой ``activity_id`` со своим расписанием. В базе
+    этим страницам отвечают разные строки одной олимпиады, различающиеся
+    предметом.
 
-    Повтор одного ``external_id`` под разными предметами — дело обычное и
-    к списку ничего не добавляет: одна олимпиада, несколько предметов.
+    Если предмет из пары выкинуть, расписание одной страницы ляжет сразу
+    на все строки олимпиады, а следующая страница затрёт предыдущую — и
+    у каждого предмета окажутся даты какого-то чужого.
+
+    Значение — список, потому что один ``activity_id`` изредка отвечает
+    нескольким олимпиадам сразу. Хранить только последнюю значило бы
+    молча лишить остальные расписания.
     """
-    index: Dict[int, List[str]] = {}
+    index: Dict[int, List[Target]] = {}
     for subject in catalog.get("subjects") or []:
+        subject_name = (subject.get("name") or "").strip()
+        if not subject_name:
+            continue
         for olympiad in subject.get("olympiads") or []:
             external_id = str(olympiad.get("id") or "").strip()
             raw_activity = olympiad.get("activity_id")
@@ -133,9 +144,10 @@ def build_activity_index(catalog: Dict[str, Any]) -> Dict[int, List[str]]:
                 activity_id = int(raw_activity)
             except (TypeError, ValueError):
                 continue
+            target = (external_id, subject_name)
             known = index.setdefault(activity_id, [])
-            if external_id not in known:
-                known.append(external_id)
+            if target not in known:
+                known.append(target)
     return index
 
 
@@ -147,6 +159,7 @@ class ScheduleImportStats:
     stages_created: int = 0
     stages_updated: int = 0
     stages_removed: int = 0
+    stages_pruned: int = 0
     without_schedule: int = 0
     unmatched: List[str] = field(default_factory=list)
     skipped_stages: List[str] = field(default_factory=list)
@@ -157,6 +170,7 @@ class ScheduleImportStats:
             "этапов добавлено": self.stages_created,
             "этапов обновлено": self.stages_updated,
             "этапов удалено": self.stages_removed,
+            "этапов вычищено у чужих строк": self.stages_pruned,
             "без расписания в источнике": self.without_schedule,
             "не нашлось в базе": len(self.unmatched),
             "этапов пропущено": len(self.skipped_stages),
@@ -167,10 +181,14 @@ async def import_schedules(
     session: AsyncSession,
     schedule: Dict[str, Any],
     catalog: Dict[str, Any],
+    *,
+    prune: bool = False,
 ) -> ScheduleImportStats:
     """Записывает расписание в каталог. Повторный запуск безопасен."""
     stats = ScheduleImportStats()
     index = build_activity_index(catalog)
+    subject_ids = {s.name: s.id for s in await session.scalars(select(Subject))}
+    touched: Set[int] = set()
     checked_at = datetime.now(timezone.utc)
 
     for raw_activity_id, entry in (schedule.get("schedules") or {}).items():
@@ -189,44 +207,86 @@ async def import_schedules(
             stats.unmatched.append(str(raw_activity_id))
             continue
 
-        external_ids = index.get(activity_id)
-        if not external_ids:
+        targets = index.get(activity_id)
+        if not targets:
             stats.unmatched.append(f"activity_id={activity_id}: нет в файле каталога")
             continue
 
-        if len(external_ids) > 1:
+        distinct_ids = {external_id for external_id, _ in targets}
+        if len(distinct_ids) > 1:
             logger.warning(
                 "activity_id=%s указывает на разные олимпиады (%s) — расписание "
                 "получат все. Похоже на ошибку в каталоге.",
                 activity_id,
-                ", ".join(external_ids),
+                ", ".join(sorted(distinct_ids)),
             )
 
-        # Одна олимпиада заводится по каждому своему предмету отдельной
-        # строкой — ключ уникальности включает предмет. Расписание нужно
-        # каждой из них.
+        # Отбираем строго по паре «олимпиада + предмет»: у каждого предмета
+        # своя страница источника и своё расписание.
+        conditions = []
+        for external_id, subject_name in targets:
+            subject_id = subject_ids.get(subject_name)
+            if subject_id is None:
+                stats.unmatched.append(
+                    f"activity_id={activity_id}: предмета «{subject_name}» нет в базе"
+                )
+                continue
+            conditions.append(
+                and_(
+                    Olympiad.external_id == external_id,
+                    Olympiad.subject_id == subject_id,
+                )
+            )
+        if not conditions:
+            continue
+
         olympiads = list(
             await session.scalars(
-                select(Olympiad).where(
-                    Olympiad.source == SOURCE_NAME,
-                    Olympiad.external_id.in_(external_ids),
-                )
+                select(Olympiad).where(Olympiad.source == SOURCE_NAME, or_(*conditions))
             )
         )
         if not olympiads:
-            stats.unmatched.append(
-                f"activity_id={activity_id}: id {', '.join(external_ids)} нет в базе"
-            )
+            names = ", ".join(f"{i}/{n}" for i, n in targets)
+            stats.unmatched.append(f"activity_id={activity_id}: {names} нет в базе")
             continue
 
         for olympiad in olympiads:
             olympiad.source_checked_at = checked_at
             await _sync_stages(session, olympiad, payloads, entry, stats)
+            touched.add(olympiad.id)
             stats.olympiads_matched += 1
+
+    if prune:
+        await _prune_untouched(session, touched, stats)
 
     await session.commit()
     logger.info("Импорт расписания завершён: %s", stats.as_dict())
     return stats
+
+
+async def _prune_untouched(
+    session: AsyncSession, touched: Set[int], stats: ScheduleImportStats
+) -> None:
+    """Убрать этапы у олимпиад, которых в этом импорте не было.
+
+    Нужно после исправления ошибки в сопоставлении: строки, получившие
+    когда-то чужое расписание, сами по себе не очистятся — источник про
+    них молчит, а молчание источника мы намеренно считаем поводом ничего
+    не трогать.
+
+    Вместе с этапами уходит и отмеченный по ним прогресс, поэтому режим
+    включается явным ключом, а не сам собой.
+    """
+    stale = list(
+        await session.scalars(
+            select(Stage)
+            .join(Olympiad, Stage.olympiad_id == Olympiad.id)
+            .where(Olympiad.source == SOURCE_NAME, Stage.olympiad_id.notin_(touched or {0}))
+        )
+    )
+    for stage in stale:
+        await session.delete(stage)
+    stats.stages_pruned = len(stale)
 
 
 async def _sync_stages(

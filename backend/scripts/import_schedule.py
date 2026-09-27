@@ -39,6 +39,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_CATALOG,
         help="каталог с activity_id — нужен, чтобы связать расписание с базой",
     )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help=(
+            "убрать этапы у олимпиад, которых нет в этом импорте. "
+            "Вместе с ними уйдёт и отмеченный по ним прогресс"
+        ),
+    )
     return parser
 
 
@@ -82,7 +90,7 @@ async def main() -> int:
 
     try:
         async with get_session_factory()() as session:
-            stats = await import_schedules(session, schedule, catalog)
+            stats = await import_schedules(session, schedule, catalog, prune=args.prune)
     finally:
         await dispose_engine()
 
