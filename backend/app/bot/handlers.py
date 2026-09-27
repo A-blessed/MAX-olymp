@@ -128,6 +128,21 @@ async def _set_dialog_active(user_id: int, is_active: bool) -> None:
         await session.commit()
 
 
+# Метка запуска для кнопки из чата. Сам параметр важнее значения: без
+# ``?startapp=`` ссылка ведёт в профиль бота, а не в мини-приложение —
+# именно поэтому кнопка «Открыть приложение» не открывала ничего. Значение
+# при этом не пропадает: оно доезжает до бэкенда в данных запуска и
+# показывает, что пользователь пришёл из чата, а не из каталога MAX.
+MINI_APP_START_PARAM = "bot"
+
+GREETING = (
+    "Привет! Это МойОлимп. Я помогу выбрать олимпиады и отследить сроки "
+    "их проведения, а так же составлю индивидуальный календарь под "
+    "выбранные тобой Олимпиады и буду напоминать о важных датах. "
+    "Заходи в мини-приложение!"
+)
+
+
 def _mini_app_button(settings: Settings) -> Optional[Dict[str, Any]]:
     """Кнопка-ссылка, открывающая мини-приложение из чата.
 
@@ -146,7 +161,10 @@ def _mini_app_button(settings: Settings) -> Optional[Dict[str, Any]]:
                     {
                         "type": "link",
                         "text": "Открыть приложение",
-                        "url": f"https://max.ru/{settings.bot_username}",
+                        "url": (
+                            f"https://max.ru/{settings.bot_username}"
+                            f"?startapp={MINI_APP_START_PARAM}"
+                        ),
                     }
                 ]
             ]
@@ -171,7 +189,7 @@ async def on_bot_started(ctx: UpdateContext) -> None:
 
     button = _mini_app_button(ctx.settings)
     await ctx.client.send_message(
-        "Привет! Нажмите кнопку ниже, чтобы открыть приложение.",
+        GREETING,
         user_id=user_id,
         attachments=[button] if button else None,
     )

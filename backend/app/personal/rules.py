@@ -12,16 +12,22 @@ from __future__ import annotations
 
 import calendar
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Dict, Iterable, Optional, Sequence, Set, Tuple
 
 from ..catalog.dates import Precision
 from ..catalog.models import Stage, StageKind
-from ..catalog.presentation import StageStatus, stage_status
+from ..catalog.presentation import StageStatus, is_plannable, stage_status
 from .models import StageResult
 
 # «Пользователь может отметить галочкой до трёх доступных олимпиад в день».
 DAILY_PLAN_LIMIT = 3
+
+# За сколько дней до дедлайна открывается окно планирования у этапа, о
+# котором известен только срок сдачи. Те же пять дней календарь закрашивает
+# полосой с нарастающей непрозрачностью: окно выбора и то, что видно на
+# сетке, должны совпадать.
+UNTIL_WINDOW_DAYS = 5
 
 
 @dataclass
@@ -43,15 +49,27 @@ def _last_day_of_month(value: date) -> date:
 def plan_window(stage: Stage) -> Optional[Tuple[date, date]]:
     """Дни, в которые этап можно поставить в календарь.
 
-    ``None`` — если точный день начала неизвестен: календарь размечает
+    ``None`` — если ни одна из дат не известна до дня: календарь размечает
     конкретные даты, а «март 2027» на день не положишь.
+
+    Начала может не быть вовсе — у этапа-дедлайна известен только срок
+    сдачи. Тогда окном становятся последние ``UNTIL_WINDOW_DAYS`` дней
+    перед ним: подставлять дедлайн вместо начала нельзя, иначе таймер
+    «до этапа N дней» отсчитывал бы не то событие.
 
     Конец окна: точная дата окончания; если известен только месяц
     окончания — последний день этого месяца; если конца нет — этап
     считается однодневным.
     """
-    if stage.starts_on is None or stage.start_precision is not Precision.DAY:
+    if not is_plannable(stage):
         return None
+
+    if stage.starts_on is None or stage.start_precision is not Precision.DAY:
+        # Сюда попадает этап-дедлайн, а заодно и редкий случай, когда
+        # начало известно лишь до месяца, а конец — точно: планировать
+        # разумно в те же дни перед сроком.
+        end = stage.ends_on
+        return (end - timedelta(days=UNTIL_WINDOW_DAYS), end)
 
     start = stage.starts_on
     if stage.ends_on is None:

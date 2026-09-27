@@ -131,8 +131,18 @@ def is_plannable(stage: Stage) -> bool:
 
     Календарь размечает конкретные даты, поэтому этап, у которого известен
     только месяц, в него попасть не может.
+
+    Точного дня начала для этого мало: у этапа-дедлайна («до 18 ноября»)
+    начала нет вовсе, а планировать его осмысленно — «сделаю в среду, до
+    пятницы успею». Достаточно любой из двух дат, известной до дня.
+
+    Условие намеренно совпадает с тем, при котором ``plan_window``
+    возвращает окно: иначе интерфейс обещал бы одно, а API отвечал бы
+    другое.
     """
-    return stage.starts_on is not None and stage.start_precision is Precision.DAY
+    start_day = stage.starts_on is not None and stage.start_precision is Precision.DAY
+    end_day = stage.ends_on is not None and stage.end_precision is Precision.DAY
+    return start_day or end_day
 
 
 def pick_next_stage(stages: Iterable[Stage], today: Optional[date] = None) -> Optional[Stage]:

@@ -28,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..catalog.models import Olympiad, Stage, StageKind
-from ..catalog.presentation import pick_next_stage
+from ..catalog.presentation import DatePrecision, date_precision, pick_next_stage
 from ..clock import today as app_today
 from ..db.models import User
 from ..db.session import get_session
@@ -176,6 +176,11 @@ class CalendarEntry(BaseModel):
     window_end: date
     # Однодневный этап — кружок целиком в цвет олимпиады и флажок.
     single_day: bool
+    # Чем закрашивать полосу: "range" — сплошь, "until" — с нарастающей
+    # непрозрачностью к последнему дню. Окно у этапа-дедлайна построено
+    # от срока назад, и без этого признака оно выглядело бы обычным
+    # диапазоном, у которого якобы известно начало.
+    date_precision: DatePrecision
     planned_on: Optional[date] = None
 
 
@@ -810,6 +815,7 @@ async def read_calendar(
             window_start=window[0],
             window_end=window[1],
             single_day=window[0] == window[1],
+            date_precision=date_precision(stage),
             planned_on=plans.get(stage.id),
         )
         for olympiad, stage, window in _open_stages(rows, results)

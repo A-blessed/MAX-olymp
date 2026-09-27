@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -214,3 +214,51 @@ class TestActivityIndex:
 
     def test_empty_catalog_is_not_an_error(self):
         assert build_activity_index({}) == {}
+
+
+class TestDeadlineStageIsPlannable:
+    """Этап-дедлайн: начала нет, но планировать его можно.
+
+    Правило и признак живут в разных модулях, поэтому проверяем вместе:
+    разойдись они — интерфейс обещал бы одно, а API отвечал бы другое.
+    """
+
+    def deadline_stage(self, deadline):
+        stage = Stage(external_key="k", name="Приём работ")
+        stage.starts_on = None
+        stage.start_precision = None
+        stage.ends_on = deadline
+        stage.end_precision = Precision.DAY
+        return stage
+
+    def test_window_runs_back_from_the_deadline(self):
+        from app.personal.rules import UNTIL_WINDOW_DAYS, plan_window
+
+        stage = self.deadline_stage(date(2026, 11, 18))
+        assert plan_window(stage) == (
+            date(2026, 11, 18) - timedelta(days=UNTIL_WINDOW_DAYS),
+            date(2026, 11, 18),
+        )
+
+    def test_flag_agrees_with_the_window(self):
+        from app.catalog.presentation import is_plannable
+        from app.personal.rules import plan_window
+
+        stage = self.deadline_stage(date(2026, 11, 18))
+        assert is_plannable(stage) is True
+        assert plan_window(stage) is not None
+
+    def test_month_only_stage_stays_unplannable(self):
+        from app.catalog.presentation import is_plannable
+        from app.personal.rules import plan_window
+
+        stage = Stage(external_key="k", name="Этап")
+        stage.starts_on = date(2027, 3, 1)
+        stage.start_precision = Precision.MONTH
+        stage.ends_on = None
+        stage.end_precision = None
+        assert is_plannable(stage) is False
+        assert plan_window(stage) is None
+
+    def test_deadline_is_drawn_as_until(self):
+        assert date_precision(self.deadline_stage(date(2026, 11, 18))) is DatePrecision.UNTIL
