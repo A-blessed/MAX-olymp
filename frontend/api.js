@@ -264,8 +264,9 @@
 
     calendar: {
       /**
-       * Полосы этапов за период. Без аргументов — текущий месяц.
-       * У каждой записи есть window_start, window_end, single_day и planned_on.
+       * События этапов за период. Без аргументов — текущий месяц.
+       * Может вернуть массив или словарь олимпиад; каждая олимпиада
+       * содержит stages[] с полями start_stage, end_stage, date_precision.
        */
       range(dateFrom, dateTo) {
         return request("/api/me/calendar", {

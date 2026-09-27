@@ -172,6 +172,7 @@ body{font-family:var(--font);background:var(--bg-app);color:var(--text-1);-webki
 .cal-week .lanes{position:absolute;inset:0;pointer-events:none;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:3px;}
 .cal-week .lane-row{position:relative;height:7px;}
 .cal-week .lane{position:absolute;top:0;bottom:0;border-radius:4px;box-shadow:0 0 0 1.5px #fff, inset 0 0 0 1px rgba(13,0,26,.14);}
+.cal-week .lane.lane-until{box-shadow:none;}
 .day{position:relative;height:46px;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer;}
 .day.dim .num{color:var(--text-3);opacity:.45;}
 .day .circle{position:relative;width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #fff;}
