@@ -191,11 +191,15 @@
        * @param {object} params
        * @param {string}   [params.sort]       urgency | level | subject
        * @param {number[]} [params.subjectIds] фильтр по предметам
+       * @param {string}   [params.q]          поиск по названию и предмету
        */
       list(params) {
         const p = params || {};
         return request("/api/me/olympiads", {
-          query: { sort: p.sort, subject_id: p.subjectIds },
+          // q обязателен: поиск по «Моим олимпиадам» считает сервер, и
+          // без этого параметра он возвращал весь список, а строка
+          // поиска выглядела сломанной.
+          query: { sort: p.sort, subject_id: p.subjectIds, q: p.q },
         });
       },
 
