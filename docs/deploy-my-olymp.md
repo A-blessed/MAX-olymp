@@ -642,7 +642,7 @@ DNS.
 | В MAX вместо приложения `404` | то же самое: корень домена не отдаёт `index.html` |
 | `500` на `/api/*`, в трейсбеке `getaddrinfo failed` | `DATABASE_URL` ведёт на хост `db` из Docker; лог старта пишет это отдельной строкой |
 | `ConnectionRefusedError` вместо `getaddrinfo` | хост верный, а порт нет: установщик мог занять 5433; сверьте с логом старта |
-| Календарь пуст, в ответе `/api/me/calendar` нет поля `olympiads` | после `git pull` не пересобран бэкенд: `docker compose -f docker-compose.prod.yml up -d --build backend` |
+| Календарь пуст, в ответе `/api/me/calendar` нет поля `olympiads` | после `git pull` работает старый бэкенд. В Docker — `docker compose -f docker-compose.prod.yml up -d --build backend`; без Docker — остановить uvicorn и запустить заново, см. «Обновление кода → Без Docker» |
 | Календарь пуст, `olympiads` есть, но `entries` и `olympiads` пустые при сохранённых олимпиадах | в базу не загружено расписание: `python -m scripts.import_schedule`. Если уже загружено — у выбранных олимпиад на olimpiada.ru нет дат (так у 85 из 146) |
 | «Утренние напоминания отключены: в базе нет таблицы reminder_log» | после `git pull` не выполнен `alembic upgrade head`; выполнить и перезапустить бэкенд |
 | Бот не прислал утреннюю сводку | `python -m scripts.send_reminders --user <id>` скажет причину: от человека не было событий бота, уведомления выключены, нет сохранённых олимпиад или сказать нечего |
