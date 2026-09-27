@@ -366,3 +366,60 @@ def test_feed_orders_by_event_date():
     )
 
     assert [item.stage_id for item in feed.later] == [2, 1]
+
+
+# ---------------------------------------------------------------------
+# Календарь по олимпиадам
+# ---------------------------------------------------------------------
+
+
+class TestCalendarOlympiads:
+    """Поля, по которым рисует календарь фронтенда: start_stage, end_stage."""
+
+    @staticmethod
+    def build(*stages, subject=True, plans=None):
+        from app.api.personal import calendar_olympiads
+        from app.catalog.models import Subject
+
+        oly = olympiad()
+        if subject:
+            oly.subject = Subject(id=3, name="Физика", color="#F5E6C8")
+            oly.subject_id = 3
+        visible = [(oly, s, plan_window(s)) for s in stages]
+        return calendar_olympiads(visible, plans or {})
+
+    def test_range_exact_and_until(self):
+        (item,) = self.build(
+            stage(1, starts_on=date(2026, 10, 5), start_precision=DAY,
+                  ends_on=date(2026, 10, 20), end_precision=DAY),
+            stage(2, starts_on=date(2026, 10, 4), start_precision=DAY),
+            stage(3, ends_on=date(2026, 10, 10), end_precision=DAY,
+                  kind=StageKind.REGISTRATION, name="Регистрация"),
+        )
+
+        assert (item.name, item.subject, item.color) == ("Олимпиада", "Физика", "#F5E6C8")
+        got = [(s.date_precision.value, s.start_stage, s.end_stage) for s in item.stages]
+        assert got == [
+            ("range", date(2026, 10, 5), date(2026, 10, 20)),
+            ("exact", date(2026, 10, 4), date(2026, 10, 4)),
+            # Окно у дедлайна строится назад от срока, но это не начало этапа.
+            ("until", None, date(2026, 10, 10)),
+        ]
+
+    def test_exact_start_with_month_end_stays_a_single_day(self):
+        (item,) = self.build(
+            stage(1, starts_on=date(2026, 10, 5), start_precision=DAY,
+                  ends_on=date(2026, 11, 1), end_precision=MONTH),
+        )
+        assert (item.stages[0].start_stage, item.stages[0].end_stage) == (
+            date(2026, 10, 5), date(2026, 10, 5),
+        )
+
+    def test_plans_and_missing_subject(self):
+        (item,) = self.build(
+            stage(7, starts_on=date(2026, 10, 5), start_precision=DAY),
+            subject=False,
+            plans={7: date(2026, 10, 5)},
+        )
+        assert item.subject is None and item.color is None
+        assert item.stages[0].planned_on == date(2026, 10, 5)

@@ -187,10 +187,38 @@ class CalendarEntry(BaseModel):
     planned_on: Optional[date] = None
 
 
+class CalendarStage(BaseModel):
+    """Этап в полях парсера расписаний — так его читает календарь фронтенда."""
+
+    stage_id: int
+    name_stage: str
+    kind: StageKind
+    date_precision: DatePrecision
+    # exact — один день, start_stage = end_stage; range — с какого по какое;
+    # until — только срок, начала нет.
+    start_stage: Optional[date] = None
+    end_stage: date
+    planned_on: Optional[date] = None
+
+
+class CalendarOlympiad(BaseModel):
+    olympiad_id: int
+    name: str
+    level: Optional[int] = None
+    subject_id: Optional[int] = None
+    # Полоса красится цветом предмета, легенда подписывается его названием.
+    subject: Optional[str] = None
+    color: Optional[str] = None
+    stages: List[CalendarStage]
+
+
 class CalendarOut(BaseModel):
     date_from: date
     date_to: date
     entries: List[CalendarEntry]
+    # Те же этапы, сгруппированные по олимпиадам, в полях парсера
+    # расписаний. По ним рисует календарь фронтенда.
+    olympiads: List[CalendarOlympiad] = Field(default_factory=list)
 
 
 class DayOption(BaseModel):
@@ -762,6 +790,14 @@ async def read_calendar(
     results = await _results(session, user.id, stage_ids)
     plans = await _plans(session, user.id, stage_ids)
 
+    visible = sorted(
+        (
+            (olympiad, stage, window)
+            for olympiad, stage, window in _open_stages(rows, results)
+            if window[1] >= start and window[0] <= end
+        ),
+        key=lambda item: (item[2][0], item[0].name),
+    )
     entries = [
         CalendarEntry(
             olympiad_id=olympiad.id,
@@ -777,11 +813,56 @@ async def read_calendar(
             date_precision=date_precision(stage),
             planned_on=plans.get(stage.id),
         )
-        for olympiad, stage, window in _open_stages(rows, results)
-        if window[1] >= start and window[0] <= end
+        for olympiad, stage, window in visible
     ]
-    entries.sort(key=lambda e: (e.window_start, e.olympiad_name))
-    return CalendarOut(date_from=start, date_to=end, entries=entries)
+    return CalendarOut(
+        date_from=start,
+        date_to=end,
+        entries=entries,
+        olympiads=calendar_olympiads(visible, plans),
+    )
+
+
+def calendar_olympiads(
+    visible: Sequence[Tuple[Olympiad, Stage, Tuple[date, date]]], plans: Dict[int, date]
+) -> List[CalendarOlympiad]:
+    """Этапы календаря по олимпиадам, в порядке первого этапа каждой."""
+    grouped: Dict[int, CalendarOlympiad] = {}
+    for olympiad, stage, (window_start, window_end) in visible:
+        precision = date_precision(stage)
+        if precision is DatePrecision.UNTIL:
+            # Окно такого этапа построено от срока назад, настоящего начала нет.
+            start_stage: Optional[date] = None
+            end_stage = window_end
+        elif precision is DatePrecision.EXACT:
+            start_stage = end_stage = window_start
+        else:
+            start_stage, end_stage = window_start, window_end
+
+        item = grouped.get(olympiad.id)
+        if item is None:
+            subject = olympiad.subject
+            item = grouped[olympiad.id] = CalendarOlympiad(
+                olympiad_id=olympiad.id,
+                name=olympiad.name,
+                level=olympiad.level,
+                subject_id=olympiad.subject_id,
+                subject=subject.name if subject is not None else None,
+                color=subject.color if subject is not None else None,
+                stages=[],
+            )
+        item.stages.append(
+            CalendarStage(
+                stage_id=stage.id,
+                name_stage=stage.name,
+                kind=stage.kind,
+                date_precision=precision,
+                start_stage=start_stage,
+                end_stage=end_stage,
+                planned_on=plans.get(stage.id),
+            )
+        )
+    return list(grouped.values())
 
 
 @router.get(
