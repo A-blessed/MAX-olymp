@@ -25,6 +25,8 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     SmallInteger,
+    String,
+    Text,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -130,4 +132,51 @@ class StagePlan(Base):
     planned_on: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ReminderStatus(str, Enum):
+    """Чем закончилась попытка отправить сводку.
+
+    ``SENDING`` — строка занята, но ответа MAX ещё нет. Её вставляют до
+    отправки, а не после: вставка с уникальным ключом и есть замок. Два
+    процесса, решивших разослать сводки одновременно, не пришлют одному
+    человеку два одинаковых сообщения — второй просто не сможет занять
+    строку.
+    """
+
+    SENDING = "sending"
+    SENT = "sent"
+    FAILED = "failed"
+
+
+class ReminderLog(Base):
+    """Журнал утренних сводок: одна строка на пользователя и день.
+
+    Нужен не для статистики, а для того, чтобы не написать дважды.
+    Планировщик переживает перезапуски бэкенда: поднявшись в 9:40 после
+    сбоя, он обязан разослать тем, кому ещё не отправил, и не тронуть тех,
+    кому уже отправил в 9:00. Помнить это можно только в базе.
+    """
+
+    __tablename__ = "reminder_log"
+
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    # День, за который составлена сводка, — в часовом поясе приложения.
+    sent_for: Mapped[date] = mapped_column(Date, primary_key=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    items: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
+    # Текст целиком: на вопрос «что мне прислал бот» проще ответить
+    # выборкой из базы, чем воспроизведением расчёта задним числом.
+    text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )

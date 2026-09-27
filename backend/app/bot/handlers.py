@@ -18,6 +18,7 @@ from ..config import Settings
 from ..db.models import BotDialog, utcnow
 from ..db.session import get_session_factory
 from ..max_api.client import MaxApiClient, MaxApiError
+from .keyboards import mini_app_button
 
 logger = logging.getLogger(__name__)
 
@@ -128,11 +129,7 @@ async def _set_dialog_active(user_id: int, is_active: bool) -> None:
         await session.commit()
 
 
-# Метка запуска для кнопки из чата. Сам параметр важнее значения: без
-# ``?startapp=`` ссылка ведёт в профиль бота, а не в мини-приложение —
-# именно поэтому кнопка «Открыть приложение» не открывала ничего. Значение
-# при этом не пропадает: оно доезжает до бэкенда в данных запуска и
-# показывает, что пользователь пришёл из чата, а не из каталога MAX.
+# Метка запуска у кнопки в ответах бота: пользователь пришёл из чата.
 MINI_APP_START_PARAM = "bot"
 
 GREETING = (
@@ -144,32 +141,7 @@ GREETING = (
 
 
 def _mini_app_button(settings: Settings) -> Optional[Dict[str, Any]]:
-    """Кнопка-ссылка, открывающая мини-приложение из чата.
-
-    Диплинк вида ``https://max.ru/<botName>?startapp=<payload>``. В payload
-    допустимы только ``A-Z a-z 0-9 _ -``: остальные символы платформа молча
-    вырезает вместе с параметром.
-    """
-    if not settings.bot_username:
-        return None
-
-    return {
-        "type": "inline_keyboard",
-        "payload": {
-            "buttons": [
-                [
-                    {
-                        "type": "link",
-                        "text": "Открыть приложение",
-                        "url": (
-                            f"https://max.ru/{settings.bot_username}"
-                            f"?startapp={MINI_APP_START_PARAM}"
-                        ),
-                    }
-                ]
-            ]
-        },
-    }
+    return mini_app_button(settings, MINI_APP_START_PARAM)
 
 
 # ---------------------------------------------------------------------

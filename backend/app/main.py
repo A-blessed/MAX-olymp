@@ -20,7 +20,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator, Dict
+from typing import Any, AsyncIterator, Dict, Optional
 from zoneinfo import ZoneInfoNotFoundError
 
 from fastapi import FastAPI
@@ -33,8 +33,9 @@ from .api.router import router as api_router
 from .bot.router import router as bot_router
 from .clock import app_timezone
 from .config import get_settings
-from .db.session import dispose_engine, get_engine
+from .db.session import dispose_engine, get_engine, get_session_factory
 from .max_api.client import MaxApiClient
+from .personal.reminder_service import ReminderScheduler, schema_problem
 
 logger = logging.getLogger(__name__)
 
@@ -223,9 +224,34 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 settings.env_file_path,
             )
 
+    scheduler: Optional[ReminderScheduler] = None
+    reminders_blocked = None
+    if app.state.max_client is not None and settings.reminders_enabled:
+        reminders_blocked = await schema_problem(get_session_factory())
+        if reminders_blocked:
+            logger.error("Утренние напоминания отключены: %s", reminders_blocked)
+    if app.state.max_client is not None and settings.reminders_enabled and not reminders_blocked:
+        scheduler = ReminderScheduler(get_session_factory(), app.state.max_client, settings)
+        scheduler.start()
+        logger.info(
+            "Утренние напоминания: каждый день в %s (%s)",
+            settings.reminder_time.strftime("%H:%M"),
+            settings.app_timezone,
+        )
+        if not settings.bot_username:
+            logger.warning(
+                "BOT_USERNAME не задан — сводка уйдёт без кнопки «Открыть приложение»"
+            )
+    elif not settings.reminders_enabled:
+        logger.info("Утренние напоминания выключены: REMINDERS_ENABLED=false")
+
     try:
         yield
     finally:
+        # Сначала планировщик, потом клиент: иначе рассылка, начатая в
+        # момент остановки, упёрлась бы в уже закрытое соединение.
+        if scheduler is not None:
+            await scheduler.stop()
         if app.state.max_client is not None:
             await app.state.max_client.aclose()
         await dispose_engine()

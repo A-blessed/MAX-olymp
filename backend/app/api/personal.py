@@ -40,6 +40,9 @@ from ..personal.models import (
     UserSettings,
 )
 from ..personal.news import NewsItem, build_feed
+from ..personal.queries import load_plans as _plans
+from ..personal.queries import load_results as _results
+from ..personal.queries import load_saved as _load_saved
 from ..personal.rules import (
     DAILY_PLAN_LIMIT,
     RuleViolation,
@@ -279,50 +282,6 @@ async def _lock_user(session: AsyncSession, user_id: int) -> None:
     await session.execute(
         text("SELECT pg_advisory_xact_lock(CAST(:key AS BIGINT))"), {"key": user_id}
     )
-
-
-async def _load_saved(
-    session: AsyncSession, user_id: int, olympiad_id: Optional[int] = None
-) -> List[Tuple[Olympiad, datetime]]:
-    statement = (
-        select(Olympiad, SavedOlympiad.added_at)
-        .join(SavedOlympiad, SavedOlympiad.olympiad_id == Olympiad.id)
-        .where(SavedOlympiad.user_id == user_id)
-        .options(selectinload(Olympiad.stages), selectinload(Olympiad.subject))
-    )
-    if olympiad_id is not None:
-        statement = statement.where(Olympiad.id == olympiad_id)
-    rows = await session.execute(statement)
-    return [(olympiad, added_at) for olympiad, added_at in rows.all()]
-
-
-async def _results(
-    session: AsyncSession, user_id: int, stage_ids: Iterable[int]
-) -> Dict[int, StageResult]:
-    ids = list(stage_ids)
-    if not ids:
-        return {}
-    rows = await session.execute(
-        select(StageProgress.stage_id, StageProgress.result).where(
-            StageProgress.user_id == user_id, StageProgress.stage_id.in_(ids)
-        )
-    )
-    return {stage_id: result for stage_id, result in rows.all()}
-
-
-async def _plans(
-    session: AsyncSession, user_id: int, stage_ids: Optional[Iterable[int]] = None
-) -> Dict[int, date]:
-    statement = select(StagePlan.stage_id, StagePlan.planned_on).where(
-        StagePlan.user_id == user_id
-    )
-    if stage_ids is not None:
-        ids = list(stage_ids)
-        if not ids:
-            return {}
-        statement = statement.where(StagePlan.stage_id.in_(ids))
-    rows = await session.execute(statement)
-    return {stage_id: planned_on for stage_id, planned_on in rows.all()}
 
 
 def _build_my_olympiad(

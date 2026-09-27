@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+from datetime import time
 from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
@@ -62,6 +63,22 @@ class Settings(BaseSettings):
     webhook_secret: str = Field(
         default="",
         description="Приходит в заголовке X-Max-Bot-Api-Secret. 5-256 символов [A-Za-z0-9_-].",
+    )
+
+    # --- Утренние напоминания ---
+    reminders_enabled: bool = Field(
+        default=True,
+        description=(
+            "Рассылать ли утреннюю сводку. Пользователь может выключить её и "
+            "сам, в настройках мини-приложения; этот флаг выключает для всех."
+        ),
+    )
+    reminder_time: time = Field(
+        default=time(9, 0),
+        description=(
+            "Во сколько рассылать сводку, в часовом поясе APP_TIMEZONE. "
+            "Формат ЧЧ:ММ."
+        ),
     )
 
     # --- Мини-приложение ---
