@@ -476,6 +476,17 @@ function parseDate(value) {
     return null;
 }
 
+async function getMyOlympiadNames() {
+    try {
+        const data = await Api.my.list({ q: '' });
+        const list = Array.isArray(data) ? data : ((data && (data.items || [])) || []);
+        return new Set(list.map(o => o.name || o.olympiad_name || o.title).filter(Boolean));
+    } catch (err) {
+        console.warn('[API] Не удалось загрузить мои олимпиады для календаря', err);
+        return null;
+    }
+}
+
 async function renderCalendar(year, monthIndex) {
     if (year === undefined || monthIndex === undefined) {
         year = state.calendarDate.year || 2026;
@@ -501,6 +512,12 @@ async function renderCalendar(year, monthIndex) {
         events = Array.isArray(data) ? data : (data.items || data.events || []);
     } catch (err) {
         console.warn('[API] Не удалось загрузить календарь', err);
+    }
+
+    // В календаре показываем только олимпиады из вкладки «Мои олимпиады».
+    const myOlympiadNames = await getMyOlympiadNames();
+    if (myOlympiadNames) {
+        events = events.filter(ev => myOlympiadNames.has(ev.name || ev.olympiad_name || ev.title));
     }
 
     const lanesByWeek = buildLanesForMonth(events, weeks);
