@@ -277,6 +277,28 @@ Windows Server), и сборка упадёт на `no matching manifest for
 windows/amd64`. В Docker Desktop это переключается пунктом «Switch to
 Linux containers» в меню значка.
 
+Если вместо ответа `failed to connect to the docker API at
+npipe:////./pipe/docker_engine` — команда `docker` есть, а самого движка
+нет или он не запущен. `docker compose version` при этом отвечает
+нормально: версия — свойство программы, движок ей не нужен. Что стоит на
+самом деле:
+
+```powershell
+Get-Service *docker* | Format-Table Name, Status, DisplayName
+docker context ls
+Test-Path "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+wsl --status
+```
+
+* Есть `Docker Desktop.exe` — запустите его из меню «Пуск» и дождитесь
+  «Engine running» у значка. Если он падает с ошибкой про WSL или
+  виртуализацию, на этой машине её нет: нужна вложенная виртуализация от
+  хостера.
+* Есть только служба `docker` — это движок Windows-контейнеров. Он
+  запустится (`Start-Service docker`), но покажет `windows`, и проекту
+  не подойдёт.
+* Нет ни того, ни другого — установлен один клиент, движок нужно ставить.
+
 Что ещё отличается от Linux:
 
 * Docker Desktop официально поддерживается на Windows 10/11, на Windows
