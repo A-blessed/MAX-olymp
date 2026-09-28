@@ -242,6 +242,33 @@ async function api(path, options = {}) {
 | `awaiting_answer` | этап завершён, пора спросить «прошёл ли дальше» |
 | `plan_window_start`, `plan_window_end` | в какие дни этап можно поставить в календарь |
 
+### Даты этапа — те же, что в календаре
+
+У этапа в `GET /api/me/olympiads/{id}` (и в каталоге) даты совпадают с
+тем, что для него же отдаёт `GET /api/me/calendar`:
+
+| Этап | Календарь | То же поле в олимпиаде |
+|---|---|---|
+| форма сроков | `date_precision` | `date_precision` |
+| начало | `start_stage` | `starts_on` |
+| конец | `end_stage` | `ends_on` |
+| в какие дни можно запланировать | `window_start` … `window_end` | `plan_window_start` … `plan_window_end` |
+| на какой день запланирован | `planned_on` | `planned_on` |
+
+| `date_precision` | `starts_on` | `ends_on` |
+|---|---|---|
+| `exact` | день | **тот же день** |
+| `range` | начало | конец |
+| `until` | `null` | срок |
+| `unknown` | `null` или первое число месяца | `null` или первое число месяца |
+
+Раньше у `exact` приходил `ends_on: null` — теперь в нём тот же день,
+что в `starts_on`, и `end_precision: "day"`. Проверять «однодневный ли
+этап» по `ends_on == null` больше нельзя: смотрите на `date_precision`.
+
+У `until` окно планирования начинается за 5 дней до срока, но
+`starts_on` остаётся `null` — это не начало этапа.
+
 У самой олимпиады есть `eliminated: true`, если пользователь ответил
 «не прошёл», — по механике она серая и уходит вниз списка. Сервер уже
 отдаёт такие олимпиады последними.

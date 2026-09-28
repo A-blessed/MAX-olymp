@@ -423,3 +423,40 @@ class TestCalendarOlympiads:
         )
         assert item.subject is None and item.color is None
         assert item.stages[0].planned_on == date(2026, 10, 5)
+
+
+class TestDetailMatchesCalendar:
+    """Карточка в «Моих олимпиадах» и календарь отдают этап одинаково."""
+
+    STAGES = [
+        stage(1, starts_on=date(2026, 10, 5), start_precision=DAY,
+              ends_on=date(2026, 10, 20), end_precision=DAY),
+        stage(2, starts_on=date(2026, 10, 4), start_precision=DAY),
+        stage(3, ends_on=date(2026, 10, 10), end_precision=DAY,
+              kind=StageKind.REGISTRATION, name="Регистрация"),
+        stage(4, starts_on=date(2026, 10, 5), start_precision=DAY,
+              ends_on=date(2026, 11, 1), end_precision=MONTH),
+    ]
+
+    def test_same_dates_and_windows(self):
+        from app.api.personal import MyStageOut, calendar_olympiads
+
+        oly = olympiad()
+        visible = [(oly, s, plan_window(s)) for s in self.STAGES]
+        (calendar_item,) = calendar_olympiads(visible, {})
+        in_calendar = {
+            s.stage_id: (s.date_precision, s.start_stage, s.end_stage, *window)
+            for s, (_, _, window) in zip(calendar_item.stages, visible)
+        }
+
+        for s in self.STAGES:
+            card = MyStageOut.build_personal(
+                s, TODAY, result=None, planned_on=None, locked=False
+            )
+            assert (
+                card.date_precision,
+                card.starts_on,
+                card.ends_on,
+                card.plan_window_start,
+                card.plan_window_end,
+            ) == in_calendar[s.id]

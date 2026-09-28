@@ -13,6 +13,7 @@ import pytest
 from app.catalog.dates import Precision
 from app.catalog.importer import build_external_key, classify_stage
 from app.catalog.models import Stage, StageKind
+from app.api.catalog import StageOut
 from app.catalog.presentation import (
     StageStatus,
     days_until_start,
@@ -30,6 +31,7 @@ def make_stage(
     end_precision=None,
 ) -> Stage:
     return Stage(
+        id=1,
         external_key="k",
         name="Этап",
         kind=StageKind.OTHER,
@@ -163,3 +165,54 @@ class TestPlannable:
 
     def test_missing_date_is_not_plannable(self):
         assert not is_plannable(make_stage())
+
+
+class TestStageDates:
+    """Даты этапа в карточке — те же, что календарь отдаёт в start_stage и end_stage."""
+
+    @staticmethod
+    def dates(stage: Stage):
+        out = StageOut.build(stage, TODAY)
+        return (
+            out.date_precision.value,
+            out.starts_on,
+            out.start_precision,
+            out.ends_on,
+            out.end_precision,
+        )
+
+    def test_exact_has_end_equal_to_start(self):
+        """В базе у однодневного этапа конца нет, а у парсера он равен началу."""
+        stage = make_stage(date(2026, 10, 4), Precision.DAY)
+
+        assert self.dates(stage) == (
+            "exact", date(2026, 10, 4), "day", date(2026, 10, 4), "day",
+        )
+
+    def test_range(self):
+        stage = make_stage(date(2026, 10, 5), Precision.DAY, date(2026, 10, 20), Precision.DAY)
+
+        assert self.dates(stage) == (
+            "range", date(2026, 10, 5), "day", date(2026, 10, 20), "day",
+        )
+
+    def test_until_has_no_start(self):
+        stage = make_stage(ends_on=date(2026, 10, 10), end_precision=Precision.DAY)
+
+        assert self.dates(stage) == ("until", None, None, date(2026, 10, 10), "day")
+
+    def test_reversed_range_is_a_single_day(self):
+        """Календарь рисует такой этап кружком — карточка не спорит с ним."""
+        stage = make_stage(date(2026, 11, 5), Precision.DAY, date(2026, 11, 1), Precision.DAY)
+
+        assert self.dates(stage) == (
+            "exact", date(2026, 11, 5), "day", date(2026, 11, 5), "day",
+        )
+
+    def test_month_precision_stays_as_is(self):
+        stage = make_stage(date(2027, 3, 1), Precision.MONTH)
+
+        assert self.dates(stage) == ("unknown", date(2027, 3, 1), "month", None, None)
+
+    def test_no_dates(self):
+        assert self.dates(make_stage()) == ("unknown", None, None, None, None)

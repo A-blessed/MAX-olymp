@@ -28,7 +28,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..catalog.models import Olympiad, Stage, StageKind
-from ..catalog.presentation import DatePrecision, date_precision, pick_next_stage
+from ..catalog.presentation import (
+    DatePrecision,
+    date_precision,
+    pick_next_stage,
+    stage_bounds,
+)
 from ..clock import today as app_today
 from ..db.models import User
 from ..db.session import get_session
@@ -828,16 +833,10 @@ def calendar_olympiads(
 ) -> List[CalendarOlympiad]:
     """Этапы календаря по олимпиадам, в порядке первого этапа каждой."""
     grouped: Dict[int, CalendarOlympiad] = {}
-    for olympiad, stage, (window_start, window_end) in visible:
-        precision = date_precision(stage)
-        if precision is DatePrecision.UNTIL:
-            # Окно такого этапа построено от срока назад, настоящего начала нет.
-            start_stage: Optional[date] = None
-            end_stage = window_end
-        elif precision is DatePrecision.EXACT:
-            start_stage = end_stage = window_start
-        else:
-            start_stage, end_stage = window_start, window_end
+    for olympiad, stage, _window in visible:
+        # Не окно планирования: у этапа «до срока» оно построено от срока
+        # назад, и его начало — не начало этапа. Даты те же, что у карточки.
+        start_stage, end_stage = stage_bounds(stage)
 
         item = grouped.get(olympiad.id)
         if item is None:
@@ -856,7 +855,7 @@ def calendar_olympiads(
                 stage_id=stage.id,
                 name_stage=stage.name,
                 kind=stage.kind,
-                date_precision=precision,
+                date_precision=date_precision(stage),
                 start_stage=start_stage,
                 end_stage=end_stage,
                 planned_on=plans.get(stage.id),

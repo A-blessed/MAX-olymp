@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import date
 from enum import Enum
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 
 from .dates import Precision
 from .models import Stage
@@ -68,6 +68,27 @@ def date_precision(stage: Stage) -> DatePrecision:
     if end_day:
         return DatePrecision.UNTIL
     return DatePrecision.UNKNOWN
+
+
+def stage_bounds(stage: Stage) -> Tuple[Optional[date], Optional[date]]:
+    """Начало и конец этапа — те же, что у парсера в ``start_stage`` и ``end_stage``.
+
+    В базе однодневный этап хранится без конца, а у этапа «до срока» нет
+    начала. Отдавать это наружу как есть значило бы показывать в карточке
+    ``ends_on: null`` там, где календарь рисует кружок в конкретный день.
+    Поэтому форма разворачивается обратно в поля парсера: ``exact`` —
+    один и тот же день в обоих полях, ``until`` — только срок, ``range`` —
+    с какого по какое. У ``unknown`` даты остаются как есть: это либо
+    пустота, либо месяц, который покажет ``raw_date_range``.
+
+    Карточка этапа и календарь берут даты отсюда, чтобы не разойтись.
+    """
+    shape = date_precision(stage)
+    if shape is DatePrecision.EXACT:
+        return stage.starts_on, stage.starts_on
+    if shape is DatePrecision.UNTIL:
+        return None, stage.ends_on
+    return stage.starts_on, stage.ends_on
 
 
 def _month_key(value: date) -> int:

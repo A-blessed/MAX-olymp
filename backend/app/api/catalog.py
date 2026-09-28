@@ -21,6 +21,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..catalog.dates import Precision
 from ..catalog.models import Olympiad, Stage, StageKind, Subject
 from ..catalog.presentation import (
     DatePrecision,
@@ -29,6 +30,7 @@ from ..catalog.presentation import (
     days_until_start,
     is_plannable,
     pick_next_stage,
+    stage_bounds,
     stage_status,
 )
 from ..clock import today as app_today
@@ -63,6 +65,23 @@ class SubjectOut(BaseModel):
         )
 
 
+def _bound_precision(
+    value: Optional[date], stored: Optional[Precision], shape: DatePrecision
+) -> Optional[str]:
+    """Точность даты из ``stage_bounds``.
+
+    У ``exact``, ``range`` и ``until`` обе отданные даты известны до дня —
+    в том числе конец однодневного этапа, которого в базе нет. У
+    ``unknown`` точность та, что хранится: «март 2027» так и остаётся
+    месяцем.
+    """
+    if value is None:
+        return None
+    if shape is DatePrecision.UNKNOWN:
+        return stored.value if stored else None
+    return Precision.DAY.value
+
+
 class SortOrder(str, Enum):
     """Варианты сортировки из механики приложения."""
 
@@ -76,6 +95,8 @@ class StageOut(BaseModel):
     name: str
     kind: StageKind
 
+    # Те же даты, что start_stage и end_stage у календаря: exact — один
+    # день в обоих полях, range — с какого по какое, until — только срок.
     starts_on: Optional[date] = None
     ends_on: Optional[date] = None
     # "day" — известен точный день, "month" — только месяц и год.
@@ -101,16 +122,20 @@ class StageOut(BaseModel):
 
     @classmethod
     def build(cls, stage: Stage, today: date) -> "StageOut":
+        # Даты те же, что у календаря: у однодневного этапа конец равен
+        # началу, у этапа «до срока» начала нет.
+        shape = date_precision(stage)
+        starts_on, ends_on = stage_bounds(stage)
         return cls(
             id=stage.id,
             name=stage.name,
             kind=stage.kind,
-            starts_on=stage.starts_on,
-            ends_on=stage.ends_on,
-            start_precision=stage.start_precision.value if stage.start_precision else None,
-            end_precision=stage.end_precision.value if stage.end_precision else None,
+            starts_on=starts_on,
+            ends_on=ends_on,
+            start_precision=_bound_precision(starts_on, stage.start_precision, shape),
+            end_precision=_bound_precision(ends_on, stage.end_precision, shape),
             raw_date_range=stage.raw_date_range,
-            date_precision=date_precision(stage),
+            date_precision=shape,
             status=stage_status(stage, today),
             days_until_start=days_until_start(stage, today),
             plannable=is_plannable(stage),
