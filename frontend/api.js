@@ -150,6 +150,7 @@
        * @param {number} [params.subjectId]
        * @param {number} [params.subject_id]  алиас subjectId
        * @param {number} [params.level]  1, 2 или 3
+       * @param {number} [params.grade]  оставить олимпиады для этого класса
        * @param {string} [params.sort]   urgency | name | level
        * @param {number} [params.limit]  до 200
        * @param {number} [params.offset]
@@ -161,6 +162,7 @@
             q: p.q,
             subject_id: p.subjectId ?? p.subject_id,
             level: p.level,
+            grade: p.grade,
             sort: p.sort,
             limit: p.limit,
             offset: p.offset,
@@ -192,6 +194,7 @@
        * @param {string}   [params.sort]       urgency | level | subject
        * @param {number[]} [params.subjectIds] фильтр по предметам
        * @param {string}   [params.q]          поиск по названию и предмету
+       * @param {number}   [params.grade]      оставить олимпиады для этого класса
        */
       list(params) {
         const p = params || {};
@@ -199,7 +202,7 @@
           // q обязателен: поиск по «Моим олимпиадам» считает сервер, и
           // без этого параметра он возвращал весь список, а строка
           // поиска выглядела сломанной.
-          query: { sort: p.sort, subject_id: p.subjectIds, q: p.q },
+          query: { sort: p.sort, subject_id: p.subjectIds, q: p.q, grade: p.grade },
         });
       },
 
@@ -265,8 +268,9 @@
     calendar: {
       /**
        * События этапов за период. Без аргументов — текущий месяц.
-       * Может вернуть массив или словарь олимпиад; каждая олимпиада
-       * содержит stages[] с полями start_stage, end_stage, date_precision.
+       * Возвращает плоский список этапов:
+       * { olympiad_id, olympiad_name, subject_id, stage_id, stage_name,
+       *   window_start, window_end, single_day, date_precision, planned_on }
        */
       range(dateFrom, dateTo) {
         return request("/api/me/calendar", {

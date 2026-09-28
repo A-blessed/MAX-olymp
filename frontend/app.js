@@ -25,10 +25,18 @@ const state = {
     view: 'grade-select',           // grade-select, subjects, subject-olympiads, olympiad-detail (search), olympiad-detail-mine, news, my-olympiads, calendar, calendar-day-detail
     selectedSubject: null,
     selectedOlympiad: null,
+    olympiadDetailOptions: null,
     sort: 'urgency',
+    onlyWithDates: false,
     grade: null,
+    subjectOlympiadsRaw: [],
+    myOlympiadsRaw: [],
+    myHiddenCount: 0,
     subjects: [],                   // справочник предметов с сервера
+    settingsNeedSave: false,        // true, если при первом запуске класса не было
     news: [],                       // кеш новостей для счётчика на таббаре
+    newsExpanded: {},                // развернутые категории в блоке новостей
+    newsBadgeVisible: true,          // показывать ли счётчик на таббаре «Новости»
     settings: {
         grade: null,
         notifications_enabled: true,
@@ -36,26 +44,29 @@ const state = {
     },
     calendarDate: { year: 2026, month: 8 }, // 0-индексированный месяц, 8 = сентябрь
     calendarSelectedDay: null,
-    today: new Date(), // реальная сегодняшняя дата
+    calendarEvents: [],            // нормализованные события текущего месяца (для окна дня)
+    calendarDayItems: [],          // элементы открытого дня (для галочек)
+    calendarUnplannedExact: new Set(), // exact-этапы, с которых пользователь вручную снял галочку
+    today: new Date(), // реальная текущая дата
 };
 
 // Резервный справочник предметов, пока основной не загрузился с бэкенда.
 // Используется только для сопоставления названия предмета с цветом.
 const SUBS = [
-    { n: 'Астрономия', c: '#FFE0B2' },
-    { n: 'Биология', c: '#F4B3C4' },
-    { n: 'География', c: '#E9C2E8' },
-    { n: 'Иностранный язык', c: '#D4A5F7' },
-    { n: 'Информатика', c: '#C9CFF5' },
-    { n: 'История', c: '#A8D8FF' },
-    { n: 'Литература', c: '#B2E6F5' },
-    { n: 'Математика', c: '#8FDCE0' },
-    { n: 'Обществознание', c: '#A7D9B5' },
-    { n: 'Право', c: '#C5E6B0' },
-    { n: 'Русский язык', c: '#FFF0B3' },
-    { n: 'Физика', c: '#F5E6C8' },
-    { n: 'Химия', c: '#BAAC9B' },
-    { n: 'Экономика', c: '#BFBAB4' }
+    { id: 1, n: 'Астрономия', c: '#FFE0B2' },
+    { id: 2, n: 'Биология', c: '#F4B3C4' },
+    { id: 3, n: 'География', c: '#E9C2E8' },
+    { id: 4, n: 'Иностранный язык', c: '#D4A5F7' },
+    { id: 5, n: 'Информатика', c: '#C9CFF5' },
+    { id: 6, n: 'История', c: '#A8D8FF' },
+    { id: 7, n: 'Литература', c: '#B2E6F5' },
+    { id: 8, n: 'Математика', c: '#8FDCE0' },
+    { id: 9, n: 'Обществознание', c: '#A7D9B5' },
+    { id: 10, n: 'Право', c: '#C5E6B0' },
+    { id: 11, n: 'Русский язык', c: '#FFF0B3' },
+    { id: 12, n: 'Физика', c: '#F5E6C8' },
+    { id: 13, n: 'Химия', c: '#BAAC9B' },
+    { id: 14, n: 'Экономика', c: '#BFBAB4' }
 ];
 
 // DOM элементы
@@ -95,24 +106,90 @@ function subjectColor(name) {
     return subject ? (subject.color || subject.c) : '#ccc';
 }
 
+function subjectNameById(id) {
+    const sid = Number(id);
+    const subject = (state.subjects || []).find(s => s.id === sid) || SUBS.find(s => s.id === sid);
+    return subject ? (subject.name || subject.n) : '';
+}
+
+function subjectColorById(id) {
+    const sid = Number(id);
+    const subject = (state.subjects || []).find(s => s.id === sid) || SUBS.find(s => s.id === sid);
+    return subject ? (subject.color || subject.c) : null;
+}
+
+function isOlympiadAvailableForGrade(item, grade) {
+    if (grade == null) return true;
+    const g = Number(grade);
+    const min = item ? (item.grade_min ?? item.min_grade ?? null) : null;
+    const max = item ? (item.grade_max ?? item.max_grade ?? null) : null;
+    if (min != null && g < Number(min)) return false;
+    if (max != null && g > Number(max)) return false;
+    return true;
+}
+
+function hasKnownDates(item) {
+    if (!item) return false;
+    if (typeof item.has_known_dates === 'boolean') return item.has_known_dates;
+    if (item.next_stage) return true;
+    if (Array.isArray(item.stages)) {
+        return item.stages.some(stage => stage && (
+            stage.start_stage || stage.end_stage || stage.starts_on || stage.ends_on || stage.date
+        ));
+    }
+    return false;
+}
+
+function sortOlympiadList(list) {
+    const arr = (list || []).slice();
+    switch (state.sort) {
+        case 'level':
+            arr.sort((a, b) => ((a.level || 0) - (b.level || 0)) || (a.name || '').localeCompare(b.name || '', 'ru'));
+            break;
+        case 'name':
+            arr.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru'));
+            break;
+        default:
+            break;
+    }
+    return arr;
+}
+
 function appbarHTML(options = {}) {
     const left = options.back
         ? `<button class="icon-btn" data-action="back"><svg width="22" height="22"><use href="#i-back"/></svg></button>`
-        : `<button class="icon-btn" data-action="close" style="color:var(--text-1)"><svg width="20" height="20"><use href="#i-cross"/></svg></button>`;
+        : '';
     const right = options.settings
         ? `<button class="icon-btn" data-action="settings"><svg width="21" height="21"><use href="#i-gear"/></svg></button>`
-        : `<button class="icon-btn" data-action="more"><span class="more">⋯</span></button>`;
+        : (options.more === false ? '' : `<button class="icon-btn" data-action="more"><span class="more">⋯</span></button>`);
     return `${left}<div class="title">${options.title || 'Мой Олимп'}${options.sub ? `<small>${options.sub}</small>` : ''}</div>${right}`;
+}
+
+function calendarAppbarHTML(year, monthIndex) {
+    return `
+        <div class="title">Календарь<small>${formatMonthYear(year, monthIndex)}</small></div>
+        <button class="icon-btn" data-action="prev-month" aria-label="Предыдущий месяц"><svg width="20" height="20"><use href="#i-back"/></svg></button>
+        <button class="icon-btn" data-action="next-month" aria-label="Следующий месяц"><svg width="20" height="20"><use href="#i-chev"/></svg></button>
+    `;
 }
 
 function searchbarHTML(placeholder = "Найти олимпиаду или предмет") {
     return `<div class="search-field"><svg width="18" height="18"><use href="#i-search"/></svg><input type="text" placeholder="${placeholder}" id="searchInput"></div>`;
 }
 
+function newsBadgeCount() {
+    if (!state.newsBadgeVisible) return 0;
+    if (Array.isArray(state.news)) {
+        return state.news.filter(n => n.category === 'urgent' || n.category === 'wait' || n.category === 'awaiting_answer').length;
+    }
+    const news = state.news || {};
+    return (news.urgent || []).length + (news.awaiting_answer || []).length;
+}
+
 function tabbarHTML(active) {
     const tabs = [
         { id: 'search', label: 'Поиск', icon: 'i-search' },
-        { id: 'news', label: 'Новости', icon: 'i-board', cnt: (state.news || []).filter(n => n.category === 'urgent' || n.category === 'wait').length },
+        { id: 'news', label: 'Новости', icon: 'i-board', cnt: newsBadgeCount() },
         { id: 'my', label: 'Мои', icon: 'i-list-star' },
         { id: 'cal', label: 'Календарь', icon: 'i-cal' }
     ];
@@ -153,9 +230,9 @@ function renderGradeSelect() {
 }
 
 async function renderSubjects() {
-    appbarEl.innerHTML = appbarHTML({ title: 'Мой Олимп', sub: `Олимпиады для ${state.settings.grade} класса` });
+    appbarEl.innerHTML = appbarHTML({ title: 'Мой Олимп', sub: `Олимпиады для ${state.settings.grade} класса`, more: false });
     searchbarEl.style.display = 'block';
-    searchbarEl.innerHTML = searchbarHTML();
+    searchbarEl.innerHTML = searchbarHTML('Найти предмет');
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('search');
 
@@ -187,9 +264,9 @@ function renderSubjectList(filter = '') {
 }
 
 function renderOlympiadsBySubject(subjectId, subjectName, filter = '') {
-    appbarEl.innerHTML = appbarHTML({ back: true, title: subjectName });
+    appbarEl.innerHTML = appbarHTML({ back: true, title: subjectName, more: false });
     searchbarEl.style.display = 'block';
-    searchbarEl.innerHTML = searchbarHTML();
+    searchbarEl.innerHTML = searchbarHTML('Найти олимпиаду');
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('search');
     olympiadsBySubjectContent(subjectId, subjectName, filter);
@@ -198,19 +275,44 @@ function renderOlympiadsBySubject(subjectId, subjectName, filter = '') {
 async function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
     let olympiads = [];
     try {
-        const data = await Api.catalog.list({ subjectId, q: filter, sort: state.sort });
+        const data = await Api.catalog.list({ subjectId, q: filter, sort: state.sort, grade: state.settings.grade });
         olympiads = Array.isArray(data) ? data : (data.items || []);
     } catch (err) {
         console.warn('[API] Не удалось загрузить олимпиады предмета', err);
         olympiads = [];
     }
 
+    state.subjectOlympiadsRaw = olympiads;
+    renderSubjectOlympiadList(subjectName, filter);
+}
+
+function renderSubjectOlympiadList(subjectName, filter = '') {
+    let olympiads = (state.subjectOlympiadsRaw || []).slice();
+
+    if (state.onlyWithDates) {
+        olympiads = olympiads.filter(hasKnownDates);
+    }
+
+    if (filter) {
+        const q = filter.toLowerCase();
+        olympiads = olympiads.filter(o =>
+            (o.name || '').toLowerCase().includes(q) ||
+            (o.description || '').toLowerCase().includes(q)
+        );
+    }
+
+    olympiads = sortOlympiadList(olympiads);
+
     contentEl.innerHTML = `
         <div class="sort-row">
-            <button class="sort-btn active" data-action="open-sort">${iconLink('i-sort', 15)} Сортировать по…${iconLink('i-down', 14)}</button>
-            <button class="reset-btn" data-action="reset-filter">Сбросить фильтр</button>
+            <button class="sort-btn active" data-action="open-sort">${iconLink('i-sort', 15)} сортировка${iconLink('i-down', 14)}</button>
+            <button class="known-dates-btn ${state.onlyWithDates ? 'on' : ''}" data-action="toggle-known-dates">
+                <span class="box">${state.onlyWithDates ? iconLink('i-check', 12) : ''}</span>
+                <span>с известными датами</span>
+            </button>
         </div>
-        ${olympiads.map(o => `
+        ${olympiads.map(o => {
+            return `
             <div class="card" data-olympiad-id="${o.id}" data-saved="${o.saved === true}">
                 ${dot(subjectName)}
                 <div class="c-body">
@@ -221,16 +323,26 @@ async function olympiadsBySubjectContent(subjectId, subjectName, filter = '') {
                     <div class="c-sub">${subjectName}</div>
                     <div class="c-text">${o.description || ''}</div>
                 </div>
+                ${o.saved ? `<span class="saved-mark">${iconLink('i-check', 13)}<span>пишу</span></span>` : ''}
             </div>
-        `).join('')}
+        `;
+        }).join('')}
         ${olympiads.length === 0 ? '<p>Нет олимпиад по данному запросу</p>' : ''}
     `;
 }
 
-async function renderOlympiadDetail(olympiadId, fromMine = false) {
+async function renderOlympiadDetail(olympiadId, options = {}) {
+    const {
+        useMyData = false,
+        activeTab = 'search',
+        backView = 'subject-olympiads'
+    } = options;
+
+    state.olympiadDetailOptions = options;
+
     let olympiad;
     try {
-        olympiad = await Api.catalog.get(olympiadId);
+        olympiad = useMyData ? await Api.my.get(olympiadId) : await Api.catalog.get(olympiadId);
     } catch (err) {
         console.warn('[API] Не удалось загрузить олимпиаду', err);
         olympiad = null;
@@ -244,21 +356,21 @@ async function renderOlympiadDetail(olympiadId, fromMine = false) {
     state.selectedOlympiad = olympiad;
 
     const subject = subjectById(olympiad.subject_id);
-    if (!subject) return;
-    const saved = fromMine || olympiad.saved === true;
+    const subjectName = subject ? subject.name : (olympiad.subject_name || '');
+    const saved = useMyData || olympiad.saved === true;
     const officialUrl = olympiad.official_url || '';
     const displayUrl = officialUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-    appbarEl.innerHTML = appbarHTML({ back: true, title: 'Олимпиада' });
+    appbarEl.innerHTML = appbarHTML({ back: true, title: 'Олимпиада', more: false });
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
-    tabbarEl.innerHTML = fromMine ? tabbarHTML('my') : tabbarHTML('search');
+    tabbarEl.innerHTML = activeTab === 'my' ? tabbarHTML('my') : tabbarHTML('search');
 
     contentEl.innerHTML = `
         <div class="content flush">
             <div class="hero">
                 <h1>${olympiad.name}</h1>
-                <div class="subject">${dot(subject, true)}${subject.name}</div>
+                <div class="subject">${dot(subject, true)}${subjectName}</div>
                 <div class="meta-row">
                     ${olympiad.level ? badge(olympiad.level + ' ур.', 'lvl') : ''}
                     ${olympiad.grades ? badge(olympiad.grades, 'grey') : ''}
@@ -270,51 +382,111 @@ async function renderOlympiadDetail(olympiadId, fromMine = false) {
                 ${organizersHTML(olympiad.organizers)}
                 <div class="detail-block">
                     <h4>Даты этапов</h4>
-                    ${stagesHTML(olympiad.stages)}
+                    ${stagesHTML(olympiad.stages, saved, saved)}
                 </div>
                 ${officialUrl ? `<a class="link-row" href="${officialUrl}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">${iconLink('i-link', 19)}<span class="lt">${displayUrl}</span>${iconLink('i-chev', 17)}</a>` : ''}
+                ${saved ? `
+                    <div class="act-row">
+                        <button class="btn btn-ghost" data-action="view-in-calendar">${iconLink('i-cal', 18)} Посмотреть в календаре</button>
+                    </div>
+                    <div class="act-row">
+                        <button class="btn btn-danger" data-action="remove-olympiad" data-id="${olympiadId}">${iconLink('i-cross', 18)} Удалить из моих олимпиад</button>
+                    </div>
+                ` : ''}
             </div>
         </div>
-        <div class="sticky-actions">
-            ${saved
-                ? (fromMine
-                    ? '<button class="btn btn-ghost" data-action="remove-olympiad" data-id="' + olympiadId + '">Удалить из моих олимпиад</button>'
-                    : '<button class="btn btn-ghost" data-action="remove-olympiad" data-id="' + olympiadId + '">✓ Добавлено</button>')
-                : '<button class="btn btn-primary" data-action="add-olympiad" data-id="' + olympiadId + '">Буду писать</button>'}
+        ${saved ? '' : `
+        <div class="sticky-actions transparent">
+            <button class="btn btn-primary" data-action="add-olympiad" data-id="${olympiadId}">Буду писать</button>
         </div>
+        `}
     `;
     const sticky = contentEl.querySelector('.sticky-actions');
     if (sticky) contentEl.appendChild(sticky);
 }
 
-function stagesHTML(stages) {
+function formatDayMonth(date) {
+    if (!date) return '';
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    return `${date.getDate()} ${months[date.getMonth()]}`;
+}
+
+function stagesHTML(stages, showPlanActions = false, showPlanLabel = true) {
     if (!Array.isArray(stages) || stages.length === 0) {
         return `<div class="kv"><span class="k">Даты этапов</span><span class="v empty">Информация появится позже</span></div>`;
     }
 
-    return stages.map(st => `
-        <div class="stage ${st.status || ''}">
-            <div class="marker"><span class="mk ${st.status === 'past' ? 'past' : 'future'}"></span></div>
-            <div class="s-body">
-                <div class="s-top"><span class="s-name">${st.name || 'Этап'}</span></div>
-                <div class="s-date">${st.raw_date_range || st.date_range || 'Дата пока неизвестна'}</div>
-                ${st.plannable ? `<span class="s-planned">Можно планировать</span>` : ''}
+    const today = new Date(state.today.getFullYear(), state.today.getMonth(), state.today.getDate());
+
+    return stages.map(st => {
+        const stageId = st.id || st.stage_id;
+        const precision = stagePrecision(st);
+        const plannedOn = parseDate(st.planned_on || st.plannedOn);
+        const exactDate = parseDate(st.starts_on || st.start_stage || st.date || st.exact_date);
+        const stageWindowEnd = parseDate(st.window_end || st.end_stage || st.ends_on);
+        const planWindowEnd = parseDate(st.plan_window_end || st.planWindowEnd);
+        const windowClosed = (!!stageWindowEnd && stageWindowEnd < today) || (!!planWindowEnd && planWindowEnd < today);
+        const result = st.result || st.user_result ||
+            (st.status === 'passed' ? 'passed' : st.status === 'failed' ? 'failed' : '');
+        const blocked = st.status === 'blocked' || st.status === 'failed' || result === 'failed';
+
+        const cls = ['stage', st.status || ''];
+        if (blocked) cls.push('blocked');
+
+        const markerClass = st.status === 'past' ? 'past' : (blocked ? 'blocked' : 'future');
+
+        let planLabel = '';
+        if (precision === 'exact') {
+            const date = plannedOn || exactDate;
+            if (date) planLabel = `Запланировано на ${formatDayMonth(date)}`;
+        } else if (precision === 'range' || precision === 'until') {
+            if (plannedOn) planLabel = `Запланировано на ${formatDayMonth(plannedOn)}`;
+            else if (st.plannable) planLabel = 'Можно планировать';
+        } else if (st.plannable) {
+            planLabel = 'Можно планировать';
+        }
+
+        const showResultButtons = showPlanActions && windowClosed && stageId;
+        if (showResultButtons) planLabel = '';
+
+        return `
+            <div class="${cls.join(' ')}">
+                <div class="marker"><span class="mk ${markerClass}"></span></div>
+                <div class="s-body">
+                    <div class="s-top"><span class="s-name">${st.name || 'Этап'}</span></div>
+                    <div class="s-date">${st.raw_date_range || st.date_range || 'Дата пока неизвестна'}</div>
+                    ${showPlanLabel && planLabel ? `<span class="s-planned">${planLabel}</span>` : ''}
+                    ${showResultButtons ? `
+                        <div class="s-actions">
+                            <button class="btn btn-sm ${result === 'passed' ? 'btn-primary' : 'btn-ghost'}" data-action="stage-passed" data-stage-id="${stageId}">Я прошёл(а)</button>
+                            <button class="btn btn-sm ${result === 'failed' ? 'btn-primary' : 'btn-ghost'}" data-action="stage-failed" data-stage-id="${stageId}">Я не прошёл(а)</button>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
+}
+
+function normalizeOrganizers(organizers) {
+    if (Array.isArray(organizers)) return organizers;
+    if (organizers && typeof organizers === 'object') return Object.values(organizers);
+    return [];
 }
 
 function organizersHTML(organizers) {
-    if (!Array.isArray(organizers) || organizers.length === 0) return '';
+    const list = normalizeOrganizers(organizers).filter(Boolean);
+    if (!list.length) return '';
 
     return `
         <div class="detail-block">
             <h4>Организаторы</h4>
             <div class="orgs">
-                ${organizers.slice(0, 3).map(org => {
-                    const name = org.name || org.full_name || org.title || '';
-                    const role = org.role || org.type || org.role_name || '';
-                    const logo = org.short_name || org.abbr || org.logo || (name ? name.split(' ').map(word => word[0]).join('') : '');
+                ${list.map((org, index) => {
+                    const name = typeof org === 'string' ? org : (org.name || org.full_name || org.title || '');
+                    const role = typeof org === 'string' ? '' : (org.role || org.type || org.role_name || '');
+                    const logo = String(index + 1);
                     return `
                         <div class="org">
                             <span class="logo">${logo}</span>
@@ -330,57 +502,116 @@ function organizersHTML(organizers) {
     `;
 }
 
+function renderNewsCompactCard(n, categoryKey = '') {
+    const subject = typeof n.subject === 'string'
+        ? subjectByName(n.subject)
+        : (n.subject && typeof n.subject === 'object' ? n.subject : subjectById(n.subject_id));
+    const subjectName = subject
+        ? (subject.name || subject.n || '')
+        : (n.subject_name || (typeof n.subject === 'string' ? n.subject : ''));
+    const title = n.title || n.olympiad_name || n.name || '';
+    const level = n.level || '';
+    const olympiadId = n.olympiad_id || n.olympiadId || n.olympiad || '';
+
+    return `
+        <div class="news-card ${categoryKey}" data-olympiad-id="${olympiadId}" data-from-mine="true">
+            ${dot(subject)}
+            <div class="c-body">
+                <div class="c-top">
+                    <span class="c-title">${title}</span>
+                    ${level ? badge(level + ' ур.', 'lvl') : ''}
+                </div>
+                <div class="c-sub">${subjectName}</div>
+            </div>
+        </div>
+    `;
+}
+
 async function renderNews() {
-    appbarEl.innerHTML = appbarHTML({ title: 'Новости' });
+    appbarEl.innerHTML = appbarHTML({ title: 'Новости', more: false });
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
 
     try {
         const data = await Api.news();
-        state.news = Array.isArray(data) ? data : (data.items || []);
+        state.news = data || {};
     } catch (err) {
         console.warn('[API] Не удалось загрузить новости', err);
-        state.news = [];
+        state.news = {};
     }
     tabbarEl.innerHTML = tabbarHTML('news');
+    renderNewsContent();
+}
+
+function renderNewsContent() {
+    const getItems = (key) => {
+        if (Array.isArray(state.news)) {
+            return state.news.filter(n => n.category === key);
+        }
+        return Array.isArray(state.news[key]) ? state.news[key] : [];
+    };
 
     const categories = [
+        { key: 'dates_added', label: 'Появились даты', color: '#9500FF' },
         { key: 'urgent', label: 'Срочно', color: 'var(--danger)' },
         { key: 'soon', label: 'Скоро', color: 'var(--warn)' },
-        { key: 'wait', label: 'Ожидает ответа от тебя', color: 'var(--max-primary)' },
-        { key: 'done', label: 'Завершено', color: 'var(--grey-stage)' }
+        { key: 'later', label: 'Позже', color: 'var(--max-blue)' },
+        { key: 'awaiting_answer', label: 'Ожидает ответа от тебя', color: 'var(--max-primary)' },
+        { key: 'finished', label: 'Завершено', color: 'var(--grey-stage)' }
     ];
 
     contentEl.innerHTML = categories.map(cat => {
-        const items = state.news.filter(n => n.category === cat.key);
+        const items = getItems(cat.key);
+        const expanded = !!state.newsExpanded[cat.key];
+        const visibleItems = expanded ? items : items.slice(0, 1);
+
+        if (cat.key === 'dates_added') {
+            return `
+                <div class="news-group">
+                    <div class="news-head">
+                        <h4 style="color:${cat.color}">${cat.label}</h4>
+                        <span class="n">${items.length}</span>
+                        ${items.length > 1 ? `<button class="news-expand ${expanded ? 'open' : ''}" data-action="toggle-news-expand" data-category="${cat.key}">${iconLink('i-down', 17)}</button>` : ''}
+                    </div>
+                    ${items.length === 0 ? '<div class="news-empty">Здесь пока пусто</div>' : visibleItems.map(n => renderNewsCompactCard(n, cat.key)).join('')}
+                </div>
+            `;
+        }
+
+        if (cat.key === 'awaiting_answer' && items.length === 0) {
+            return `
+                <div class="news-group">
+                    <div class="news-head">
+                        <h4 style="color:${cat.color}">${cat.label}</h4>
+                        <span class="n">0</span>
+                    </div>
+                    <div class="news-empty">Здесь пока пусто</div>
+                </div>
+            `;
+        }
+
+        if (cat.key === 'finished') {
+            return `
+                <div class="news-group">
+                <div class="news-head">
+                <h4 style="color:${cat.color}">${cat.label}</h4>
+                <span class="n">${items.length}</span>
+                <svg class="chev" width="17" height="17"><use href="#i-chev"/></svg>
+                </div>
+                </div>
+            `;
+        }
+
         if (items.length === 0) return '';
+
         return `
             <div class="news-group">
                 <div class="news-head">
-                    <h4 style="color:${cat.color}">${cat.label}</h4>
-                    <span class="n">${items.length}</span>
+                <h4 style="color:${cat.color}">${cat.label}</h4>
+                <span class="n">${items.length}</span>
+                ${items.length > 1 ? `<button class="news-expand ${expanded ? 'open' : ''}" data-action="toggle-news-expand" data-category="${cat.key}">${iconLink('i-down', 17)}</button>` : ''}
                 </div>
-                ${items.map(n => `
-                    <div class="news-card ${n.category}">
-                        ${dot(n.subject)}
-                        <div class="c-body">
-                            <div class="c-top">
-                                <span class="c-title">${n.title}</span>
-                                ${n.category === 'wait' ? iconLink('i-warn', 17) : ''}
-                            </div>
-                            <div class="c-sub">${n.subject} · ${n.level} ур.</div>
-                            <div class="c-text">${n.message || n.text || ''}</div>
-                            <div class="c-foot">
-                                ${n.badge ? badge(n.badge, n.category === 'urgent' ? 'soon' : n.category === 'wait' ? 'lvl2' : 'grey') : ''}
-                                <span class="news-time" style="margin-left:auto">${n.date || ''}</span>
-                            </div>
-                            ${n.category === 'wait' && (n.stage_id || n.stageId) ? `<div class="c-foot" style="margin-top:6px">
-                                <button class="btn btn-sm btn-primary" data-action="answer-passed" data-stage-id="${n.stage_id || n.stageId}">Я прошёл(а)</button>
-                                <button class="btn btn-sm btn-ghost" data-action="answer-failed" data-stage-id="${n.stage_id || n.stageId}">Я не прошёл(а)</button>
-                            </div>` : ''}
-                        </div>
-                    </div>
-                `).join('')}
+                ${visibleItems.map(n => renderNewsCompactCard(n, cat.key)).join('')}
             </div>
         `;
     }).join('');
@@ -413,20 +644,48 @@ function sortMyOlympiads(list) {
 async function myOlympiadsContent(filter = '') {
     let myOlympiadsData = [];
     try {
-        const data = await Api.my.list({ q: filter });
+        const data = await Api.my.list({ q: filter, grade: state.settings.grade });
         myOlympiadsData = Array.isArray(data) ? data : (data.items || []);
     } catch (err) {
         console.warn('[API] Не удалось загрузить мои олимпиады', err);
         myOlympiadsData = [];
     }
 
-    sortMyOlympiads(myOlympiadsData);
+    const totalBeforeFilter = myOlympiadsData.length;
+    myOlympiadsData = myOlympiadsData.filter(o => isOlympiadAvailableForGrade(o, state.settings.grade));
+    const hiddenCount = totalBeforeFilter - myOlympiadsData.length;
+
+    state.myOlympiadsRaw = myOlympiadsData;
+    state.myHiddenCount = hiddenCount;
+    renderMyOlympiadList(filter);
+}
+
+function renderMyOlympiadList(filter = '') {
+    let myOlympiadsData = (state.myOlympiadsRaw || []).slice();
+
+    if (state.onlyWithDates) {
+        myOlympiadsData = myOlympiadsData.filter(hasKnownDates);
+    }
+
+    if (filter) {
+        const q = filter.toLowerCase();
+        myOlympiadsData = myOlympiadsData.filter(o =>
+            (o.name || '').toLowerCase().includes(q) ||
+            (o.subject_name || '').toLowerCase().includes(q)
+        );
+    }
+
+    myOlympiadsData = sortOlympiadList(myOlympiadsData);
 
     contentEl.innerHTML = `
         <div class="sort-row">
-            <button class="sort-btn active" data-action="open-sort-my">${iconLink('i-sort', 15)} Срочности${iconLink('i-down', 14)}</button>
-            <button class="reset-btn" data-action="reset-filter">Сбросить фильтр</button>
+            <button class="sort-btn active" data-action="open-sort-my">${iconLink('i-sort', 15)} сортировка${iconLink('i-down', 14)}</button>
+            <button class="known-dates-btn ${state.onlyWithDates ? 'on' : ''}" data-action="toggle-known-dates">
+                <span class="box">${state.onlyWithDates ? iconLink('i-check', 12) : ''}</span>
+                <span>с известными датами</span>
+            </button>
         </div>
+        ${state.myHiddenCount > 0 ? `<div class="notice info"><span class="ni">${iconLink('i-info', 17)}</span><div>Скрыто ${state.myHiddenCount} олимпиад, недоступных для ${state.settings.grade} класса.</div></div>` : ''}
         ${myOlympiadsData.length === 0 ? `
             <div class="empty">
                 <div class="ic">${iconLink('i-list-star', 28)}</div>
@@ -502,31 +761,108 @@ function calendarOlympiadsFromData(data) {
     return candidates.filter(v => v && typeof v === 'object');
 }
 
+function olympiadSubjectName(item) {
+    if (typeof item.subject === 'string') return item.subject;
+    return item.subject_name || (item.subject && item.subject.name) || '';
+}
+
+function olympiadSubjectColor(item) {
+    return item.color || item.subject_color || (item.subject && item.subject.color) || undefined;
+}
+
+function stageStart(stage) {
+    return stage.starts_on || stage.start_stage || stage.window_start || stage.start || stage.date_start;
+}
+
+function stageEnd(stage) {
+    return stage.ends_on || stage.end_stage || stage.window_end || stage.end || stage.date_end;
+}
+
+function stagePrecision(stage) {
+    if (stage.date_precision) return stage.date_precision;
+    if (stage.precision) return stage.precision;
+
+    const start = parseDate(stageStart(stage));
+    const end = parseDate(stageEnd(stage));
+
+    if (start && end) {
+        return isSameDate(start, end) ? 'exact' : 'range';
+    }
+    if (start) return 'exact';
+    if (end) return 'until';
+    return 'unknown';
+}
+
+function olympiadStages(item) {
+    const stages = Array.isArray(item.stages) ? item.stages.slice() : [];
+
+    if (item.next_stage) {
+        const next = item.next_stage;
+        const exists = stages.some(s =>
+            s && (s.id === next.id || (s.name === next.name && s.starts_on === next.starts_on))
+        );
+        if (!exists) stages.push(next);
+    }
+
+    return stages;
+}
+
+function normalizeFlatCalendarEvent(item) {
+    const subjectId = item.subject_id;
+    return {
+        activity_id: item.stage_id || item.activity_id,
+        olympiad_id: item.olympiad_id || item.id,
+        name: item.olympiad_name || item.name,
+        subject_id: subjectId,
+        subject: item.subject_name ||
+            (typeof item.subject === 'string' ? item.subject : (item.subject && item.subject.name)) ||
+            (subjectId ? subjectNameById(subjectId) : ''),
+        date_precision: item.date_precision ||
+            (item.single_day ? 'exact' : undefined) ||
+            (item.window_start && item.window_end ? 'range' : undefined) ||
+            (item.window_end ? 'until' : undefined),
+        start_stage: item.window_start || item.start_stage || item.starts_on || item.start,
+        end_stage: item.window_end || item.end_stage || item.ends_on || item.end,
+        color: item.color ||
+            item.subject_color ||
+            (item.subject && item.subject.color) ||
+            (subjectId ? subjectColorById(subjectId) : undefined),
+        name_stage: item.stage_name || item.name_stage,
+        stage_id: item.stage_id,
+        kind: item.kind,
+        planned_on: item.planned_on
+    };
+}
+
 function normalizeCalendarEvents(data) {
     const events = [];
 
     calendarOlympiadsFromData(data).forEach(item => {
         if (!item) return;
 
-        if (Array.isArray(item.stages)) {
-            item.stages.forEach(stage => {
+        const stages = olympiadStages(item);
+
+        if (stages.length) {
+            stages.forEach(stage => {
                 if (!stage) return;
                 events.push({
-                    activity_id: item.activity_id,
-                    name: item.name,
-                    subject: item.subject || item.subject_name,
-                    date_precision: stage.date_precision,
-                    start_stage: stage.start_stage,
-                    end_stage: stage.end_stage,
-                    color: item.color || item.subject_color,
-                    name_stage: stage.name_stage,
-                    source_text: stage.source_text,
-                    parser_warning: stage.parser_warning
+                    activity_id: item.activity_id || item.id,
+                    olympiad_id: item.olympiad_id || item.id,
+                    stage_id: stage.id || stage.stage_id,
+                    name: item.name || item.olympiad_name,
+                    subject: olympiadSubjectName(item),
+                    date_precision: stagePrecision(stage),
+                    start_stage: stageStart(stage),
+                    end_stage: stageEnd(stage),
+                    color: olympiadSubjectColor(item),
+                    name_stage: stage.name || stage.name_stage,
+                    source_text: stage.source_text || stage.raw_date_range,
+                    parser_warning: stage.parser_warning,
+                    planned_on: stage.planned_on || item.planned_on
                 });
             });
-        } else if (item.date_precision || item.start_stage || item.end_stage) {
-            // Уже плоское событие (старый формат)
-            events.push(item);
+        } else if (item.date_precision || item.window_start || item.window_end || item.start_stage || item.end_stage || item.starts_on || item.ends_on) {
+            events.push(normalizeFlatCalendarEvent(item));
         }
     });
 
@@ -552,11 +888,79 @@ function isStageInFuture(ev) {
     return false;
 }
 
+function isEventOnDate(ev, date) {
+    const precision = ev.date_precision || ev.precision || 'unknown';
+    const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (precision === 'range') {
+        const start = parseDate(ev.start_stage);
+        const end = parseDate(ev.end_stage);
+        return !!start && !!end && day >= start && day <= end;
+    }
+
+    if (precision === 'until') {
+        const end = parseDate(ev.end_stage);
+        if (!end) return false;
+        const start = addDays(end, -10);
+        return day >= start && day <= end;
+    }
+
+    if (precision === 'exact') {
+        const exact = parseDate(ev.start_stage || ev.end_stage || ev.date || ev.exact_date);
+        return !!exact && isSameDate(day, exact);
+    }
+
+    return false;
+}
+
+function eventKey(ev) {
+    if (ev.stage_id) return String(ev.stage_id);
+    if (ev.activity_id) return String(ev.activity_id);
+    return `${ev.olympiad_id || ev.id || 'ev'}:${ev.name || ''}:${ev.start_stage || ''}:${ev.end_stage || ''}`;
+}
+
+function plannedDateStr(ev) {
+    const planned = parseDate(ev.planned_on);
+    return planned ? toISODate(planned) : null;
+}
+
+function findCalendarEventByKey(key) {
+    return (state.calendarEvents || []).find(ev => eventKey(ev) === key);
+}
+
+function forEachDayMatching(weeks, date, callback) {
+    if (!date) return;
+    weeks.forEach(week => {
+        week.days.forEach(dayObj => {
+            const current = new Date(dayObj.year, dayObj.month, dayObj.day);
+            if (isSameDate(current, date)) callback(dayObj);
+        });
+    });
+}
+
+function addDayMark(dayObj, ev, color) {
+    if (!dayObj._markKeys) dayObj._markKeys = new Set();
+    const key = eventKey(ev);
+    if (dayObj._markKeys.has(key)) return;
+    dayObj._markKeys.add(key);
+    if (!dayObj._markColors) dayObj._markColors = [];
+    dayObj._markColors.push(color);
+}
+
+function pluralOlympiads(n) {
+    const mod10 = n % 10;
+    const mod100 = n % 100;
+    if (mod10 === 1 && mod100 !== 11) return 'олимпиада';
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'олимпиады';
+    return 'олимпиад';
+}
+
 async function getMyOlympiadNames() {
     try {
-        const data = await Api.my.list({ q: '' });
+        const data = await Api.my.list({ q: '', grade: state.settings.grade });
         const list = Array.isArray(data) ? data : ((data && (data.items || [])) || []);
-        return new Set(list
+        const available = list.filter(o => isOlympiadAvailableForGrade(o, state.settings.grade));
+        return new Set(available
             .map(o => o.name || o.olympiad_name || o.title)
             .filter(Boolean)
             .map(name => name.trim().toLowerCase())
@@ -574,7 +978,7 @@ async function renderCalendar(year, monthIndex) {
     }
     state.calendarDate = { year, month: monthIndex };
 
-    appbarEl.innerHTML = appbarHTML({ title: 'Календарь', sub: formatMonthYear(year, monthIndex) });
+    appbarEl.innerHTML = calendarAppbarHTML(year, monthIndex);
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('cal');
@@ -602,6 +1006,8 @@ async function renderCalendar(year, monthIndex) {
             return myOlympiadNames.has(name);
         });
     }
+
+    state.calendarEvents = events;
 
     const lanesByWeek = buildLanesForMonth(events, weeks);
 
@@ -643,6 +1049,19 @@ function buildCalendarMonth(year, monthIndex) {
     return weeks;
 }
 
+function shiftMonth(delta) {
+    let y = state.calendarDate.year;
+    let m = state.calendarDate.month + delta;
+    if (m < 0) {
+        m = 11;
+        y -= 1;
+    } else if (m > 11) {
+        m = 0;
+        y += 1;
+    }
+    renderCalendar(y, m);
+}
+
 function isSameDate(d1, d2) {
     if (!d1 || !d2) return false;
     return d1.getFullYear() === d2.getFullYear() &&
@@ -669,11 +1088,17 @@ function diffDays(from, to) {
 }
 
 function eventSubject(ev) {
-    return ev.subject || ev.subject_name || 'Олимпиада';
+    if (ev && typeof ev.subject === 'string') return ev.subject;
+    if (ev && ev.subject && typeof ev.subject === 'object' && ev.subject.name) return ev.subject.name;
+    return ev.subject_name || 'Олимпиада';
 }
 
 function eventColor(ev) {
-    return ev.color || ev.subject_color || subjectColor(eventSubject(ev)) || '#ccc';
+    return ev.color ||
+        ev.subject_color ||
+        (ev && ev.subject && typeof ev.subject === 'object' && ev.subject.color) ||
+        subjectColor(eventSubject(ev)) ||
+        '#ccc';
 }
 
 function pushRangeLane(lanesByWeek, weeks, lane) {
@@ -715,32 +1140,31 @@ function buildLanesForMonth(events, weeks) {
         } else if (precision === 'until') {
             const end = parseDate(ev.end_stage);
             if (!end) return;
-            const start = addDays(end, -5);
+            const start = addDays(end, -10);
             pushRangeLane(lanesByWeek, weeks, { subject, color, start, end, type: 'until' });
-        } else if (precision === 'exact') {
-            const date = parseDate(ev.start_stage || ev.end_stage || ev.date || ev.exact_date);
-            if (!date) return;
-
-            weeks.forEach(week => {
-                week.days.forEach(dayObj => {
-                    const current = new Date(dayObj.year, dayObj.month, dayObj.day);
-                    if (!isSameDate(current, date)) return;
-
-                    if (!dayObj.exactColors) dayObj.exactColors = [];
-                    if (dayObj.exactColors.length < 3) dayObj.exactColors.push(color);
-                    dayObj.exactCount = (dayObj.exactCount || 0) + 1;
-                });
-            });
         }
-        // precision === 'unknown' — полностью игнорируем
+        // precision === 'unknown' — полос не рисуем, но метки planned_on учитываем ниже.
+
+        // Кружок/диаграмма на дне: exact-событие и/или отметка «планирую писать».
+        const exactDate = precision === 'exact'
+            ? parseDate(ev.start_stage || ev.end_stage || ev.date || ev.exact_date)
+            : null;
+        const plannedDate = parseDate(ev.planned_on);
+
+        if (exactDate) {
+            forEachDayMatching(weeks, exactDate, dayObj => addDayMark(dayObj, ev, color));
+        }
+        if (plannedDate) {
+            forEachDayMatching(weeks, plannedDate, dayObj => addDayMark(dayObj, ev, color));
+        }
     });
 
-    // Метка «+N» для дней, где больше трёх exact-событий.
+    // Метка «+N» и готовые сегменты для диаграммы (sel1/sel2/sel3).
     weeks.forEach(week => {
         week.days.forEach(dayObj => {
-            const count = dayObj.exactCount || 0;
-            if (count > 3) dayObj.plus = count - 3;
-            if (dayObj.exactColors) dayObj.sel = dayObj.exactColors;
+            const colors = dayObj._markColors || [];
+            if (colors.length > 0) dayObj.sel = colors.slice(0, 3);
+            if (colors.length > 3) dayObj.plus = colors.length - 3;
         });
     });
 
@@ -812,6 +1236,8 @@ function calWeek(days, lanes) {
         if (!placed) rows.push([l]);
     });
 
+    const laneH = rows.length > 0 ? Math.max(3, 7 - (rows.length - 1)) : 7;
+
     let lanesHtml = '<div class="lanes">';
     rows.forEach(row => {
         lanesHtml += '<div class="lane-row">' + row.map(l => {
@@ -827,56 +1253,136 @@ function calWeek(days, lanes) {
     lanesHtml += '</div>';
 
     const daysHtml = days.map(dayObj => calDay(dayObj)).join('');
-    return `<div class="cal-week">${lanesHtml}${daysHtml}</div>`;
+    return `<div class="cal-week" style="--lane-h:${laneH}px">${lanesHtml}${daysHtml}</div>`;
 }
 
 function legend(subjects) {
-    return `<div class="legend">${subjects.map(s => {
+    const subjectItems = subjects.map(s => {
         const sub = subjectByName(s);
         const color = sub ? (sub.color || sub.c) : subjectColor(s);
         return `<div class="li"><i style="background:${color}"></i>${s}</div>`;
-    }).join('')}</div>`;
+    }).join('');
+
+    const hint = `
+        <div class="cal-legend-hint">
+            <span class="hint"><i class="sw range"></i>промежуток дат</span>
+            <span class="hint"><i class="sw single"></i>один день</span>
+            <span class="hint"><i class="sw ends"></i>срок до даты</span>
+        </div>
+    `;
+
+    return `<div class="legend">${subjectItems}</div>${hint}`;
 }
 
-async function renderCalendarDayDetail(day) {
+function calendarDayItems(day) {
+    const date = new Date(state.calendarDate.year, state.calendarDate.month, day);
+    const dateStr = toISODate(date);
+
+    const items = (state.calendarEvents || [])
+        .filter(ev => isEventOnDate(ev, date))
+        .map(ev => {
+            const precision = ev.date_precision || ev.precision || 'unknown';
+            const plannedOn = plannedDateStr(ev);
+            const key = eventKey(ev);
+            const stageId = ev.stage_id || ev.activity_id;
+            const exactUnplanned = state.calendarUnplannedExact.has(key);
+            const plannedOther = !!plannedOn && plannedOn !== dateStr;
+
+            let selected = plannedOn === dateStr;
+            if (precision === 'exact' && !plannedOther) selected = !exactUnplanned;
+
+            return {
+                ...ev,
+                key,
+                precision,
+                stageId,
+                dateStr,
+                plannedOn,
+                plannedOther,
+                selected,
+                selectable: !!stageId && !plannedOther,
+                limitReached: false
+            };
+        });
+
+    const manualSelectedCount = items.filter(i =>
+        i.selected && (i.precision === 'range' || i.precision === 'until')
+    ).length;
+
+    items.forEach(item => {
+        if (!item.selected && item.selectable &&
+            (item.precision === 'range' || item.precision === 'until') &&
+            manualSelectedCount >= 3) {
+            item.limitReached = true;
+        }
+    });
+
+    return items;
+}
+
+function renderCalendarDayDetail(day, limitHit = false) {
+    state.calendarSelectedDay = day;
+
     const { year, month } = state.calendarDate;
     const monthName = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
         'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'][month];
-    const dateStr = toISODate(new Date(year, month, day));
+    const weekday = new Date(year, month, day).toLocaleDateString('ru-RU', { weekday: 'long' });
+    const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
 
-    appbarEl.innerHTML = appbarHTML({ back: true, title: `${day} ${monthName} ${year}`, sub: 'Среда' });
+    const items = calendarDayItems(day);
+    state.calendarDayItems = items;
+    const selectedCount = items.filter(item => item.selected).length;
+
+    appbarEl.innerHTML = appbarHTML({ back: true, title: `${day} ${monthName} ${year}`, sub: weekdayCap });
     searchbarEl.style.display = 'none';
     tabbarEl.style.display = 'flex';
     tabbarEl.innerHTML = tabbarHTML('cal');
 
-    let items = [];
-    try {
-        const data = await Api.calendar.day(dateStr);
-        items = Array.isArray(data) ? data : ((data && (data.items || data.events || data.olympiads)) || []);
-    } catch (err) {
-        console.warn('[API] Не удалось загрузить день календаря', err);
-    }
-
     contentEl.innerHTML = `
-        <div class="daybar"><div class="db-t">${items.length} олимпиад(ы) в этот день</div>${iconLink('i-down', 18)}</div>
-        ${items.map(item => renderDayItem(item)).join('')}
-        <button class="btn btn-ghost" style="margin-top:6px">Снять выбор со всех</button>
+        ${limitHit ? `<div class="notice warn"><span class="ni">${iconLink('i-warn', 17)}</span><div>Можно отметить не больше трёх олимпиад в этот день.</div></div>` : ''}
+        <div class="daybar"><div class="db-t">${selectedCount} ${pluralOlympiads(selectedCount)} в этот день</div>${iconLink('i-down', 18)}</div>
+        ${items.length === 0 ? `
+            <div class="empty">
+                <div class="ic">${iconLink('i-cal', 28)}</div>
+                <h4>Нет олимпиад</h4>
+                <p>В этот день нет олимпиад из вкладки «Мои олимпиады».</p>
+            </div>
+        ` : `
+            <div class="list">${items.map(renderCalendarDayItem).join('')}</div>
+        `}
     `;
 }
 
-function renderDayItem(item) {
+function renderCalendarDayItem(item) {
     const subjectName = item.subject || item.subject_name || '';
-    const title = item.title || item.name || item.olympiad_name || 'Олимпиада';
-    const level = item.level || '';
-    const text = item.description || item.message || item.stage_name || item.format || '';
+    const title = item.name || item.olympiad_name || 'Олимпиада';
+    const sub = [subjectName, item.name_stage].filter(Boolean).join(' · ');
+    const text = item.source_text || item.parser_warning || '';
+
+    const cls = ['card', 'day-check'];
+    if (item.plannedOther) cls.push('taken');
+
+    const cbCls = ['cb'];
+    let cbIcon = '';
+    if (item.plannedOther) {
+        cbCls.push('lock');
+        cbIcon = iconLink('i-lock', 12);
+    } else if (item.selected) {
+        cbCls.push('on');
+        cbIcon = iconLink('i-check', 13);
+    }
 
     return `
-        <div class="card">
+        <div class="${cls.join(' ')}" data-action="toggle-day-plan" data-key="${item.key}" data-stage-id="${item.stageId || ''}">
             ${dot(subjectName)}
             <div class="c-body">
-                <div class="c-top"><span class="c-title">${title}</span>${level ? badge(level + ' ур.', 'lvl') : ''}</div>
-                <div class="c-sub">${subjectName}</div>
+                <div class="c-top"><span class="c-title">${title}</span></div>
+                ${sub ? `<div class="c-sub">${sub}</div>` : ''}
                 ${text ? `<div class="c-text">${text}</div>` : ''}
+            </div>
+            <div class="cb-side">
+                ${item.plannedOther && item.plannedOn ? `<span class="planned-other-date">${formatDayMonth(parseDate(item.plannedOn))}</span>` : ''}
+                <span class="${cbCls.join(' ')}">${cbIcon}</span>
             </div>
         </div>
     `;
@@ -891,7 +1397,7 @@ function renderSettingsModal() {
             <div class="menu-item">
                 <div class="mi-ic">${iconLink('i-edit', 18)}</div>
                 <div class="mi-body"><div class="mi-t">Класс обучения</div><div class="mi-d">Сейчас: ${state.settings.grade} класс</div></div>
-                <button class="btn btn-sm btn-outline" data-action="change-grade">Изменить</button>
+                <button class="btn btn-sm btn-primary" data-action="change-grade">Изменить</button>
             </div>
             <div class="menu-item">
                 <div class="mi-ic">${iconLink('i-bell', 18)}</div>
@@ -904,6 +1410,25 @@ function renderSettingsModal() {
                 <button class="switch ${state.settings.colorblind_mode ? 'on' : ''}" data-action="toggle-colorblind"></button>
             </div>
             <button class="btn btn-primary" style="margin-top:18px" data-action="close-modal">Готово</button>
+        </div>
+    `;
+    document.getElementById('app').appendChild(modal);
+}
+
+function renderGradeModal() {
+    const modal = document.createElement('div');
+    modal.className = 'scrim center';
+    modal.innerHTML = `
+        <div class="modal">
+            <h3>Выбери класс</h3>
+            <p style="font-size:13px;color:var(--text-3);margin:0 0 var(--s4);line-height:1.45;">Покажем олимпиады для выбранного класса.</p>
+            <div class="chips">
+                ${[5, 6, 7, 8, 9, 10, 11].map(g => `
+                    <button class="chip-sel ${state.settings.grade === g ? 'on' : ''}" data-action="select-grade" data-grade="${g}">
+                        <b>${g}</b><span>класс</span>
+                    </button>
+                `).join('')}
+            </div>
         </div>
     `;
     document.getElementById('app').appendChild(modal);
@@ -938,23 +1463,21 @@ function closeModal() {
     if (modal) modal.remove();
 }
 
-// Переключатель в настройках: меняется сразу и сохраняется на сервере.
-// Если сохранить не вышло, возвращаем как было, чтобы переключатель
-// не показывал то, чего на сервере нет.
 async function toggleSetting(field) {
-    const value = !state.settings[field];
-    state.settings[field] = value;
+    const previousValue = state.settings[field];
+    const nextValue = !previousValue;
+
+    state.settings[field] = nextValue;
     closeModal();
     renderSettingsModal();
+
     try {
-        await Api.settings.save({ [field]: value });
+        await Api.settings.save({ [field]: nextValue });
     } catch (err) {
-        console.warn('[API] Не удалось сохранить настройки', err);
-        if (state.settings[field] === value) state.settings[field] = !value;
-        if (document.querySelector('.scrim .modal')) {
-            closeModal();
-            renderSettingsModal();
-        }
+        console.warn('[API] Не удалось сохранить настройку', err);
+        state.settings[field] = previousValue;
+        closeModal();
+        renderSettingsModal();
     }
 }
 
@@ -962,7 +1485,7 @@ async function toggleSetting(field) {
 document.addEventListener('click', async function (e) {
     // Клик по фону модалки (вне самой панели) — просто закрываем без применения
     const scrim = e.target.closest('.scrim');
-    if (scrim && !e.target.closest('.sheet, .modal')) {
+    if (scrim && !e.target.closest('.sheet') && !e.target.closest('.modal')) {
         closeModal();
         return;
     }
@@ -984,6 +1507,16 @@ document.addEventListener('click', async function (e) {
 
     if (action === 'close') {
         if (window.WebApp) WebApp.close();
+        return;
+    }
+
+    if (action === 'prev-month') {
+        shiftMonth(-1);
+        return;
+    }
+
+    if (action === 'next-month') {
+        shiftMonth(1);
         return;
     }
 
@@ -1029,20 +1562,40 @@ document.addEventListener('click', async function (e) {
     }
     if (action === 'change-grade') {
         closeModal();
-        state.view = 'grade-select';
-        renderGradeSelect();
+        renderGradeModal();
+        return;
+    }
+    if (action === 'select-grade') {
+        const selectedGrade = parseInt(grade);
+        if (selectedGrade) {
+            state.settings.grade = selectedGrade;
+            try {
+                await Api.settings.save({
+                    grade: selectedGrade,
+                    notifications_enabled: state.settings.notifications_enabled,
+                    colorblind_mode: state.settings.colorblind_mode
+                });
+            } catch (err) {
+                console.warn('[API] Не удалось сохранить класс', err);
+            }
+            closeModal();
+            state.view = 'subjects';
+            renderSubjects();
+        }
         return;
     }
     if (action === 'grade-confirm') {
-        // Сохраняем всегда: и при первом запуске, и после «Изменить» в настройках.
-        try {
-            await Api.settings.save({
-                grade: state.settings.grade,
-                notifications_enabled: state.settings.notifications_enabled,
-                colorblind_mode: state.settings.colorblind_mode
-            });
-        } catch (err) {
-            console.warn('[API] Не удалось сохранить настройки', err);
+        if (state.settingsNeedSave) {
+            try {
+                await Api.settings.save({
+                    grade: state.settings.grade,
+                    notifications_enabled: state.settings.notifications_enabled,
+                    colorblind_mode: state.settings.colorblind_mode
+                });
+            } catch (err) {
+                console.warn('[API] Не удалось сохранить настройки', err);
+            }
+            state.settingsNeedSave = false;
         }
         state.view = 'subjects';
         renderSubjects();
@@ -1050,6 +1603,17 @@ document.addEventListener('click', async function (e) {
     }
     if (action === 'open-sort' || action === 'open-sort-my') {
         renderSortModal();
+        return;
+    }
+    if (action === 'toggle-known-dates') {
+        state.onlyWithDates = !state.onlyWithDates;
+        const searchInput = document.getElementById('searchInput');
+        const query = searchInput ? searchInput.value : '';
+        if (state.view === 'subject-olympiads' && state.selectedSubject) {
+            renderSubjectOlympiadList(state.selectedSubject.name, query);
+        } else if (state.view === 'my-olympiads') {
+            renderMyOlympiadList(query);
+        }
         return;
     }
     if (action === 'reset-filter') {
@@ -1069,7 +1633,8 @@ document.addEventListener('click', async function (e) {
         } catch (err) {
             console.warn('[API] Не удалось добавить олимпиаду', err);
         }
-        renderOlympiadDetail(id, false);
+        const opts = state.olympiadDetailOptions || { useMyData: false, activeTab: 'search', backView: 'subject-olympiads' };
+        renderOlympiadDetail(id, { ...opts, useMyData: true });
         return;
     }
     if (action === 'remove-olympiad') {
@@ -1079,7 +1644,8 @@ document.addEventListener('click', async function (e) {
         } catch (err) {
             console.warn('[API] Не удалось удалить олимпиаду', err);
         }
-        renderOlympiadDetail(id, false);
+        const opts = state.olympiadDetailOptions || { useMyData: true, activeTab: 'my', backView: 'my-olympiads' };
+        renderOlympiadDetail(id, { ...opts, useMyData: false });
         return;
     }
     if (action === 'answer-passed' || action === 'answer-failed') {
@@ -1098,9 +1664,82 @@ document.addEventListener('click', async function (e) {
         }
         return;
     }
+    if (action === 'stage-passed' || action === 'stage-failed') {
+        const id = parseInt(stageId);
+        if (id) {
+            try {
+                if (action === 'stage-passed') {
+                    await Api.stage.markPassed(id);
+                } else {
+                    await Api.stage.markFailed(id);
+                }
+            } catch (err) {
+                console.warn('[API] Не удалось сохранить результат этапа', err);
+            }
+            const oid = state.selectedOlympiad && state.selectedOlympiad.id;
+            if (oid) {
+                const opts = state.olympiadDetailOptions || { useMyData: true, activeTab: 'my', backView: 'my-olympiads' };
+                renderOlympiadDetail(oid, opts);
+            }
+        }
+        return;
+    }
+    if (action === 'toggle-news-expand') {
+        const category = target.dataset.category;
+        if (category) {
+            state.newsExpanded[category] = !state.newsExpanded[category];
+            renderNewsContent();
+        }
+        return;
+    }
+    if (action === 'view-in-calendar') {
+        state.view = 'calendar';
+        renderCalendar();
+        return;
+    }
     if (action === 'go-to-search') {
         state.view = 'subjects';
         renderSubjects();
+        return;
+    }
+
+    if (action === 'toggle-day-plan') {
+        const key = target.dataset.key;
+        const item = (state.calendarDayItems || []).find(i => i.key === key);
+        if (!item || !item.stageId || item.plannedOther) return;
+
+        if (item.limitReached) {
+            renderCalendarDayDetail(state.calendarSelectedDay, true);
+            return;
+        }
+
+        const dateStr = item.dateStr || toISODate(new Date(
+            state.calendarDate.year,
+            state.calendarDate.month,
+            state.calendarSelectedDay
+        ));
+
+        if (item.selected) {
+            try {
+                await Api.stage.unplan(item.stageId);
+            } catch (err) {
+                console.warn('[API] Не удалось снять выбор', err);
+            }
+            const ev = findCalendarEventByKey(key);
+            if (ev) ev.planned_on = null;
+            if (item.precision === 'exact') state.calendarUnplannedExact.add(key);
+        } else {
+            try {
+                await Api.stage.plan(item.stageId, dateStr);
+            } catch (err) {
+                console.warn('[API] Не удалось отметить олимпиаду', err);
+            }
+            const ev = findCalendarEventByKey(key);
+            if (ev) ev.planned_on = dateStr;
+            if (item.precision === 'exact') state.calendarUnplannedExact.delete(key);
+        }
+
+        renderCalendarDayDetail(state.calendarSelectedDay);
         return;
     }
 
@@ -1118,6 +1757,7 @@ document.addEventListener('click', async function (e) {
                 break;
             case 'news':
                 state.view = 'news';
+                state.newsBadgeVisible = false;
                 renderNews();
                 break;
             case 'my':
@@ -1147,19 +1787,30 @@ document.addEventListener('click', async function (e) {
     if (olympiadId) {
         const id = parseInt(olympiadId);
         state.selectedOlympiad = id;
-        if (savedFlag || fromMine) {
+        if (fromMine) {
             state.view = 'olympiad-detail-mine';
-            renderOlympiadDetail(id, true);
+            renderOlympiadDetail(id, { useMyData: true, activeTab: 'my', backView: 'my-olympiads' });
         } else {
             state.view = 'olympiad-detail';
-            renderOlympiadDetail(id, false);
+            renderOlympiadDetail(id, {
+                useMyData: savedFlag,
+                activeTab: 'search',
+                backView: 'subject-olympiads'
+            });
         }
         return;
     }
 
     // Клик по дню календаря
     if (day) {
-        if (target.dataset.otherMonth === 'true') return;
+        if (target.dataset.otherMonth === 'true') {
+            const year = parseInt(target.dataset.year);
+            const month = parseInt(target.dataset.month);
+            await renderCalendar(year, month);
+            state.view = 'calendar-day-detail';
+            renderCalendarDayDetail(parseInt(day));
+            return;
+        }
         state.view = 'calendar-day-detail';
         renderCalendarDayDetail(parseInt(day));
         return;
@@ -1180,10 +1831,10 @@ document.addEventListener('click', async function (e) {
         closeModal();
         const searchInput = document.getElementById('searchInput');
         const query = searchInput ? searchInput.value : '';
-        if (state.view === 'subject-olympiads') {
-            await olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, query);
+        if (state.view === 'subject-olympiads' && state.selectedSubject) {
+            renderSubjectOlympiadList(state.selectedSubject.name, query);
         } else if (state.view === 'my-olympiads') {
-            await myOlympiadsContent(query);
+            renderMyOlympiadList(query);
         }
         return;
     }
@@ -1195,10 +1846,10 @@ document.addEventListener('input', async function (e) {
         const val = e.target.value;
         if (state.view === 'subjects') {
             renderSubjectList(val);
-        } else if (state.view === 'subject-olympiads') {
-            await olympiadsBySubjectContent(state.selectedSubject.id, state.selectedSubject.name, val);
+        } else if (state.view === 'subject-olympiads' && state.selectedSubject) {
+            renderSubjectOlympiadList(state.selectedSubject.name, val);
         } else if (state.view === 'my-olympiads') {
-            await myOlympiadsContent(val);
+            renderMyOlympiadList(val);
         }
     }
 });
@@ -1224,6 +1875,7 @@ async function initApp() {
     state.settings.colorblind_mode = settings.colorblind_mode ?? settings.colorblind ?? false;
 
     if (state.settings.grade == null) {
+        state.settingsNeedSave = true;
         state.view = 'grade-select';
         renderGradeSelect();
     } else {
