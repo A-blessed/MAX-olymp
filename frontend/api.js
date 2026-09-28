@@ -20,11 +20,18 @@
   // меняется только эта строка.
   //
   // Фронтенд и API живут на одном домене, поэтому запросы уходят на тот
-  // же origin: браузер не делает preflight и CORS не участвует. Адрес
-  // указан целиком, а не относительным путём, чтобы копия страницы,
-  // открытая с другого адреса (например, с GitHub Pages), всё равно
-  // попадала в рабочий бэкенд.
-  const BASE_URL = "https://my-olymp.ru";
+  // же origin: браузер не делает preflight и CORS не участвует. Это
+  // верно и для https://my-olymp.ru, и для локального
+  // `docker compose up` на http://localhost:8080 — там копия страницы
+  // ходит в свой, локальный бэкенд, а не в боевой.
+  //
+  // Исключение — копия на GitHub Pages: своего API у неё нет, и она идёт
+  // в рабочий бэкенд. Чтобы тот её пустил, в CORS_ORIGINS на сервере
+  // должен быть https://a-blessed.github.io.
+  const PRODUCTION_URL = "https://my-olymp.ru";
+  const BASE_URL = window.location.hostname.endsWith(".github.io")
+    ? PRODUCTION_URL
+    : "";
 
   /**
    * Ошибка от бэкенда.

@@ -23,10 +23,9 @@
 	email admin@my-olymp.ru
 }
 
-# Мини-приложение обращается к API по адресу https://my-olymp.ru — он
-# зашит в frontend/api.js (BASE_URL). Страница, открытая с www, дала бы
-# другой origin, и каждый запрос стал бы кросс-доменным, поэтому www не
-# обслуживаем, а перенаправляем.
+# У приложения один адрес — https://my-olymp.ru: его регистрируют в
+# кабинете MAX, на него оформлен вебхук, его origin перечислен в
+# CORS_ORIGINS. Вторую копию на www не обслуживаем, а перенаправляем.
 www.my-olymp.ru {
 	redir https://my-olymp.ru{uri} permanent
 }
