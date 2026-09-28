@@ -572,6 +572,20 @@ class TestCalendarOlympiads:
         assert item.subject is None and item.color is None
         assert item.stages[0].planned_on == date(2026, 10, 5)
 
+    def test_source_text_for_the_day_window(self):
+        s = stage(1, starts_on=date(2026, 10, 5), start_precision=DAY)
+        s.raw_date_range = "5 окт"
+
+        (item,) = self.build(s)
+
+        assert item.stages[0].source_text == "5 окт"
+
+    def test_deadline_window_matches_calendar_bar(self):
+        """Фронтенд рисует полосу «до срока» на 10 дней — столько же даёт и окно."""
+        s = stage(1, ends_on=date(2026, 10, 30), end_precision=DAY)
+
+        assert plan_window(s) == (date(2026, 10, 20), date(2026, 10, 30))
+
 
 class TestDetailMatchesCalendar:
     """Карточка в «Моих олимпиадах» и календарь отдают этап одинаково."""

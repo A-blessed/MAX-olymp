@@ -17,6 +17,7 @@ from app.api.catalog import StageOut
 from app.catalog.presentation import (
     StageStatus,
     days_until_start,
+    has_known_dates,
     is_plannable,
     stage_status,
 )
@@ -216,3 +217,20 @@ class TestStageDates:
 
     def test_no_dates(self):
         assert self.dates(make_stage()) == ("unknown", None, None, None, None)
+
+
+class TestHasKnownDates:
+    """Фильтр «с известными датами» во вкладках «Поиск» и «Мои»."""
+
+    def test_no_stages(self):
+        assert has_known_dates([]) is False
+
+    def test_only_tbd(self):
+        assert has_known_dates([make_stage()]) is False
+
+    def test_month_counts(self):
+        assert has_known_dates([make_stage(), make_stage(date(2027, 3, 1), Precision.MONTH)])
+
+    def test_finished_stage_counts(self):
+        """Расписание есть, хоть всё и прошло — в отличие от next_stage."""
+        assert has_known_dates([make_stage(date(2025, 3, 1), Precision.DAY)])

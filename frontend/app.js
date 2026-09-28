@@ -297,7 +297,7 @@ function renderSubjectOlympiadList(subjectName, filter = '') {
         const q = filter.toLowerCase();
         olympiads = olympiads.filter(o =>
             (o.name || '').toLowerCase().includes(q) ||
-            (o.description || '').toLowerCase().includes(q)
+            (o.description || o.summary || '').toLowerCase().includes(q)
         );
     }
 
@@ -321,7 +321,7 @@ function renderSubjectOlympiadList(subjectName, filter = '') {
                         ${badge(o.level + ' ур.', 'lvl')}
                     </div>
                     <div class="c-sub">${subjectName}</div>
-                    <div class="c-text">${o.description || ''}</div>
+                    <div class="c-text">${o.description || o.summary || ''}</div>
                 </div>
                 ${o.saved ? `<span class="saved-mark">${iconLink('i-check', 13)}<span>пишу</span></span>` : ''}
             </div>
@@ -376,7 +376,7 @@ async function renderOlympiadDetail(olympiadId, options = {}) {
                     ${olympiad.grades ? badge(olympiad.grades, 'grey') : ''}
                     ${olympiad.level === 'I' ? badge('Льготы при поступлении', 'grey') : ''}
                 </div>
-                <p class="extra">${olympiad.description || ''}</p>
+                <p class="extra">${olympiad.description || olympiad.summary || ''}</p>
             </div>
             <div class="detail-wrap">
                 ${organizersHTML(olympiad.organizers)}
@@ -429,12 +429,16 @@ function stagesHTML(stages, showPlanActions = false, showPlanLabel = true) {
         const windowClosed = (!!stageWindowEnd && stageWindowEnd < today) || (!!planWindowEnd && planWindowEnd < today);
         const result = st.result || st.user_result ||
             (st.status === 'passed' ? 'passed' : st.status === 'failed' ? 'failed' : '');
-        const blocked = st.status === 'blocked' || st.status === 'failed' || result === 'failed';
+        // Сервер отдаёт status: upcoming | active | finished | unknown, а закрытый
+        // ответом «не прошёл» этап помечает флагом locked.
+        const past = st.status === 'past' || st.status === 'finished';
+        const blocked = st.locked === true || st.status === 'blocked' || st.status === 'failed' || result === 'failed';
 
         const cls = ['stage', st.status || ''];
+        if (past) cls.push('past');
         if (blocked) cls.push('blocked');
 
-        const markerClass = st.status === 'past' ? 'past' : (blocked ? 'blocked' : 'future');
+        const markerClass = past ? 'past' : (blocked ? 'blocked' : 'future');
 
         let planLabel = '';
         if (precision === 'exact') {
@@ -447,7 +451,8 @@ function stagesHTML(stages, showPlanActions = false, showPlanLabel = true) {
             planLabel = 'Можно планировать';
         }
 
-        const showResultButtons = showPlanActions && windowClosed && stageId;
+        // На закрытый этап сервер ответ не примет (stage_locked) — кнопки не показываем.
+        const showResultButtons = showPlanActions && windowClosed && stageId && st.locked !== true;
         if (showResultButtons) planLabel = '';
 
         return `
@@ -704,7 +709,7 @@ function renderMyOlympiadList(filter = '') {
                             ${badge(o.level + ' ур.', 'lvl')}
                         </div>
                         <div class="c-sub">${subject ? subject.name : ''}</div>
-                        <div class="c-text">${o.description || ''}</div>
+                        <div class="c-text">${o.description || o.summary || ''}</div>
                     </div>
                 </div>
             `;

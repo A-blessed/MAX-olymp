@@ -28,6 +28,7 @@ from ..catalog.presentation import (
     StageStatus,
     date_precision,
     days_until_start,
+    has_known_dates,
     is_plannable,
     pick_next_stage,
     stage_bounds,
@@ -164,6 +165,8 @@ class OlympiadListItem(BaseModel):
     source_url: Optional[str] = None
     # Ближайший идущий или предстоящий этап — для подписи на карточке.
     next_stage: Optional[StageOut] = None
+    # Есть ли у олимпиады хоть одна известная дата — фильтр «с известными датами».
+    has_known_dates: bool = False
     # Добавлена ли в «Мои олимпиады»: кнопка «Буду писать» / «✓ Добавлено».
     saved: bool = False
 
@@ -233,6 +236,7 @@ def _to_list_item(olympiad: Olympiad, today: date, saved: bool = False) -> Olymp
         partner_universities=list(olympiad.partner_universities or []),
         source_url=olympiad.source_url,
         next_stage=StageOut.build(next_stage, today) if next_stage else None,
+        has_known_dates=has_known_dates(olympiad.stages),
         saved=saved,
     )
 

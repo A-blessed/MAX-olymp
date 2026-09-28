@@ -91,6 +91,15 @@ def stage_bounds(stage: Stage) -> Tuple[Optional[date], Optional[date]]:
     return stage.starts_on, stage.ends_on
 
 
+def has_known_dates(stages: Iterable[Stage]) -> bool:
+    """Известна ли хоть одна дата хоть одного этапа — для фильтра «с известными датами».
+
+    Считается и месяц («март 2027»), и прошедшие этапы: вопрос в том, есть
+    ли у олимпиады расписание, а не в том, что у неё впереди.
+    """
+    return any(s.starts_on is not None or s.ends_on is not None for s in stages)
+
+
 def _month_key(value: date) -> int:
     return value.year * 12 + value.month
 

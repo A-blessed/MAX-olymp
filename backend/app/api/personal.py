@@ -31,6 +31,7 @@ from ..catalog.models import Olympiad, Stage, StageKind
 from ..catalog.presentation import (
     DatePrecision,
     date_precision,
+    has_known_dates,
     pick_next_stage,
     stage_bounds,
 )
@@ -148,6 +149,8 @@ class MyOlympiadOut(BaseModel):
     added_at: datetime
     # Ответ «не прошёл» — олимпиада серая и уходит вниз списка.
     eliminated: bool = False
+    # Есть ли у олимпиады хоть одна известная дата — фильтр «с известными датами».
+    has_known_dates: bool = False
     next_stage: Optional[MyStageOut] = None
     stages: List[MyStageOut] = Field(default_factory=list)
 
@@ -203,6 +206,9 @@ class CalendarStage(BaseModel):
     # until — только срок, начала нет.
     start_stage: Optional[date] = None
     end_stage: date
+    # Даты строкой источника, как у парсера: «20 авг...22 сен». Окно дня
+    # подписывает ими карточку этапа.
+    source_text: Optional[str] = None
     planned_on: Optional[date] = None
 
 
@@ -375,6 +381,7 @@ def _build_my_olympiad(
         organizers=list(olympiad.organizers or []),
         added_at=added_at,
         eliminated=is_eliminated(results[s.id] for s in stages if s.id in results),
+        has_known_dates=has_known_dates(stages),
         next_stage=by_id.get(next_stage.id) if next_stage else None,
         stages=my_stages,
     )
@@ -875,6 +882,7 @@ def calendar_olympiads(
                 date_precision=date_precision(stage),
                 start_stage=start_stage,
                 end_stage=end_stage,
+                source_text=stage.raw_date_range,
                 planned_on=plans.get(stage.id),
             )
         )
