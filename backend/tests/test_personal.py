@@ -6,14 +6,21 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
 from app.catalog.dates import Precision
-from app.catalog.models import Olympiad, Stage, StageKind
+from app.catalog.models import Olympiad, Stage, StageKind, Subject
 from app.personal.models import StageResult
-from app.personal.news import NewsCategory, build_feed, classify, plural_days
+from app.personal.news import (
+    NewsCategory,
+    build_feed,
+    classify,
+    dates_added,
+    human_date_range,
+    plural_days,
+)
 from app.personal.rules import (
     DAILY_PLAN_LIMIT,
     RuleViolation,
@@ -366,6 +373,147 @@ def test_feed_orders_by_event_date():
     )
 
     assert [item.stage_id for item in feed.later] == [2, 1]
+
+
+class TestHumanDateRange:
+    @pytest.mark.parametrize(
+        "dates,expected",
+        [
+            (dict(starts_on=date(2026, 9, 25), start_precision=DAY,
+                  ends_on=date(2026, 10, 15), end_precision=DAY),
+             "25 сентября – 15 октября 2026"),
+            (dict(starts_on=date(2026, 12, 4), start_precision=DAY,
+                  ends_on=date(2026, 12, 17), end_precision=DAY),
+             "4–17 декабря 2026"),
+            (dict(starts_on=date(2026, 12, 15), start_precision=DAY,
+                  ends_on=date(2027, 1, 20), end_precision=DAY),
+             "15 декабря 2026 – 20 января 2027"),
+            (dict(starts_on=date(2026, 10, 4), start_precision=DAY), "4 октября 2026"),
+            (dict(ends_on=date(2026, 11, 18), end_precision=DAY), "до 18 ноября 2026"),
+            (dict(starts_on=date(2027, 3, 1), start_precision=MONTH), None),
+            (dict(), None),
+        ],
+    )
+    def test_formats(self, dates, expected):
+        assert human_date_range(stage(**dates)) == expected
+
+
+class TestAwaitingAnswerItem:
+    """Карточка «Ожидает ответа от тебя»: кнопки рисуются по stage_id."""
+
+    def test_fields_for_the_card(self):
+        oly = olympiad()
+        oly.subject = Subject(id=3, name="Химия")
+        s = stage(7, starts_on=date(2026, 9, 1), start_precision=DAY,
+                  ends_on=date(2026, 9, 16), end_precision=DAY)
+
+        item = classify(s, oly, result=None, locked=False, today=TODAY)
+
+        assert item.category is NewsCategory.AWAITING_ANSWER
+        assert (item.stage_id, item.subject_name) == (7, "Химия")
+        assert item.plan_window_end == date(2026, 9, 16)
+        assert item.message == "Подтверди, прошёл ли ты в следующий этап"
+        assert item.badge == "Ожидает ответа"
+
+    def test_deadline_window_ends_on_the_deadline(self):
+        s = stage(ends_on=date(2026, 9, 20), end_precision=DAY)
+
+        item = classify(s, olympiad(), result=None, locked=False, today=TODAY)
+
+        assert item.category is NewsCategory.AWAITING_ANSWER
+        assert item.plan_window_end == date(2026, 9, 20)
+
+    def test_window_not_over_yet_is_not_awaiting(self):
+        s = stage(starts_on=date(2026, 9, 1), start_precision=DAY,
+                  ends_on=TODAY, end_precision=DAY)
+
+        item = classify(s, olympiad(), result=None, locked=False, today=TODAY)
+
+        assert item.category is not NewsCategory.AWAITING_ANSWER
+
+    def test_answer_moves_stage_out(self):
+        s = stage(starts_on=date(2026, 9, 1), start_precision=DAY,
+                  ends_on=date(2026, 9, 16), end_precision=DAY)
+
+        feed = build_feed([(olympiad(), s, StageResult.FAILED, False)], today=TODAY)
+
+        assert feed.awaiting_answer == []
+        assert [item.stage_id for item in feed.finished] == [s.id]
+
+    def test_longest_waiting_first(self):
+        recent = stage(1, starts_on=date(2026, 9, 1), start_precision=DAY,
+                       ends_on=date(2026, 9, 25), end_precision=DAY)
+        old = stage(2, starts_on=date(2026, 9, 1), start_precision=DAY,
+                    ends_on=date(2026, 9, 10), end_precision=DAY)
+
+        feed = build_feed(
+            [(olympiad(), recent, None, False), (olympiad(), old, None, False)], today=TODAY
+        )
+
+        assert [item.stage_id for item in feed.awaiting_answer] == [2, 1]
+
+
+class TestDatesAdded:
+    SAVED_AT = datetime(2026, 9, 1, 12, 0, tzinfo=timezone.utc)
+    IMPORTED_AT = datetime(2026, 9, 28, 9, 0, tzinfo=timezone.utc)
+
+    def upcoming(self, stage_id=1, dates_added_at=IMPORTED_AT, **overrides):
+        dates = dict(starts_on=date(2026, 10, 25), start_precision=DAY,
+                     ends_on=date(2026, 11, 15), end_precision=DAY)
+        dates.update(overrides)
+        s = stage(stage_id, **dates)
+        s.dates_added_at = dates_added_at
+        return s
+
+    def news(self, s, locked=False, saved_at=SAVED_AT):
+        return dates_added(s, olympiad(), locked=locked, today=TODAY, saved_at=saved_at)
+
+    def test_item_for_the_card(self):
+        item = self.news(self.upcoming())
+
+        assert item.category is NewsCategory.DATES_ADDED
+        assert item.date_range == "25 октября – 15 ноября 2026"
+        assert (item.message, item.badge) == ("Появились даты этапа", "Появились даты")
+        assert item.created_at == self.IMPORTED_AT
+
+    def test_dates_known_since_before_saving_are_not_news(self):
+        assert self.news(self.upcoming(), saved_at=self.IMPORTED_AT + timedelta(hours=1)) is None
+
+    def test_stage_that_never_lacked_dates_is_not_news(self):
+        assert self.news(self.upcoming(dates_added_at=None)) is None
+
+    def test_finished_stage_drops_out(self):
+        s = self.upcoming(starts_on=date(2026, 9, 1), ends_on=date(2026, 9, 20))
+        assert self.news(s) is None
+
+    def test_locked_stage_drops_out(self):
+        assert self.news(self.upcoming(), locked=True) is None
+
+    def test_dates_gone_again_drop_out(self):
+        s = self.upcoming(starts_on=None, start_precision=None, ends_on=None, end_precision=None)
+        assert self.news(s) is None
+
+    def test_stage_stays_in_its_own_category_too(self):
+        s = self.upcoming(starts_on=TODAY + timedelta(days=3), ends_on=None, end_precision=None)
+
+        feed = build_feed([(olympiad(), s, None, False)], today=TODAY,
+                          saved_at={10: self.SAVED_AT})
+
+        assert [item.stage_id for item in feed.soon] == [s.id]
+        assert [item.stage_id for item in feed.dates_added] == [s.id]
+
+    def test_newest_first_then_nearest_stage(self):
+        earlier_import = self.upcoming(1, dates_added_at=self.IMPORTED_AT - timedelta(days=3))
+        far = self.upcoming(2, starts_on=date(2026, 12, 1), ends_on=date(2026, 12, 5))
+        near = self.upcoming(3, starts_on=date(2026, 10, 10), ends_on=date(2026, 10, 12))
+
+        feed = build_feed(
+            [(olympiad(), s, None, False) for s in (earlier_import, far, near)],
+            today=TODAY,
+            saved_at={10: self.SAVED_AT},
+        )
+
+        assert [item.stage_id for item in feed.dates_added] == [3, 2, 1]
 
 
 # ---------------------------------------------------------------------

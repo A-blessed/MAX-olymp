@@ -254,12 +254,22 @@ class NewsItemOut(BaseModel):
     olympiad_id: int
     olympiad_name: str
     subject_id: Optional[int] = None
+    # Название предмета — для подписи «Математика · 1 ур.».
+    subject: Optional[str] = None
     level: Optional[int] = None
     stage_id: int
     stage_name: str
     message: str
+    # Текст бейджа: «Ожидает ответа», «Появились даты».
+    badge: Optional[str] = None
     event_date: Optional[date] = None
     raw_date_range: Optional[str] = None
+    # Даты этапа словами: «25 сентября – 15 октября 2026».
+    date_range: Optional[str] = None
+    # У «Ожидает ответа»: последний день окна планирования, уже прошедший.
+    plan_window_end: Optional[date] = None
+    # У «Появились даты»: когда импорт увидел даты.
+    created_at: Optional[datetime] = None
     result: Optional[StageResult] = None
 
     @classmethod
@@ -268,12 +278,17 @@ class NewsItemOut(BaseModel):
             olympiad_id=item.olympiad_id,
             olympiad_name=item.olympiad_name,
             subject_id=item.subject_id,
+            subject=item.subject_name,
             level=item.level,
             stage_id=item.stage_id,
             stage_name=item.stage_name,
             message=item.message,
+            badge=item.badge,
             event_date=item.event_date,
             raw_date_range=item.raw_date_range,
+            date_range=item.date_range,
+            plan_window_end=item.plan_window_end,
+            created_at=item.created_at,
             result=item.result,
         )
 
@@ -284,6 +299,8 @@ class NewsFeedOut(BaseModel):
     later: List[NewsItemOut]
     awaiting_answer: List[NewsItemOut]
     finished: List[NewsItemOut]
+    # У этапов появились даты, пока олимпиада была в «Моих».
+    dates_added: List[NewsItemOut] = Field(default_factory=list)
 
 
 class MySort(str, Enum):
@@ -940,11 +957,13 @@ async def read_news(
         for stage in olympiad.stages:
             entries.append((olympiad, stage, results.get(stage.id), stage.id in locked))
 
-    feed = build_feed(entries, today=today)
+    saved_at = {olympiad.id: added_at for olympiad, added_at in rows}
+    feed = build_feed(entries, today=today, saved_at=saved_at)
     return NewsFeedOut(
         urgent=[NewsItemOut.build(i) for i in feed.urgent],
         soon=[NewsItemOut.build(i) for i in feed.soon],
         later=[NewsItemOut.build(i) for i in feed.later],
         awaiting_answer=[NewsItemOut.build(i) for i in feed.awaiting_answer],
         finished=[NewsItemOut.build(i) for i in feed.finished],
+        dates_added=[NewsItemOut.build(i) for i in feed.dates_added],
     )

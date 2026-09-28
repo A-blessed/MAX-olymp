@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .dates import Precision
 from .importer import classify_stage
 from .models import Olympiad, Stage, Subject
+from .presentation import DatePrecision, date_precision
 from .subject_importer import SOURCE_NAME
 
 logger = logging.getLogger(__name__)
@@ -187,6 +188,7 @@ class ScheduleImportStats:
     stages_updated: int = 0
     stages_removed: int = 0
     stages_pruned: int = 0
+    dates_added: int = 0
     without_schedule: int = 0
     unmatched: List[str] = field(default_factory=list)
     skipped_stages: List[str] = field(default_factory=list)
@@ -198,6 +200,7 @@ class ScheduleImportStats:
             "этапов обновлено": self.stages_updated,
             "этапов удалено": self.stages_removed,
             "этапов вычищено у чужих строк": self.stages_pruned,
+            "этапов получили даты": self.dates_added,
             "без расписания в источнике": self.without_schedule,
             "не нашлось в базе": len(self.unmatched),
             "этапов пропущено": len(self.skipped_stages),
@@ -279,7 +282,7 @@ async def import_schedules(
 
         for olympiad in olympiads:
             olympiad.source_checked_at = checked_at
-            await _sync_stages(session, olympiad, payloads, entry, stats)
+            await _sync_stages(session, olympiad, payloads, entry, stats, checked_at)
             touched.add(olympiad.id)
             stats.olympiads_matched += 1
 
@@ -322,6 +325,7 @@ async def _sync_stages(
     payloads: Sequence[Dict[str, Any]],
     entry: Dict[str, Any],
     stats: ScheduleImportStats,
+    checked_at: datetime,
 ) -> None:
     current = list(
         await session.scalars(select(Stage).where(Stage.olympiad_id == olympiad.id))
@@ -351,11 +355,18 @@ async def _sync_stages(
         stage.kind = classify_stage(name)
         stage.position = position
 
+        had_dates = date_precision(stage) is not DatePrecision.UNKNOWN
         starts_on, start_precision, ends_on, end_precision = stage_dates(payload)
         stage.starts_on = starts_on
         stage.start_precision = start_precision
         stage.ends_on = ends_on
         stage.end_precision = end_precision
+        if not had_dates and date_precision(stage) is not DatePrecision.UNKNOWN:
+            # «Уточняется» сменилось датами, или этап пришёл сразу с ними —
+            # это новость «Появились даты». Смена одних дат на другие ею
+            # не считается.
+            stage.dates_added_at = checked_at
+            stats.dates_added += 1
 
         # Исходная строка источника: интерфейс показывает её там, где
         # точности не хватает, а при разборе споров она — единственное

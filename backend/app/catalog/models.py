@@ -246,6 +246,14 @@ class Stage(Base):
     # на таймер: «март 2027» честнее, чем вычисленное «через 154 дня».
     raw_date_range: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
+    # Когда импорт расписания увидел у этапа даты, которых раньше не было:
+    # «Уточняется» сменилось конкретным днём или этап появился сразу с
+    # датами. Из этого строится блок «Появились даты» в новостях — иначе
+    # после обновления на месте не узнать, что дат прежде не было.
+    dates_added_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     source_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
 
     olympiad: Mapped[Olympiad] = relationship(back_populates="stages")

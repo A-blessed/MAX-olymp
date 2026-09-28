@@ -11,14 +11,16 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
 from app.catalog.dates import Precision
-from app.catalog.models import Stage
+from app.catalog.models import Olympiad, Stage
 from app.catalog.presentation import DatePrecision, date_precision
 from app.catalog.schedule_importer import (
+    ScheduleImportStats,
+    _sync_stages,
     build_activity_index,
     parse_iso,
     stage_dates,
@@ -309,3 +311,75 @@ class TestDeadlineStageIsPlannable:
 
     def test_deadline_is_drawn_as_until(self):
         assert date_precision(self.deadline_stage(date(2026, 11, 18))) is DatePrecision.UNTIL
+
+
+class TestDatesAddedMark:
+    """Отметка «появились даты», из которой строится блок новостей."""
+
+    CHECKED_AT = datetime(2026, 9, 28, 9, 0, tzinfo=timezone.utc)
+
+    class FakeSession:
+        """Ровно то, чем пользуется синхронизация этапов одной олимпиады."""
+
+        def __init__(self, stages):
+            self.stages = list(stages)
+
+        async def scalars(self, _statement):
+            return list(self.stages)
+
+        def add(self, stage):
+            self.stages.append(stage)
+
+        async def delete(self, stage):
+            self.stages.remove(stage)
+
+    @staticmethod
+    def existing(name, **dates):
+        stage = Stage(olympiad_id=1, external_key=stage_external_key(name, set()), name=name)
+        for field_name in ("starts_on", "start_precision", "ends_on", "end_precision"):
+            setattr(stage, field_name, dates.get(field_name))
+        return stage
+
+    async def sync(self, stages, payloads):
+        session = self.FakeSession(stages)
+        stats = ScheduleImportStats()
+        await _sync_stages(
+            session, Olympiad(id=1, name="Олимпиада"), payloads, {}, stats, self.CHECKED_AT
+        )
+        return {s.name: s for s in session.stages}, stats
+
+    async def test_dates_instead_of_tbd_are_marked(self):
+        stages, stats = await self.sync(
+            [self.existing("Заключительный этап")],
+            [{"name_stage": "Заключительный этап", "date_precision": "range",
+              "start_stage": "2027-02-10", "end_stage": "2027-02-12"}],
+        )
+        assert stages["Заключительный этап"].dates_added_at == self.CHECKED_AT
+        assert stats.dates_added == 1
+
+    async def test_changed_dates_are_not_news(self):
+        stages, stats = await self.sync(
+            [self.existing("Отборочный этап", starts_on=date(2026, 10, 5),
+                           start_precision=Precision.DAY)],
+            [{"name_stage": "Отборочный этап", "date_precision": "exact",
+              "start_stage": "2026-10-12", "end_stage": "2026-10-12"}],
+        )
+        assert stages["Отборочный этап"].dates_added_at is None
+        assert stats.dates_added == 0
+
+    async def test_new_stage_with_dates_is_marked(self):
+        """Расписание появилось у олимпиады, у которой его не было."""
+        stages, _ = await self.sync(
+            [],
+            [{"name_stage": "Отборочный этап", "date_precision": "until",
+              "start_stage": None, "end_stage": "2026-11-18"}],
+        )
+        assert stages["Отборочный этап"].dates_added_at == self.CHECKED_AT
+
+    async def test_stage_still_without_dates_is_not_marked(self):
+        stages, _ = await self.sync(
+            [],
+            [{"name_stage": "Финал", "date_precision": "unknown",
+              "start_stage": None, "end_stage": None}],
+        )
+        assert stages["Финал"].dates_added_at is None
