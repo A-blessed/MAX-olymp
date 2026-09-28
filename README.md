@@ -185,9 +185,11 @@ docker compose run --rm backend alembic revision --autogenerate -m "что ме�
 
 ### Что нужно заранее
 
-* **Docker** с Compose v2 — Docker Desktop на Windows и macOS, Docker
-  Engine на Linux. Больше ничего ставить не нужно: Python, Postgres и
-  nginx приезжают в образах.
+* **Docker** с Compose **не ниже 2.24** — Docker Desktop на Windows и
+  macOS, Docker Engine на Linux; проверить — `docker compose version`.
+  Более старый Compose не понимает необязательный `.env` в
+  `docker-compose.yml` и откажется запускать. Больше ничего ставить не
+  нужно: Python, Postgres и nginx приезжают в образах.
 * **Git** — требование к сдаче: нужен репозиторий с commit hash.
 * Для работы бота, но не для запуска: **токен бота** — выдают
   организаторы хакатона, — и **сертификаты Минцифры** в `certs/`, см.
