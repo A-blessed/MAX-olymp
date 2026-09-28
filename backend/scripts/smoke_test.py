@@ -308,8 +308,9 @@ def main() -> int:
     print("\nНовости")
     news = client.get("/api/me/news")
     body = news.json() if news.status_code == 200 else {}
-    report.check("лента отдаёт все пять категорий",
-                 set(body) == {"urgent", "soon", "later", "awaiting_answer", "finished"},
+    report.check("лента отдаёт все шесть категорий",
+                 set(body) == {"urgent", "soon", "later", "awaiting_answer", "finished",
+                               "dates_added"},
                  str(list(body)))
     everything = [n for bucket in body.values() for n in bucket]
     report.check("у каждой новости есть текст", everything and all(n["message"] for n in everything))
