@@ -94,6 +94,24 @@ class TestStageDates:
         assert starts_on == date(2026, 12, 17)
         assert ends_on is None
 
+    def test_range_reversed_by_year_is_unwrapped(self):
+        """Так старый парсер разобрал «20 авг...22 сен» в сентябре."""
+        assert stage_dates(
+            {"date_precision": "range", "start_stage": "2027-08-20", "end_stage": "2026-09-22"}
+        ) == (date(2026, 8, 20), Precision.DAY, date(2026, 9, 22), Precision.DAY)
+
+    def test_year_back_that_still_ends_before_start_is_not_trusted(self):
+        starts_on, _, ends_on, _ = stage_dates(
+            {"date_precision": "range", "start_stage": "2027-10-01", "end_stage": "2026-09-22"}
+        )
+        assert (starts_on, ends_on) == (date(2027, 10, 1), None)
+
+    def test_february_29_is_not_moved_to_a_missing_day(self):
+        starts_on, _, ends_on, _ = stage_dates(
+            {"date_precision": "range", "start_stage": "2028-02-29", "end_stage": "2027-03-10"}
+        )
+        assert (starts_on, ends_on) == (date(2028, 2, 29), None)
+
     def test_unknown_precision_name_is_not_trusted(self):
         assert stage_dates(
             {"date_precision": "чтото", "start_stage": "2026-12-04", "end_stage": None}

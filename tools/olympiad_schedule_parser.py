@@ -12,6 +12,7 @@ import re
 import logging
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 import requests
 from bs4 import BeautifulSoup
 
@@ -70,24 +71,25 @@ _RE_SINGLE = re.compile(
 )
 
 
-def _guess_year(month: int, base_year: int) -> int:
+def _guess_year(month: int, now: datetime) -> int:
     """Если месяц раньше текущего — скорее всего следующий год."""
-    now = datetime.now()
-    if month < now.month and base_year == now.year:
-        return base_year + 1
-    return base_year
+    if month < now.month:
+        return now.year + 1
+    return now.year
 
 
-def parse_date_text(raw: str) -> dict:
+def parse_date_text(raw: str, now: Optional[datetime] = None) -> dict:
     """
     Разбирает строку даты из таблицы расписания и возвращает словарь:
       start_stage, end_stage  — строки "YYYY-MM-DD" или None
       date_precision          — "exact" | "until" | "range" | "unknown"
       source_text             — оригинальный текст
       parser_warning          — "date_parsed" | "date_not_parsed"
+
+    now — момент, от которого угадывается год (в строке его нет).
+    По умолчанию — текущий.
     """
-    now = datetime.now()
-    base_year = now.year
+    now = now or datetime.now()
 
     text = raw.strip()
     low  = text.lower()
@@ -111,8 +113,14 @@ def parse_date_text(raw: str) -> dict:
         mo1_n = MONTHS_RU.get(mo1[:3])
         mo2_n = MONTHS_RU.get(mo2[:3])
         if mo1_n and mo2_n:
-            y1 = _guess_year(mo1_n, base_year)
-            y2 = _guess_year(mo2_n, base_year)
+            # Год угадывается по концу диапазона, а начало берёт тот же год
+            # или предыдущий, если его месяц позже («15 дек...20 янв»).
+            # Порознь годы угадывать нельзя: диапазон, в который попал
+            # текущий месяц, — «20 авг...22 сен», разобранный в сентябре, —
+            # вывернется наизнанку: начало уедет в следующий год, конец
+            # останется в этом.
+            y2 = _guess_year(mo2_n, now)
+            y1 = y2 if mo1_n <= mo2_n else y2 - 1
             result.update(
                 start_stage    = f"{y1}-{mo1_n:02d}-{int(d1):02d}",
                 end_stage      = f"{y2}-{mo2_n:02d}-{int(d2):02d}",
@@ -127,7 +135,7 @@ def parse_date_text(raw: str) -> dict:
         d1, d2, mo = m.group(1), m.group(2), m.group(3)
         mo_n = MONTHS_RU.get(mo[:3])
         if mo_n:
-            y = _guess_year(mo_n, base_year)
+            y = _guess_year(mo_n, now)
             result.update(
                 start_stage    = f"{y}-{mo_n:02d}-{int(d1):02d}",
                 end_stage      = f"{y}-{mo_n:02d}-{int(d2):02d}",
@@ -142,7 +150,7 @@ def parse_date_text(raw: str) -> dict:
         d, mo = m.group(1), m.group(2)
         mo_n = MONTHS_RU.get(mo[:3])
         if mo_n:
-            y = _guess_year(mo_n, base_year)
+            y = _guess_year(mo_n, now)
             result.update(
                 end_stage      = f"{y}-{mo_n:02d}-{int(d):02d}",
                 date_precision = "until",
@@ -156,7 +164,7 @@ def parse_date_text(raw: str) -> dict:
         d, mo = m.group(1), m.group(2)
         mo_n = MONTHS_RU.get(mo[:3])
         if mo_n:
-            y = _guess_year(mo_n, base_year)
+            y = _guess_year(mo_n, now)
             result.update(
                 start_stage    = f"{y}-{mo_n:02d}-{int(d):02d}",
                 end_stage      = f"{y}-{mo_n:02d}-{int(d):02d}",

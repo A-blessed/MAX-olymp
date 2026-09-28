@@ -56,6 +56,30 @@ def parse_iso(value: Any) -> Optional[date]:
         return None
 
 
+def _unwrap_year(start: date, end: date) -> date:
+    """Начало диапазона, который старый парсер вывернул по годам.
+
+    До исправления парсер угадывал год начала и конца порознь, и диапазон,
+    захвативший текущий месяц, — «20 авг...22 сен», разобранный в
+    сентябре, — получал начало ровно на год позже конца. Такие файлы
+    могли остаться на руках, поэтому начало возвращается на год назад.
+    Прочие перепутанные даты остаются как есть.
+    """
+    if start.year != end.year + 1:
+        return start
+    try:
+        shifted = start.replace(year=start.year - 1)
+    except ValueError:
+        # 29 февраля: в предыдущем году такого дня нет.
+        return start
+    if shifted > end:
+        return start
+    logger.warning(
+        "Диапазон %s…%s вывернут по годам — начало перенесено на %s", start, end, shifted
+    )
+    return shifted
+
+
 StageDates = Tuple[Optional[date], Optional[Precision], Optional[date], Optional[Precision]]
 
 # Куда ложится расписание одной страницы источника: олимпиада и её предмет.
@@ -78,6 +102,9 @@ def stage_dates(payload: Dict[str, Any]) -> StageDates:
         if end is None:
             return None, None, None, None
         return None, None, end, Precision.DAY
+
+    if precision == PRECISION_RANGE and start is not None and end is not None and end < start:
+        start = _unwrap_year(start, end)
 
     if precision == PRECISION_RANGE and start is not None and end is not None and end > start:
         return start, Precision.DAY, end, Precision.DAY
