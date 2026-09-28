@@ -581,10 +581,10 @@ class TestCalendarOlympiads:
         assert item.stages[0].source_text == "5 окт"
 
     def test_deadline_window_matches_calendar_bar(self):
-        """Фронтенд рисует полосу «до срока» на 10 дней — столько же даёт и окно."""
+        """Фронтенд рисует полосу «до срока» на 14 дней — столько же даёт и окно."""
         s = stage(1, ends_on=date(2026, 10, 30), end_precision=DAY)
 
-        assert plan_window(s) == (date(2026, 10, 20), date(2026, 10, 30))
+        assert plan_window(s) == (date(2026, 10, 16), date(2026, 10, 30))
 
 
 class TestDetailMatchesCalendar:

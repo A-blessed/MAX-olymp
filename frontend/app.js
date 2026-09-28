@@ -20,6 +20,11 @@ console.log(Api === window.Api); // должно быть true
 
 
 
+// За сколько дней до срока открывается окно этапа «до срока» (until).
+// Должно совпадать с UNTIL_WINDOW_DAYS в backend/app/personal/rules.py:
+// иначе полоса на сетке и окно, в котором сервер примет план, разойдутся.
+const UNTIL_WINDOW_DAYS = 14;
+
 // Состояние приложения
 const state = {
     view: 'grade-select',           // grade-select, subjects, subject-olympiads, olympiad-detail (search), olympiad-detail-mine, news, my-olympiads, calendar, calendar-day-detail
@@ -901,7 +906,7 @@ function isEventOnDate(ev, date) {
     if (precision === 'until') {
         const end = parseDate(ev.end_stage);
         if (!end) return false;
-        const start = addDays(end, -10);
+        const start = addDays(end, -UNTIL_WINDOW_DAYS);
         return day >= start && day <= end;
     }
 
@@ -1140,7 +1145,7 @@ function buildLanesForMonth(events, weeks) {
         } else if (precision === 'until') {
             const end = parseDate(ev.end_stage);
             if (!end) return;
-            const start = addDays(end, -10);
+            const start = addDays(end, -UNTIL_WINDOW_DAYS);
             pushRangeLane(lanesByWeek, weeks, { subject, color, start, end, type: 'until' });
         }
         // precision === 'unknown' — полос не рисуем, но метки planned_on учитываем ниже.
