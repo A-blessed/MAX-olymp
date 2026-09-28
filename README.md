@@ -427,6 +427,13 @@ docker compose run --rm backend python -m scripts.import_subjects
 docker compose run --rm backend python -m scripts.import_catalog
 ```
 
+```bash
+docker compose run --rm backend python -m scripts.import_schedule
+```
+
+Последний шаг не пропускайте: без него у олимпиад каталога нет дат, и
+«Календарь» с «Новостями» пусты.
+
 Импорт идемпотентен: повторный запуск обновляет записи на месте, а не
 дублирует их. Обновление на месте принципиально — прогресс пользователя
 по этапам ссылается на строки таблицы `stages`, и пересоздание обнуляло бы
@@ -513,6 +520,14 @@ docker compose run --rm backend python -m scripts.import_catalog
 доступен по `GET /api/catalog/olympiads`, детали — по
 `GET /api/catalog/olympiads/{id}`; оба требуют того же заголовка
 `Authorization: tma <initData>`.
+
+```bash
+docker compose run --rm backend python -m scripts.import_schedule
+```
+
+Ожидается `этапов добавлено: 150`. Это даты этапов для олимпиад каталога:
+без них `GET /api/me/calendar` отдаёт пустой `entries` при любых
+сохранённых олимпиадах.
 
 **8. Пользовательский сценарий целиком**
 
