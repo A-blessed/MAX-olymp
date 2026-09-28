@@ -2,12 +2,18 @@
 #
 #   docker compose up --build
 #
-# Поднимаются два сервиса: Postgres и бэкенд. Наружу этот файл не смотрит:
-# бэкенд слушает обычный HTTP на 8000, TLS и статики здесь нет.
+# Поднимаются три сервиса:
 #
-# Для сервера есть docker-compose.prod.yml — там добавляется nginx с
-# сертификатом на my-olymp.ru, отдаётся фронтенд, а порты бэкенда и базы
-# с хоста убраны. Порядок развёртывания — в docs/deploy-my-olymp.md.
+#   db       Postgres;
+#   backend  API и бот; при старте применяет миграции и, если каталог
+#            пуст, наполняет его выгрузками из backend/data;
+#   web      nginx: мини-приложение на http://localhost:8080 и прокси
+#            /api, /webhook, /health в бэкенд — та же раскладка, что на
+#            сервере, только без TLS.
+#
+# Для сервера есть docker-compose.prod.yml — там nginx получает
+# сертификат на my-olymp.ru, а порты бэкенда и базы с хоста убраны.
+# Порядок развёртывания — в docs/deploy-my-olymp.md.
 
 services:
   db:
@@ -19,8 +25,9 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      # Наружу — только чтобы можно было заглянуть в базу клиентом.
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Наружу — только чтобы можно было заглянуть в базу клиентом, и
+      # только с этой машины: пароль по умолчанию в локальной сети ни к чему.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
       interval: 5s
@@ -41,11 +48,13 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
       EXTRA_CA_CERTS_DIR: /app/certs
     # Схему создаёт и обновляет Alembic, а не приложение: так одна и та
-    # же команда поднимает и чистую базу, и уже существующую.
+    # же команда поднимает и чистую базу, и уже существующую. Следом
+    # scripts.seed наполняет каталог — но только пустой.
     command:
       - sh
       - -c
-      - alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+      - alembic upgrade head && python -m scripts.seed
+        && exec uvicorn app.main:app --host 0.0.0.0 --port 8000
     depends_on:
       db:
         condition: service_healthy
@@ -64,7 +73,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 30s
+    restart: unless-stopped
+
+  web:
+    build:
+      # Корень, а не frontend/: образу нужны ещё конфигурации nginx из
+      # deploy/nginx/. Лишнее из контекста отсекает корневой .dockerignore.
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    # Имя upstream'а nginx разрешает один раз при старте и без запущенного
+    # бэкенда падает с host not found.
+    depends_on:
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
   # Прогон тестов: docker compose --profile test run --rm tests

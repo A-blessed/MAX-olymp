@@ -12,25 +12,26 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Процесс не должен работать от root. Код при этом остаётся за root и
+# процессу доступен только на чтение — писать в /app приложению нечего,
+# поэтому ни chown -R, ни лишнего слоя с копией всех файлов не нужно.
+# Каталог для сертификатов Минцифры: в compose сюда монтируется ./certs.
+RUN useradd --create-home --uid 1000 appuser && mkdir -p /app/certs
+
 # Зависимости ставятся до копирования кода: слой кэшируется и
 # переустанавливается только при изменении requirements.txt.
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-COPY app ./app
-COPY scripts ./scripts
 # Миграции схемы едут в образе: сервис применяет их при старте.
 COPY alembic.ini ./
 COPY migrations ./migrations
-# Выгрузка источника едет в образе: проверка решения должна
-# воспроизводиться одной командой, без ручного подкладывания файлов.
+# Выгрузки источников едут в образе: при первом старте ими наполняется
+# пустой каталог (scripts/seed.py), без ручного подкладывания файлов.
 COPY data ./data
+COPY scripts ./scripts
+COPY app ./app
 
-# Каталог для сертификатов Минцифры. В compose сюда монтируется ./certs.
-RUN mkdir -p /app/certs
-
-# Процесс не должен работать от root.
-RUN useradd --create-home --uid 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
@@ -43,10 +44,13 @@ FROM runtime AS dev
 
 USER root
 COPY requirements-dev.txt ./
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install -r requirements-dev.txt
 COPY pytest.ini ./
 COPY tests ./tests
-RUN chown -R appuser:appuser /app
 USER appuser
+
+# Код принадлежит root, и кэшу pytest писать некуда. Между прогонами в
+# одноразовом контейнере он всё равно не живёт — отключаем, а не чиним.
+ENV PYTEST_ADDOPTS="-p no:cacheprovider"
 
 CMD ["pytest"]

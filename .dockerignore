@@ -1,24 +1,15 @@
-# На случай сборки из корня репозитория.
-# Основной контекст сборки — backend/, у него свой .dockerignore.
+# Контекст сборки из корня репозитория — это образ фронтенда
+# (frontend/Dockerfile). Ему нужны только статика и конфигурации nginx,
+# поэтому список не запрещающий, а разрешающий: всё прочее — бэкенд,
+# .git, .env, certs/ с сертификатами — в контекст не попадает вовсе, даже
+# если появится в репозитории позже.
+#
+# У бэкенда контекст свой, backend/, и .dockerignore там тоже свой.
 
-.env
-.env.*
-!.env.example
+*
 
-.git/
-.gitignore
-.vs/
-.idea/
-.vscode/
+!frontend/
+!deploy/nginx/*.conf
 
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.venv/
-venv/
-
-node_modules/
-dist/
-build/
-
-*.log
+# Сам Dockerfile в статику не нужен: nginx отдал бы его как файл.
+frontend/Dockerfile

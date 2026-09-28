@@ -22,15 +22,18 @@
 
 ```
 .
-├── docker-compose.yml        запуск всех локальных компонентов
+├── docker-compose.yml        запуск всех локальных компонентов одной командой
 ├── docker-compose.prod.yml   запуск на сервере my-olymp.ru
-├── .env.example              шаблон переменных окружения
+├── .dockerignore             контекст образа фронтенда: только статика и nginx
+├── .env.example              шаблон переменных окружения, без секретов
 ├── certs/                    сертификаты Минцифры (в git не хранятся)
 ├── deploy/
-│   └── nginx/                TLS на 443, статика и прокси в бэкенд
+│   └── nginx/                local.conf — локально, my-olymp.ru.conf — TLS на 443
 ├── frontend/                 мини-приложение, отдаётся с того же домена
+│   └── Dockerfile            nginx со статикой и прокси в бэкенд
 └── backend/
     ├── Dockerfile            два образа: runtime и dev
+    ├── .dockerignore         контекст образа бэкенда
     ├── requirements.txt      зависимости времени выполнения
     ├── requirements-dev.txt  + инструменты разработки
     ├── app/
@@ -65,8 +68,9 @@
     ├── alembic.ini           настройка миграций
     ├── migrations/           версии схемы базы данных
     ├── data/                 выгрузки источников для воспроизводимой проверки
-    ├── scripts/              связь с MAX, вебхук, импорт, сквозная проверка
-    └── tests/                173 теста
+    ├── scripts/              связь с MAX, вебхук, импорт, сквозная проверка;
+    │                         seed.py наполняет пустой каталог при старте
+    └── tests/                295 тестов
 ```
 
 ### Два контура аутентификации
@@ -137,7 +141,8 @@ nginx из [`deploy/nginx/`](deploy/nginx/), а не приложение.
 
 Схему создаёт и обновляет Alembic — сервис применяет миграции сам при
 старте, до запуска HTTP-сервера. Так одна и та же команда поднимает и
-чистую базу, и уже существующую.
+чистую базу, и уже существующую. Следом `scripts.seed` наполняет каталог
+выгрузками из `backend/data/` — если он пуст; непустой не трогает.
 
 После изменения моделей:
 
@@ -180,11 +185,14 @@ docker compose run --rm backend alembic revision --autogenerate -m "что ме�
 
 ### Что нужно заранее
 
-* **Docker Desktop** — запускает всё остальное.
+* **Docker** с Compose v2 — Docker Desktop на Windows и macOS, Docker
+  Engine на Linux. Больше ничего ставить не нужно: Python, Postgres и
+  nginx приезжают в образах.
 * **Git** — требование к сдаче: нужен репозиторий с commit hash.
-* **Токен бота** — выдают организаторы хакатона.
-* **Сертификаты Минцифры** в `certs/` — см. [certs/README.md](certs/README.md).
-  Без них запросы к API MAX падают с ошибкой TLS.
+* Для работы бота, но не для запуска: **токен бота** — выдают
+  организаторы хакатона, — и **сертификаты Минцифры** в `certs/`, см.
+  [certs/README.md](certs/README.md). Без них запросы к API MAX падают с
+  ошибкой TLS.
 
 ### Одна команда
 
@@ -192,8 +200,21 @@ docker compose run --rm backend alembic revision --autogenerate -m "что ме�
 docker compose up --build
 ```
 
-Поднимаются Postgres и бэкенд. Перед первым запуском скопируйте
-`.env.example` в `.env` и заполните `BOT_TOKEN`.
+Поднимаются три сервиса:
+
+| Сервис    | Что это | Адрес |
+|-----------|---------|-------|
+| `db`      | Postgres 16 | `127.0.0.1:5432`, только для клиента БД |
+| `backend` | API и бот; при старте применяет миграции и наполняет пустой каталог | `http://localhost:8000` |
+| `web`     | nginx: мини-приложение и прокси `/api`, `/webhook`, `/health` в бэкенд | `http://localhost:8080` |
+
+Каталог олимпиад наполняется сам при первом старте из выгрузок в
+`backend/data/` — после `up` приложение сразу с данными, импортировать
+руками ничего не нужно.
+
+`.env` для запуска не обязателен: без него поднимается всё, только бот
+не знает своего токена. Для работы с MAX скопируйте шаблон и заполните
+`BOT_TOKEN`:
 
 ```bash
 cp .env.example .env
@@ -204,6 +225,22 @@ cp .env.example .env
 ```powershell
 Copy-Item .env.example .env
 ```
+
+### Docker-конфигурация
+
+| Файл | Назначение |
+|------|------------|
+| [`backend/Dockerfile`](backend/Dockerfile) | образ бэкенда: `runtime` — рабочий, `dev` — с pytest для тестов |
+| [`frontend/Dockerfile`](frontend/Dockerfile) | образ фронтенда: nginx со статикой мини-приложения |
+| [`docker-compose.yml`](docker-compose.yml) | все локальные компоненты одной командой |
+| [`docker-compose.prod.yml`](docker-compose.prod.yml) | сервер: те же образы плюс TLS и certbot |
+| [`.dockerignore`](.dockerignore), [`backend/.dockerignore`](backend/.dockerignore) | в контекст сборки не попадают `.env`, `certs/`, `.git` и прочее лишнее |
+| [`.env.example`](.env.example) | шаблон переменных, токены и пароли пустые |
+
+Сборка обоих образов с нуля занимает меньше минуты (замер — 16–30
+секунд без учёта загрузки базовых образов): зависимости ставятся
+готовыми колёсами, ничего не компилируется, слой с зависимостями
+кэшируется отдельно от кода.
 
 ### Остановка и повторный запуск
 
@@ -226,18 +263,18 @@ docker compose down -v
 docker compose restart backend
 ```
 
-Пересобрать после изменения зависимостей:
+Пересобрать после изменения кода или зависимостей:
 
 ```bash
-docker compose up --build backend
+docker compose up --build
 ```
 
 ### Запуск на сервере my-olymp.ru
 
-Локальный `docker-compose.yml` поднимает только Postgres и бэкенд: наружу
-он не смотрит и TLS не делает. Для сервера есть отдельный файл — он
-добавляет nginx с сертификатом, отдаёт статику мини-приложения и убирает
-порты бэкенда и базы с хоста:
+Локальный `docker-compose.yml` TLS не делает и слушает обычный HTTP. Для
+сервера есть отдельный файл — он собирает те же образы, но nginx
+получает сертификат Let's Encrypt и слушает 80 и 443, а порты бэкенда и
+базы с хоста убраны:
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
@@ -265,6 +302,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 | `LAUNCH_DATA_TTL`   | `86400`                        | предельный возраст `auth_date`, секунды           |
 | `CORS_ORIGINS`      | `https://my-olymp.ru`          | origin фронтенда через запятую                     |
 | `DATABASE_URL`      | задаётся в compose             | строка подключения к Postgres                     |
+| `POSTGRES_PASSWORD` | локально `app`                 | пароль базы; на сервере обязателен                |
 | `EXTRA_CA_CERTS_DIR`| `certs`                        | каталог с сертификатами Минцифры, путь от рабочего |
 | `APP_ENV`           | `development`                  | в `production` скрывается `/docs`                 |
 | `APP_TIMEZONE`      | `Europe/Moscow`                | в каком поясе считается «сегодня»                 |
@@ -280,14 +318,14 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 | Порт   | Сервис   | Переменная       | Примечание                                  |
 |--------|----------|------------------|---------------------------------------------|
-| `8000` | backend  | `BACKEND_PORT`   | HTTP внутри сети; в проде на хост не публикуется |
-| `5432` | Postgres | `POSTGRES_PORT`  | только для подключения клиентом БД              |
+| `8080` | web      | `WEB_PORT`       | локально: мини-приложение и API на одном адресе |
+| `8000` | backend  | `BACKEND_PORT`   | локально: бэкенд в обход nginx; в проде на хост не публикуется |
+| `5432` | Postgres | `POSTGRES_PORT`  | локально, только `127.0.0.1`: для клиента БД   |
 | `80`   | nginx    | —                | подтверждение домена и редирект на HTTPS (прод)  |
 | `443`  | nginx    | —                | HTTPS: мини-приложение и API (прод)             |
 
 Наружу MAX ходит по 443 — его обеспечивает nginx, а не приложение.
-В локальном `docker-compose.yml` nginx нет: там бэкенд слушает 8000
-напрямую.
+Локально тот же nginx слушает обычный HTTP на 8080.
 
 ## Зависимости
 
@@ -296,7 +334,9 @@ docker compose -f docker-compose.prod.yml up -d --build
 [`requirements-dev.txt`](backend/requirements-dev.txt) (тесты).
 
 FastAPI и uvicorn, pydantic и pydantic-settings, httpx и certifi,
-SQLAlchemy с asyncpg. Образ собирается из `python:3.12-slim`.
+SQLAlchemy с asyncpg. Образ бэкенда собирается из `python:3.12-slim`,
+фронтенда — из `nginx:1.30-alpine`; база — готовый `postgres:16-alpine`,
+certbot на сервере — `certbot/certbot:v5.8.0`.
 
 ## Внешние сервисы и интеграции
 
@@ -351,7 +391,8 @@ HTTPS-адрес с сертификатом доверенного центра
 этапов и ответов пользователя.
 
 Идентификатор пользователя записывается только после проверки подписи.
-Таблицы создаются автоматически при старте приложения.
+Таблицы создаются автоматически при старте приложения, каталог при
+первом старте наполняется из `backend/data/`.
 
 Персональные данные из внешних систем не обрабатываются.
 
@@ -403,14 +444,14 @@ olimpiada.ru, а база — по `id` из каталога. Соответс�
 
 ### Порядок работы с тестовыми данными
 
-Обе выгрузки лежат в `backend/data/` и едут в образе — проверка решения
-не требует ручного подкладывания файлов.
+Все выгрузки лежат в `backend/data/` и едут в образе — проверка решения
+не требует ручного подкладывания файлов. При первом старте бэкенд сам
+импортирует их в пустой каталог (`scripts.seed`). Обновить данные в уже
+наполненной базе — те же импорты по отдельности:
 
 ```bash
 docker compose run --rm backend python -m scripts.import_subjects
-```
-
-```bash
+docker compose run --rm backend python -m scripts.import_schedule
 docker compose run --rm backend python -m scripts.import_catalog
 ```
 
@@ -433,7 +474,9 @@ docker compose run --rm backend python -m scripts.import_catalog
 cp .env.example .env
 ```
 
-Заполните `BOT_TOKEN`, положите сертификаты в `certs/`.
+Заполните `BOT_TOKEN`, положите сертификаты в `certs/`. Шаги 2, 3, 5 и 7
+проходят и без этого, шагам 6 и 8 хватит любого непустого `BOT_TOKEN`:
+строку запуска подписывает и проверяет один и тот же токен.
 
 **2. Запуск**
 
@@ -441,11 +484,19 @@ cp .env.example .env
 docker compose up --build
 ```
 
+В логе бэкенда — применённые миграции и «Каталог пуст — импортируем
+выгрузки из data/» со счётчиками.
+
 **3. Живость сервиса**
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8080/health
 ```
+
+Тот же ответ и напрямую, в обход nginx: `http://localhost:8000/health`.
+Мини-приложение открывается на `http://localhost:8080/` — вне MAX у него
+нет строки запуска, поэтому данные в нём не загрузятся; API с подписью
+проверяется на шаге 6.
 
 Ожидается:
 
@@ -485,19 +536,17 @@ docker compose run --rm backend python -m scripts.make_launch_data --curl
 
 **7. Каталог олимпиад**
 
-```bash
-docker compose run --rm backend python -m scripts.import_subjects
-```
-
-Ожидается `subjects_created: 14`, `olympiads_created: 200`,
-`unique_olympiads: 61`.
+Наполняется сам при первом старте — в логе бэкенда:
 
 ```bash
-docker compose run --rm backend python -m scripts.import_catalog
+docker compose logs backend | grep data/
 ```
 
-Ожидается `olympiads_created: 20`, `stages_created: 97`. Дальше список
-доступен по `GET /api/catalog/olympiads`, детали — по
+Ожидается по выгрузкам: `subjects.sample.json` — `subjects_created: 14`,
+`olympiads_created: 166`; `olympiads_schedule.json` — 150 этапов у 62
+олимпиад; `olympiads.sample.json` — `olympiads_created: 20`,
+`stages_created: 97`. Дальше список доступен по
+`GET /api/catalog/olympiads`, детали — по
 `GET /api/catalog/olympiads/{id}`; оба требуют того же заголовка
 `Authorization: tma <initData>`.
 
@@ -516,7 +565,8 @@ docker compose run --rm backend python -m scripts.smoke_test
 
 В `PUBLIC_BASE_URL` уже стоит `https://my-olymp.ru`. Если проверяете на
 своей машине, подставьте туда адрес туннеля — MAX не доставит события на
-`localhost`. Затем:
+`localhost`. Туннель направляйте на порт 8080: там на одном адресе и
+вебхук, и мини-приложение. Затем:
 
 ```bash
 docker compose run --rm backend python -m scripts.setup_webhook

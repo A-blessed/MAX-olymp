@@ -107,7 +107,7 @@ class Settings(BaseSettings):
 
     # --- База данных ---
     database_url: str = Field(
-        default="postgresql+asyncpg://app:app@db:5433/app",
+        default="postgresql+asyncpg://app:app@db:5432/app",
     )
 
     # --- TLS ---
