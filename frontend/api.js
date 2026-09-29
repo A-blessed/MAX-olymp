@@ -24,7 +24,10 @@
   // указан целиком, а не относительным путём, чтобы копия страницы,
   // открытая с другого адреса (например, с GitHub Pages), всё равно
   // попадала в рабочий бэкенд.
-  const BASE_URL = "https://my-olymp.ru";
+  const PRODUCTION_URL = "https://my-olymp.ru";
+  const BASE_URL = window.location.hostname.endsWith(".github.io")
+    ? PRODUCTION_URL
+    : "";
 
   /**
    * Ошибка от бэкенда.
