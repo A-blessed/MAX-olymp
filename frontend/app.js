@@ -20,11 +20,6 @@ console.log(Api === window.Api); // должно быть true
 
 
 
-// За сколько дней до срока открывается окно этапа «до срока» (until).
-// Должно совпадать с UNTIL_WINDOW_DAYS в backend/app/personal/rules.py:
-// иначе полоса на сетке и окно, в котором сервер примет план, разойдутся.
-const UNTIL_WINDOW_DAYS = 14;
-
 // Состояние приложения
 const state = {
     view: 'grade-select',           // grade-select, subjects, subject-olympiads, olympiad-detail (search), olympiad-detail-mine, news, my-olympiads, calendar, calendar-day-detail
@@ -42,6 +37,7 @@ const state = {
     news: [],                       // кеш новостей для счётчика на таббаре
     newsExpanded: {},                // развернутые категории в блоке новостей
     newsBadgeVisible: true,          // показывать ли счётчик на таббаре «Новости»
+    failedOlympiadIds: new Set(),    // олимпиады, где нажали «Я не прошёл(а)»
     settings: {
         grade: null,
         notifications_enabled: true,
@@ -52,7 +48,7 @@ const state = {
     calendarEvents: [],            // нормализованные события текущего месяца (для окна дня)
     calendarDayItems: [],          // элементы открытого дня (для галочек)
     calendarUnplannedExact: new Set(), // exact-этапы, с которых пользователь вручную снял галочку
-    today: new Date(), // реальная текущая дата
+    today: new Date(), // 
 };
 
 // Резервный справочник предметов, пока основной не загрузился с бэкенда.
@@ -423,18 +419,25 @@ function stagesHTML(stages, showPlanActions = false, showPlanLabel = true) {
     }
 
     const today = new Date(state.today.getFullYear(), state.today.getMonth(), state.today.getDate());
+    const hasFailed = stages.some(st =>
+        st.status === 'failed' ||
+        (st.result || st.user_result) === 'failed'
+    );
 
     return stages.map(st => {
         const stageId = st.id || st.stage_id;
         const precision = stagePrecision(st);
         const plannedOn = parseDate(st.planned_on || st.plannedOn);
         const exactDate = parseDate(st.starts_on || st.start_stage || st.date || st.exact_date);
-        const stageWindowEnd = parseDate(st.window_end || st.end_stage || st.ends_on);
+        const stageEnd = parseDate(st.ends_on || st.end_stage || st.window_end);
         const planWindowEnd = parseDate(st.plan_window_end || st.planWindowEnd);
-        const windowClosed = (!!stageWindowEnd && stageWindowEnd < today) || (!!planWindowEnd && planWindowEnd < today);
+        const windowClosed = planWindowEnd
+            ? planWindowEnd < today
+            : (!!stageEnd && stageEnd < today);
         const result = st.result || st.user_result ||
             (st.status === 'passed' ? 'passed' : st.status === 'failed' ? 'failed' : '');
-        const blocked = st.status === 'blocked' || st.status === 'failed' || result === 'failed';
+        const failed = st.status === 'failed' || result === 'failed';
+        const blocked = hasFailed || st.status === 'blocked' || failed;
 
         const cls = ['stage', st.status || ''];
         if (blocked) cls.push('blocked');
@@ -452,8 +455,9 @@ function stagesHTML(stages, showPlanActions = false, showPlanLabel = true) {
             planLabel = 'Можно планировать';
         }
 
-        const showResultButtons = showPlanActions && windowClosed && stageId;
-        if (showResultButtons) planLabel = '';
+        if (windowClosed || hasFailed) planLabel = '';
+
+        const showResultButtons = showPlanActions && (windowClosed || !!result) && stageId;
 
         return `
             <div class="${cls.join(' ')}">
@@ -488,7 +492,7 @@ function organizersHTML(organizers) {
         <div class="detail-block">
             <h4>Организаторы</h4>
             <div class="orgs">
-                ${list.map((org, index) => {
+                ${list.slice(0, 1).map((org, index) => {
                     const name = typeof org === 'string' ? org : (org.name || org.full_name || org.title || '');
                     const role = typeof org === 'string' ? '' : (org.role || org.type || org.role_name || '');
                     const logo = String(index + 1);
@@ -561,8 +565,7 @@ function renderNewsContent() {
         { key: 'urgent', label: 'Срочно', color: 'var(--danger)' },
         { key: 'soon', label: 'Скоро', color: 'var(--warn)' },
         { key: 'later', label: 'Позже', color: 'var(--max-blue)' },
-        { key: 'awaiting_answer', label: 'Ожидает ответа от тебя', color: 'var(--max-primary)' },
-        { key: 'finished', label: 'Завершено', color: 'var(--grey-stage)' }
+        { key: 'awaiting_answer', label: 'Ожидает ответа от тебя', color: 'var(--max-primary)' }
     ];
 
     contentEl.innerHTML = categories.map(cat => {
@@ -591,18 +594,6 @@ function renderNewsContent() {
                         <span class="n">0</span>
                     </div>
                     <div class="news-empty">Здесь пока пусто</div>
-                </div>
-            `;
-        }
-
-        if (cat.key === 'finished') {
-            return `
-                <div class="news-group">
-                <div class="news-head">
-                <h4 style="color:${cat.color}">${cat.label}</h4>
-                <span class="n">${items.length}</span>
-                <svg class="chev" width="17" height="17"><use href="#i-chev"/></svg>
-                </div>
                 </div>
             `;
         }
@@ -682,6 +673,11 @@ function renderMyOlympiadList(filter = '') {
 
     myOlympiadsData = sortOlympiadList(myOlympiadsData);
 
+    myOlympiadsData = [
+        ...myOlympiadsData.filter(o => !state.failedOlympiadIds.has(Number(o.id))),
+        ...myOlympiadsData.filter(o => state.failedOlympiadIds.has(Number(o.id)))
+    ];
+
     contentEl.innerHTML = `
         <div class="sort-row">
             <button class="sort-btn active" data-action="open-sort-my">${iconLink('i-sort', 15)} сортировка${iconLink('i-down', 14)}</button>
@@ -700,8 +696,9 @@ function renderMyOlympiadList(filter = '') {
             </div>
         ` : myOlympiadsData.map(o => {
             const subject = subjectById(o.subject_id);
+            const failed = state.failedOlympiadIds.has(Number(o.id));
             return `
-                <div class="card" data-olympiad-id="${o.id}" data-from-mine="true">
+                <div class="card ${failed ? 'failed-card' : ''}" data-olympiad-id="${o.id}" data-from-mine="true">
                     ${dot(subject)}
                     <div class="c-body">
                         <div class="c-top">
@@ -906,7 +903,7 @@ function isEventOnDate(ev, date) {
     if (precision === 'until') {
         const end = parseDate(ev.end_stage);
         if (!end) return false;
-        const start = addDays(end, -UNTIL_WINDOW_DAYS);
+        const start = addDays(end, -14);
         return day >= start && day <= end;
     }
 
@@ -1145,7 +1142,7 @@ function buildLanesForMonth(events, weeks) {
         } else if (precision === 'until') {
             const end = parseDate(ev.end_stage);
             if (!end) return;
-            const start = addDays(end, -UNTIL_WINDOW_DAYS);
+            const start = addDays(end, -14);
             pushRangeLane(lanesByWeek, weeks, { subject, color, start, end, type: 'until' });
         }
         // precision === 'unknown' — полос не рисуем, но метки planned_on учитываем ниже.
@@ -1683,6 +1680,11 @@ document.addEventListener('click', async function (e) {
             }
             const oid = state.selectedOlympiad && state.selectedOlympiad.id;
             if (oid) {
+                if (action === 'stage-failed') {
+                    state.failedOlympiadIds.add(Number(oid));
+                } else if (action === 'stage-passed') {
+                    state.failedOlympiadIds.delete(Number(oid));
+                }
                 const opts = state.olympiadDetailOptions || { useMyData: true, activeTab: 'my', backView: 'my-olympiads' };
                 renderOlympiadDetail(oid, opts);
             }

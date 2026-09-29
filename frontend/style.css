@@ -57,6 +57,12 @@ body{font-family:var(--font);background:var(--bg-app);color:var(--text-1);-webki
 .card.day-check .cb-side{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto;}
 .card.day-check .cb{flex:0 0 auto;margin-left:0;margin-top:0;}
 .planned-other-date{font-size:11px;font-weight:650;color:var(--text-3);}
+.card.failed-card{opacity:.55;}
+.card.failed-card .dot-c,
+.card.failed-card .c-title,
+.card.failed-card .c-sub,
+.card.failed-card .c-text,
+.card.failed-card .badge{filter:grayscale(1);}
 .card.day-check.taken{opacity:.55;}
 .card.day-check.taken .c-title,
 .card.day-check.taken .c-sub,
