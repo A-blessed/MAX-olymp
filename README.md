@@ -256,7 +256,7 @@ python -m scripts.send_reminders --user <id> --date 2026-10-14 --force
 
 ---
 
-## Запуск (ПРАВКИ)
+## Запуск 
 
 ### Что нужно заранее
 
@@ -291,6 +291,7 @@ cp .env.example .env
 ```powershell
 Copy-Item .env.example .env
 ```
+Подробнее о запуске в разделе "Пошаговый сценарий проверки"
 
 ### Docker-конфигурация
 
@@ -331,7 +332,7 @@ docker compose restart backend
 docker compose up --build
 ```
 
-### Запуск на сервере my-olymp.ru
+### Запуск на сервере
 
 Локальный `docker-compose.yml` TLS не делает и слушает обычный HTTP. Для сервера есть отдельный файл — он собирает те же образы, но nginx получает сертификат Let's Encrypt и слушает 80 и 443, а порты бэкенда и базы с хоста убраны:
 
