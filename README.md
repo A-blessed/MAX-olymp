@@ -486,10 +486,9 @@ docker compose run --rm backend python -m scripts.import_catalog
 
 ---
 
-## Пошаговый сценарий проверки (ПРАВКИ)
+## Пошаговый сценарий проверки 
 
-**1. Подготовка**
-Проверка интерфейса локально без MAX
+**1. Проверка интерфейса локально без MAX**
 1. Скопируйте .env.example в .env. Укажите тестовое значение:
 
 BOT_TOKEN=local-test-token-not-for-max
