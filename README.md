@@ -482,22 +482,38 @@ docker compose run --rm backend python -m scripts.import_catalog
 ## Пошаговый сценарий проверки (ПРАВКИ)
 
 **1. Подготовка**
+Проверка интерфейса локально без MAX
+1. Скопируйте .env.example в .env. Укажите тестовое значение:
+
+BOT_TOKEN=local-test-token-not-for-max
+Это не действующий токен MAX. Он используется только для подписи и проверки локальных тестовых данных.
+
+2. Запустите приложение:
 
 ```bash
-cp .env.example .env
+docker compose up -d --build
 ```
 
-Заполните `BOT_TOKEN`, положите сертификаты в `certs/`. Шаги 2, 3, 5 и 7 проходят и без этого, шагам 6 и 8 хватит любого непустого `BOT_TOKEN`: строку запуска подписывает и проверяет один и тот же токен.
-
-**2. Запуск**
+3. Сгенерируйте данные авторизации:
 
 ```bash
-docker compose up --build
+docker compose run --rm backend python -m scripts.make_launch_data --curl
 ```
 
-В логе бэкенда — применённые миграции и «Каталог пуст — импортируем выгрузки из data/» со счётчиками.
+4. Откройте http://localhost:8080. В консоли разработчика браузера выполните:
 
-**3. Живость сервиса**
+js
+sessionStorage.setItem(
+  "localInitData",
+  "СТРОКА_ИЗ_КОМАНДЫ_ОТ_auth_date=_ДО_КОНЦА_hash"
+);
+location.reload();
+Скопируйте строку без префикса Authorization: tma , сохранив URL-кодирование.
+
+Интерфейс работает от имени тестового пользователя. Доступны локальные функции приложения; настоящие сообщения бота и интеграция с MAX проверяются в действующем мини-приложении.
+
+
+**2. Живость сервиса**
 
 ```bash
 curl http://localhost:8080/health
@@ -511,15 +527,7 @@ curl http://localhost:8080/health
 {"status":"ok","env":"development","bot_configured":true,"webhook_secret_set":true}
 ```
 
-**4. Связь с API MAX**
-
-```bash
-docker compose run --rm backend python -m scripts.check_connection
-```
-
-Скрипт печатает подхваченные сертификаты и ответ `GET /me`. Здесь же видно ник бота — его стоит прописать в `BOT_USERNAME`.
-
-**5. Тесты**
+**3. Тесты**
 
 ```bash
 docker compose --profile test run --rm tests
@@ -527,17 +535,8 @@ docker compose --profile test run --rm tests
 
 Проверяются валидные данные запуска, подделанный идентификатор, чужой токен, просроченный `auth_date`, дубликат параметра, а также соответствие разбора официальному примеру из документации и соблюдение лимита отправки.
 
-**6. API мини-приложения без самого MAX**
 
-Генератор подписывает строку запуска вашим токеном, поэтому сервер принимает её как настоящую:
-
-```bash
-docker compose run --rm backend python -m scripts.make_launch_data --curl
-```
-
-Выполните напечатанную команду — `GET /api/me` вернёт профиль.
-
-**7. Каталог олимпиад**
+**4. Каталог олимпиад**
 
 Наполняется сам при первом старте — в логе бэкенда:
 
@@ -547,7 +546,7 @@ docker compose logs backend | grep data/
 
 Ожидается по выгрузкам: `subjects.sample.json` — `subjects_created: 14`, `olympiads_created: 166`; `olympiads_schedule.json` — 150 этапов у 62 олимпиад; `olympiads.sample.json` — `olympiads_created: 20`, `stages_created: 97`. Дальше список доступен по `GET /api/catalog/olympiads`, детали — по `GET /api/catalog/olympiads/{id}`; оба требуют того же заголовка `Authorization: tma <initData>`. Без расписания `GET /api/me/calendar` отдаёт пустой `entries` при любых сохранённых олимпиадах.
 
-**8. Пользовательский сценарий целиком**
+**5. Пользовательский сценарий целиком**
 
 ```bash
 docker compose run --rm backend python -m scripts.smoke_test
@@ -555,7 +554,7 @@ docker compose run --rm backend python -m scripts.smoke_test
 
 Скрипт проходит механику от лица тестового пользователя: «Буду писать», планы в календаре, лимит трёх олимпиад в день, ответ «не прошёл» с блокировкой следующих этапов, новости, настройки и удаление. Ожидается `провалено 0`. Данные тестового пользователя удаляются после прогона.
 
-**9. Вебхук**
+**6. Вебхук**
 
 В `PUBLIC_BASE_URL` уже стоит `https://my-olymp.ru`. Если проверяете на своей машине, подставьте туда адрес туннеля — MAX не доставит события на `localhost`. Туннель направляйте на порт 8080: там на одном адресе и вебхук, и мини-приложение. Затем:
 
@@ -565,41 +564,6 @@ docker compose run --rm backend python -m scripts.setup_webhook
 
 Напишите боту в MAX — в логах `docker compose logs -f backend` появится событие, а бот ответит в чат.
 
-**10. Проверка интерфейса локально без MAX**
-
-1. Скопируйте `.env.example` в `.env`. Укажите тестовое значение:
-
-   ```
-   BOT_TOKEN=local-test-token-not-for-max
-   ```
-
-   Это не действующий токен MAX. Он используется только для подписи и проверки локальных тестовых данных.
-
-2. Запустите приложение:
-
-   ```bash
-   docker compose up -d --build
-   ```
-
-3. Сгенерируйте данные авторизации:
-
-   ```bash
-   docker compose run --rm backend python -m scripts.make_launch_data --curl
-   ```
-
-4. Откройте `http://localhost:8080`. В консоли разработчика браузера выполните:
-
-   ```js
-   sessionStorage.setItem(
-     "localInitData",
-     "СТРОКА_ИЗ_КОМАНДЫ_ОТ_auth_date=_ДО_КОНЦА_hash"
-   );
-   location.reload();
-   ```
-
-   Скопируйте строку без префикса `Authorization: tma `, сохранив URL-кодирование.
-
-Интерфейс работает от имени тестового пользователя. Доступны локальные функции приложения; настоящие сообщения бота и интеграция с MAX проверяются в действующем мини-приложении.
 
 ## Примеры ожидаемого поведения
 
