@@ -508,12 +508,14 @@ docker compose run --rm backend python -m scripts.make_launch_data --curl
 
 4. Откройте http://localhost:8080. В консоли разработчика браузера выполните:
 
-js
+Выполните js:
+
 sessionStorage.setItem(
   "localInitData",
   "СТРОКА_ИЗ_КОМАНДЫ_ОТ_auth_date=_ДО_КОНЦА_hash"
 );
 location.reload();
+
 Скопируйте строку без префикса Authorization: tma , сохранив URL-кодирование.
 
 Интерфейс работает от имени тестового пользователя. Доступны локальные функции приложения; настоящие сообщения бота и интеграция с MAX проверяются в действующем мини-приложении.
